@@ -1,12 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { TopBar } from '@/components/TopBar';
+import { AlertTicker } from '@/components/AlertTicker';
+import { LeftSidebar } from '@/components/LeftSidebar';
+import { CrisisMap } from '@/components/CrisisMap';
+import { RightPanel } from '@/components/RightPanel';
+import { StatusBar } from '@/components/StatusBar';
 
 const Index = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+  const [activeRegion, setActiveRegion] = useState('lebanon');
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="h-screen w-screen flex flex-col overflow-hidden grid-bg">
+      <div className="scanline-overlay" />
+      <TopBar
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        activeRegion={activeRegion}
+        onRegionChange={setActiveRegion}
+      />
+      <AlertTicker />
+      <div className="flex-1 flex overflow-hidden">
+        <LeftSidebar isOpen={sidebarOpen} />
+        <main className="flex-1 relative">
+          <CrisisMap />
+        </main>
+        <RightPanel isOpen={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
       </div>
+      <StatusBar />
     </div>
   );
 };
