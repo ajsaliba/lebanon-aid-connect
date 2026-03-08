@@ -53,6 +53,7 @@ function MapController() {
 }
 
 export function CrisisMap() {
+  const { news } = useNewsFeedContext();
   const [layers, setLayers] = useState<LayerToggle>({
     airstrikes: true,
     shelters: true,
@@ -65,7 +66,7 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const geoNews = mockNews.filter(n => n.lat && n.lng);
+  const geoNews = news.filter(n => n.lat && n.lng);
 
   return (
     <div className="relative w-full h-full">
