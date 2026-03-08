@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { computeHotspotScores, HOTSPOTS } from '@/config/hotspots';
 import { type NewsItem } from '@/data/mockData';
 
-const makeArticle = (title: string, severity = 'medium'): NewsItem => ({
+const makeArticle = (title: string, severity: 'high' | 'elevated' | 'monitoring' = 'elevated'): NewsItem => ({
   id: Math.random().toString(), title, summary: '', source: 'Test',
   category: 'conflict', severity, publishedAt: new Date().toISOString(), url: '',
 });

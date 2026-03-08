@@ -4,7 +4,7 @@ import { type NewsItem } from '@/data/mockData';
 
 const makeArticle = (id: string, title: string, source: string): NewsItem => ({
   id, title, source,
-  summary: '', category: 'conflict', severity: 'medium',
+  summary: '', category: 'conflict', severity: 'elevated',
   publishedAt: new Date().toISOString(), url: '',
 });
 
