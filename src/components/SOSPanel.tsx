@@ -143,11 +143,12 @@ export function SOSPanel() {
 
   // Share location via WhatsApp or native share
   const shareLocationWhatsApp = () => {
-    if (!position) { refreshGeo(); return; }
+    if (!position) { refreshGeo(); toast({ title: 'Getting location...', description: 'Please allow location access and try again.' }); return; }
     const text = encodeURIComponent(
       `🆘 EMERGENCY — I need help!\n📍 https://www.google.com/maps?q=${position.lat},${position.lng}\n⏰ ${new Date().toLocaleString()}`
     );
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    const url = `https://wa.me/?text=${text}`;
+    try { window.open(url, '_blank', 'noopener'); } catch { window.location.href = url; }
   };
 
   const toggleNeed = (need: string) => {
