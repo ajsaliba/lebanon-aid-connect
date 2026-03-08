@@ -20,6 +20,13 @@ const categoryStyles = {
   infrastructure: 'text-info',
 };
 
+const categoryBorderStyles = {
+  conflict: 'border-l-danger',
+  humanitarian: 'border-l-success',
+  political: 'border-l-warning',
+  infrastructure: 'border-l-info',
+};
+
 const timeFilters = ['1h', '6h', '24h', '48h', '7d'] as const;
 
 function getTimeFilterMs(filter: string): number {
