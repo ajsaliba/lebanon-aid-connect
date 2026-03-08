@@ -65,7 +65,7 @@ export function useThreatClassification(news: NewsItem[]) {
         }
 
         // Success — reset backoff
-        backoffRef.current = 10000;
+        backoffRef.current = 30000;
 
         const data = await res.json();
         if (data.classifications) {
