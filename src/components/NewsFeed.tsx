@@ -94,9 +94,12 @@ function getSearchSuggestions(news: Array<{ title: string }>, query: string, max
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch } = useNewsFeedContext();
   const [search, setSearch] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeTime, setActiveTime] = useState<string>('All');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const suggestions = useMemo(() => getSearchSuggestions(news, search), [news, search]);
 
   const trending = useMemo(() => extractTrendingKeywords(news), [news]);
 
