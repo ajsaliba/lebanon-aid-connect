@@ -371,13 +371,18 @@ Deno.serve(async (req) => {
       console.log(`Persisted ${dbRows.length} articles to database`);
     }
 
-    return new Response(JSON.stringify({
+    const responseBody = JSON.stringify({
       news: deduped,
       fetchedAt: new Date().toISOString(),
       sourcesQueried: RSS_FEEDS.length,
       totalItems: deduped.length,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+    // Cache the response
+    cachedResponse = { data: responseBody, timestamp: Date.now() };
+
+    return new Response(responseBody, {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'MISS' },
     });
   } catch (err) {
     console.error('RSS feed error:', err);
