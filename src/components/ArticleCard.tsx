@@ -121,7 +121,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({
-  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle, duplicateOf,
+  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle, duplicateOf, threatClassification,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: ArticleCardProps) {
   const { toast } = useToast();
