@@ -175,35 +175,7 @@ export function CrisisMap() {
           </CircleMarker>
         ))}
 
-        {layers.shelters && dbShelters.map((shelter) => (
-          <Marker key={shelter.id} position={[shelter.lat, shelter.lng]} icon={shelterIcon}>
-            <Popup>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{shelter.name}</div>
-                <div className="text-muted-foreground">{shelter.address}</div>
-                <div>Capacity: {shelter.currentOccupancy}/{shelter.capacity}</div>
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                  shelter.status === 'open' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                }`}>
-                  {shelter.status}
-                </span>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {layers.housing && dbHousing.map((house) => (
-          <Marker key={house.id} position={[house.lat, house.lng]} icon={housingIcon}>
-            <Popup>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{house.title}</div>
-                <div className="text-muted-foreground">{house.address}</div>
-                <div>${house.price}/month • {house.bedrooms}BR</div>
-                <div className="text-muted-foreground">{house.contact}</div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        <HumanitarianLayer showSos={layers.sos} showShelters={layers.shelters} showHousing={layers.housing} />
 
         {layers.news && otherNews.map((item) => (
           <Marker key={item.id} position={[item.lat!, item.lng!]} icon={newsIcon}>
