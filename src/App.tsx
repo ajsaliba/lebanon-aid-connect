@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NewsFeedProvider } from "@/contexts/NewsFeedContext";
 import { NotificationCenterProvider } from "@/contexts/NotificationCenterContext";
+import { CommandPalette } from "@/components/CommandPalette";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -17,6 +18,7 @@ const App = () => (
         <NotificationCenterProvider>
           <Toaster />
           <Sonner />
+          <CommandPalette />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
