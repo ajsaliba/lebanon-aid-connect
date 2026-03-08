@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { type NewsItem } from '@/data/mockData';
-import { Bookmark, BookmarkCheck, ListPlus, ListChecks, Share2, Copy, Clock, ExternalLink, Languages } from 'lucide-react';
+import { Bookmark, BookmarkCheck, ListPlus, ListChecks, Share2, Copy, Clock, ExternalLink, Languages, BookOpen, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { estimateReadTime, shareArticle } from '@/hooks/useArticleActions';
 import { useToast } from '@/hooks/use-toast';
 import { type CardStyle } from '@/hooks/useFeedSettings';
+import { findGlossaryTerms } from '@/lib/glossary';
+import { fleschKincaidGrade, readingLevelLabel } from '@/lib/readingLevel';
 
 const severityStyles = {
   high: 'bg-danger/15 text-danger border-danger/30',
@@ -28,6 +31,51 @@ const categoryBorderStyles = {
   political: 'border-l-warning',
   infrastructure: 'border-l-info',
 };
+
+// Render text with glossary tooltips
+function GlossaryText({ text, query }: { text: string; query: string }) {
+  const terms = useMemo(() => findGlossaryTerms(text), [text]);
+
+  if (terms.length === 0) {
+    return <HighlightedText text={text} query={query} />;
+  }
+
+  const parts: Array<{ text: string; definition?: string }> = [];
+  let lastIndex = 0;
+
+  for (const t of terms) {
+    if (t.index > lastIndex) {
+      parts.push({ text: text.slice(lastIndex, t.index) });
+    }
+    parts.push({ text: text.slice(t.index, t.index + t.term.length), definition: t.definition });
+    lastIndex = t.index + t.term.length;
+  }
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex) });
+  }
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.definition ? (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <span className="border-b border-dashed border-primary/50 cursor-help">
+                <HighlightedText text={part.text} query={query} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[250px] text-[10px] leading-relaxed">
+              <p className="font-bold text-primary mb-0.5">{part.text}</p>
+              <p>{part.definition}</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <HighlightedText key={i} text={part.text} query={query} />
+        )
+      )}
+    </>
+  );
+}
 
 function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query || query.length < 2) return <>{text}</>;
@@ -57,6 +105,7 @@ interface ArticleCardProps {
   isRead: boolean;
   isFocused: boolean;
   cardStyle: CardStyle;
+  duplicateOf?: string[];
   onToggleBookmark: (id: string) => void;
   onToggleReadingList: (id: string) => void;
   onCategoryClick: (cat: string) => void;
@@ -65,7 +114,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({
-  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle,
+  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle, duplicateOf,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: ArticleCardProps) {
   const { toast } = useToast();
@@ -77,6 +126,12 @@ export function ArticleCard({
   const cleanTitle = translatedTitle || sanitizeFeedText(item.title);
   const cleanSummary = translatedSummary || sanitizeFeedText(item.summary);
   const readTime = estimateReadTime(`${cleanTitle} ${cleanSummary}`);
+
+  // Reading level
+  const readingLevel = useMemo(() => {
+    const grade = fleschKincaidGrade(`${cleanTitle}. ${cleanSummary}`);
+    return { grade, ...readingLevelLabel(grade) };
+  }, [cleanTitle, cleanSummary]);
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -206,6 +261,32 @@ export function ArticleCard({
       </span>
       <span className="text-muted-foreground">•</span>
       <span className="text-muted-foreground">{readTime} min read</span>
+      <span className="text-muted-foreground">•</span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={cn('flex items-center gap-0.5 cursor-help', readingLevel.color)}>
+            <BookOpen className="h-2.5 w-2.5" />{readingLevel.label}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-[10px]">
+          Flesch-Kincaid Grade: {readingLevel.grade}
+        </TooltipContent>
+      </Tooltip>
+      {duplicateOf && duplicateOf.length > 0 && (
+        <>
+          <span className="text-muted-foreground">•</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-0.5 text-warning cursor-help">
+                <Layers className="h-2.5 w-2.5" />{duplicateOf.length + 1} sources
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[10px]">
+              This story is also covered by {duplicateOf.length} other source{duplicateOf.length > 1 ? 's' : ''}
+            </TooltipContent>
+          </Tooltip>
+        </>
+      )}
       {currentLang && (
         <>
           <span className="text-muted-foreground">•</span>
@@ -233,8 +314,16 @@ export function ArticleCard({
           'bg-info': item.category === 'infrastructure',
         })} />
         <span className="font-semibold text-foreground text-xs flex-1 truncate">
-          <HighlightedText text={cleanTitle} query={search} />
+          <GlossaryText text={cleanTitle} query={search} />
         </span>
+        {duplicateOf && duplicateOf.length > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-warning shrink-0"><Layers className="h-2.5 w-2.5" /></span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[10px]">{duplicateOf.length + 1} sources</TooltipContent>
+          </Tooltip>
+        )}
         <span className="text-[9px] text-muted-foreground shrink-0">{timeAgo(item.publishedAt)}</span>
         <ActionButtons />
       </article>
@@ -256,13 +345,17 @@ export function ArticleCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground text-xs leading-tight truncate">
-              <HighlightedText text={cleanTitle} query={search} />
+              <GlossaryText text={cleanTitle} query={search} />
             </h3>
             <div className="flex items-center gap-2 mt-0.5 text-[9px] text-muted-foreground">
               <span className={cn('uppercase font-bold', categoryStyles[item.category])}>{item.category}</span>
               <span>{item.source}</span>
               <span>{timeAgo(item.publishedAt)}</span>
               <span>{readTime}m</span>
+              <span className={readingLevel.color}>{readingLevel.label}</span>
+              {duplicateOf && duplicateOf.length > 0 && (
+                <span className="text-warning flex items-center gap-0.5"><Layers className="h-2 w-2" />{duplicateOf.length + 1}</span>
+              )}
             </div>
           </div>
           <ActionButtons />
@@ -285,14 +378,14 @@ export function ArticleCard({
     >
       <div className="flex items-start justify-between gap-1">
         <h3 className="font-sans font-semibold text-foreground text-xs leading-tight flex-1">
-          <HighlightedText text={cleanTitle} query={search} />
+          <GlossaryText text={cleanTitle} query={search} />
         </h3>
         <ActionButtons />
       </div>
 
       {search && cleanSummary && cleanSummary.toLowerCase().includes(search.toLowerCase()) && (
         <p className="text-muted-foreground text-[10px] mt-0.5 line-clamp-2">
-          <HighlightedText text={cleanSummary.slice(0, 150)} query={search} />
+          <GlossaryText text={cleanSummary.slice(0, 150)} query={search} />
         </p>
       )}
 
