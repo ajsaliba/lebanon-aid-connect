@@ -179,12 +179,13 @@ export function ShelterPanel() {
               <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader><DialogTitle className="text-sm">{editShelter ? 'Edit Shelter' : 'Add Shelter'}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Name *</Label><Input name="name" required className="h-7 text-xs" defaultValue={editShelter?.name || ''} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Address *</Label><Input name="address" required className="h-7 text-xs" defaultValue={editShelter?.address || ''} /></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1"><Label className="text-xs">Latitude *</Label><Input name="lat" type="number" step="any" required className="h-7 text-xs" defaultValue={editShelter?.lat || ''} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Longitude *</Label><Input name="lng" type="number" step="any" required className="h-7 text-xs" defaultValue={editShelter?.lng || ''} /></div>
-                  </div>
+                  <div className="space-y-1"><Label className="text-xs">Shelter Name *</Label><Input name="name" required className="h-7 text-xs" placeholder="e.g. Beirut Community Center" defaultValue={editShelter?.name || ''} /></div>
+                  <LocationPicker
+                    defaultAddress={editShelter?.address}
+                    defaultLat={editShelter?.lat}
+                    defaultLng={editShelter?.lng}
+                    onSelect={(addr, lat, lng) => { setFormAddress(addr); setFormLat(lat); setFormLng(lng); }}
+                  />
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1"><Label className="text-xs">Capacity *</Label><Input name="capacity" type="number" required className="h-7 text-xs" defaultValue={editShelter?.capacity || ''} /></div>
                     <div className="space-y-1"><Label className="text-xs">Occupancy</Label><Input name="occupancy" type="number" className="h-7 text-xs" defaultValue={editShelter?.currentOccupancy || ''} /></div>
