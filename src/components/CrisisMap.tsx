@@ -173,6 +173,7 @@ export function CrisisMap() {
 
         {/* Hotspot escalation zones */}
         <HotspotLayer news={news} visible={layers.hotspots} />
+        <InfrastructureLayer news={news} visible={layers.infrastructure} />
 
         {layers.airstrikes && conflictEvents.map((event) => (
           <CircleMarker
