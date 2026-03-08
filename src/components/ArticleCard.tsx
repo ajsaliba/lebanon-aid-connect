@@ -313,7 +313,7 @@ export function ArticleCard({
           'bg-warning': item.category === 'political',
           'bg-info': item.category === 'infrastructure',
         })} />
-        <span className="font-semibold text-foreground text-xs flex-1 truncate">
+        <span className="font-semibold text-foreground text-sm flex-1 truncate">
           <GlossaryText text={cleanTitle} query={search} />
         </span>
         {duplicateOf && duplicateOf.length > 0 && (
