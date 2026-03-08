@@ -200,7 +200,7 @@ export function CrisisMap() {
 
       {/* Live indicator */}
       {isLive && (
-        <div className="absolute top-3 left-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
+        <div className="absolute top-3 left-12 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
           <span className="text-[10px] font-bold text-danger uppercase">Live</span>
           {lastUpdated && (
