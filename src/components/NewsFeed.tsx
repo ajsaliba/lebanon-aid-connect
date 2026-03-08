@@ -35,7 +35,7 @@ function getTimeFilterMs(filter: string): number {
 export function NewsFeed() {
   const { news, isLoading, isLive } = useNewsFeedContext();
   const [search, setSearch] = useState('');
-  const [activeTime, setActiveTime] = useState<string>('24h');
+  const [activeTime, setActiveTime] = useState<string>('7d');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const filtered = news.filter(n => {
