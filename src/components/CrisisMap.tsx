@@ -11,6 +11,7 @@ import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
 import { EscalationPanel } from '@/components/map/EscalationTimeline';
 import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
+import { HumanitarianLayer } from '@/components/map/HumanitarianLayer';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 
 // Fix default marker icon
