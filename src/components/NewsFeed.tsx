@@ -144,10 +144,10 @@ export function NewsFeed() {
               onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
             >
               <div className="flex items-start justify-between gap-1">
-                <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{item.title}</h3>
+              <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{stripHtml(item.title)}</h3>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mt-1 leading-relaxed">{item.summary}</p>
+              <p className="text-muted-foreground mt-1 leading-relaxed">{stripHtml(item.summary)}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={cn('uppercase font-bold text-[9px]', categoryStyles[item.category])}>
                   {item.category}
