@@ -342,7 +342,7 @@ export function NewsFeed() {
       <div className="p-3 border-b border-border space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
+            <h2 className="text-sm font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
             {isLive ? (
               <span className="flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
