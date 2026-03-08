@@ -27,16 +27,35 @@ interface NewsItem {
 
 // ── Core News Feeds (Middle East war 2026 focused) ──
 const CORE_FEEDS: FeedSource[] = [
-  { name: 'aljazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera' },
+  { name: 'aljazeera_en', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera EN' },
+  { name: 'aljazeera_ar', url: 'https://www.aljazeera.net/feed/all', sourceLabel: 'الجزيرة' },
   { name: 'france24_me', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
+  { name: 'france24_ar', url: 'https://www.france24.com/ar/rss', sourceLabel: 'فرانس 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
-  { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC' },
+  { name: 'bbc_me', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC ME' },
+  { name: 'bbc_ar_me', url: 'https://feeds.bbci.co.uk/arabic/middleeast/rss.xml', sourceLabel: 'BBC عربي' },
+  { name: 'bbc_ar', url: 'https://feeds.bbci.co.uk/arabic/rss.xml', sourceLabel: 'BBC Arabic' },
   { name: 'mtv', url: 'https://www.mtv.com.lb/RSS/AllNews', sourceLabel: 'MTV Lebanon' },
   { name: 'lbci', url: 'https://www.lbcgroup.tv/feed/rss/news/en', sourceLabel: 'LBCI' },
+  { name: 'lbci_latest', url: 'https://www.lbcgroup.tv/feed/rss/latest/en', sourceLabel: 'LBC Latest' },
+  { name: 'lbci_war', url: 'https://news.google.com/rss/search?q=site:lbcgroup.tv+war+OR+conflict+OR+airstrike+2026&hl=en&gl=US&ceid=US:en', sourceLabel: 'LBC War' },
   { name: 'naharnet', url: 'http://www.naharnet.com/stories/en/rss.xml', sourceLabel: 'Naharnet' },
   { name: 'dailystar', url: 'https://www.dailystar.com.lb/RSS.aspx', sourceLabel: 'Daily Star' },
   { name: 'alarabiya', url: 'https://english.alarabiya.net/tools/rss', sourceLabel: 'Al Arabiya' },
   { name: 'arabnews', url: 'https://www.arabnews.com/rss.xml', sourceLabel: 'Arab News' },
+  { name: 'the961', url: 'https://www.the961.com/feed/', sourceLabel: 'The961' },
+  { name: 'almanar', url: 'https://english.almanar.com.lb/rss', sourceLabel: 'Al Manar' },
+  { name: 'newarab', url: 'https://www.newarab.com/rss', sourceLabel: 'The New Arab' },
+  { name: 'alquds', url: 'https://www.alquds.co.uk/feed/', sourceLabel: 'القدس العربي' },
+  { name: 'guardian_me', url: 'https://www.theguardian.com/world/middleeast/rss', sourceLabel: 'Guardian ME' },
+  { name: 'skynews_ar', url: 'https://www.skynewsarabia.com/web/rss', sourceLabel: 'سكاي نيوز عربية' },
+  { name: 'almonitor', url: 'https://www.al-monitor.com/rss', sourceLabel: 'Al-Monitor' },
+  { name: 'dw_ar', url: 'https://rss.dw.com/xml/rss-ar-all', sourceLabel: 'DW عربي' },
+  { name: 'foreignpolicy', url: 'https://foreignpolicy.com/feed/', sourceLabel: 'Foreign Policy' },
+  { name: 'lebforces', url: 'https://www.lebanese-forces.com/feed/', sourceLabel: 'Lebanese Forces' },
+  { name: 'asharq', url: 'https://www.aawsat.com/feed/rss2', sourceLabel: 'الشرق الأوسط' },
+  { name: 'jpost', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', sourceLabel: 'JPost' },
+  { name: 'anadolu', url: 'https://www.aa.com.tr/en/rss/default?cat=world', sourceLabel: 'Anadolu' },
 ];
 
 // ── Wire Services ──
@@ -46,21 +65,39 @@ const WIRE_FEEDS: FeedSource[] = [
   { name: 'afp_me', url: 'https://news.google.com/rss/search?q=AFP+middle+east+war+2026+OR+Lebanon+OR+Gaza+OR+Iran&hl=en&gl=US&ceid=US:en', sourceLabel: 'AFP' },
 ];
 
-// ── Think Tanks (Middle East conflict analysis) ──
+// ── Think Tanks & Analysis ──
 const THINK_TANK_FEEDS: FeedSource[] = [
   { name: 'brookings_me', url: 'https://www.brookings.edu/topic/middle-east-north-africa/feed/', sourceLabel: 'Brookings' },
   { name: 'carnegie_me', url: 'https://carnegieendowment.org/publications/rss?lang=en&topic=5', sourceLabel: 'Carnegie' },
   { name: 'crisisgroup', url: 'https://www.crisisgroup.org/middle-east-north-africa/feed', sourceLabel: 'Crisis Group' },
+  { name: 'me_monitor', url: 'https://www.middleeastmonitor.com/feed/', sourceLabel: 'ME Monitor' },
+  { name: 'bellingcat', url: 'https://www.bellingcat.com/feed/', sourceLabel: 'Bellingcat' },
+];
+
+// ── Human Rights & NGOs ──
+const NGO_FEEDS: FeedSource[] = [
+  { name: 'amnesty', url: 'https://www.amnesty.org/en/latest/news/feed/', sourceLabel: 'Amnesty' },
+  { name: 'msf', url: 'https://www.msf.org/rss/all', sourceLabel: 'MSF' },
+];
+
+// ── Independent / Investigative ──
+const INDIE_FEEDS: FeedSource[] = [
+  { name: 'plus972', url: 'https://www.972mag.com/feed/', sourceLabel: '+972 Magazine' },
+  { name: 'mondoweiss', url: 'https://mondoweiss.net/feed/', sourceLabel: 'Mondoweiss' },
+  { name: 'electronicintifada', url: 'https://electronicintifada.net/rss.xml', sourceLabel: 'Elec. Intifada' },
+  { name: 'defensenews', url: 'https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml', sourceLabel: 'Defense News' },
 ];
 
 // ── Podcasts (conflict-analysis) ──
 const PODCAST_FEEDS: FeedSource[] = [
   { name: 'podcast_war_on_rocks', url: 'https://warontherocks.com/feed/podcast/', sourceLabel: '🎙 War on the Rocks', category: 'podcast' },
+  { name: 'war_on_rocks', url: 'https://warontherocks.com/feed/', sourceLabel: 'War on Rocks' },
 ];
 
 // ── Government & Official Sources ──
 const GOVERNMENT_FEEDS: FeedSource[] = [
-  { name: 'un_news_me', url: 'https://news.un.org/feed/subscribe/en/news/region/middle-east/feed/rss.xml', sourceLabel: 'UN News' },
+  { name: 'un_news_me', url: 'https://news.un.org/feed/subscribe/en/news/region/middle-east/feed/rss.xml', sourceLabel: 'UN Middle East' },
+  { name: 'un_peace', url: 'https://news.un.org/feed/subscribe/en/news/topic/peace-and-security/feed/rss.xml', sourceLabel: 'UN Peace' },
   { name: 'gov_press', url: 'https://news.google.com/rss/search?q=site:gov.lb+OR+site:un.org+OR+site:state.gov+Lebanon+war+2026+OR+Gaza+ceasefire+2026&hl=en&gl=US&ceid=US:en', sourceLabel: 'Gov Press' },
 ];
 
@@ -97,6 +134,8 @@ const RSS_FEEDS: FeedSource[] = [
   ...CORE_FEEDS,
   ...WIRE_FEEDS,
   ...THINK_TANK_FEEDS,
+  ...NGO_FEEDS,
+  ...INDIE_FEEDS,
   ...PODCAST_FEEDS,
   ...GOVERNMENT_FEEDS,
   ...YOUTUBE_FEEDS,
@@ -107,14 +146,20 @@ const RSS_FEEDS: FeedSource[] = [
 
 // ME-focused feed names (skip ME keyword filter)
 const ME_FOCUSED_FEEDS = new Set([
-  'france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'naharnet', 'dailystar', 'alarabiya', 'arabnews',
+  'aljazeera_en', 'aljazeera_ar', 'france24_me', 'france24_ar', 'middleeasteye',
+  'bbc_me', 'bbc_ar_me', 'bbc_ar', 'mtv', 'lbci', 'lbci_latest', 'lbci_war',
+  'naharnet', 'dailystar', 'alarabiya', 'arabnews', 'the961', 'almanar',
+  'newarab', 'alquds', 'guardian_me', 'skynews_ar', 'almonitor', 'dw_ar',
+  'lebforces', 'asharq', 'jpost', 'anadolu',
   'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen',
-  'un_news_me', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
+  'un_news_me', 'un_peace', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
   'reddit_lebanon', 'reddit_worldnews', 'reddit_me',
-  'brookings_me', 'carnegie_me', 'crisisgroup',
+  'brookings_me', 'carnegie_me', 'crisisgroup', 'me_monitor',
   'google_ar_lebanon', 'google_ar_gaza',
   'yt_aljazeeraeng', 'yt_bbc_news',
-  'podcast_war_on_rocks',
+  'podcast_war_on_rocks', 'war_on_rocks',
+  'msf', 'amnesty',
+  'plus972', 'mondoweiss', 'electronicintifada',
 ]);
 
 const ME_KEYWORDS = [
