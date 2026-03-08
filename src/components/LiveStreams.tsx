@@ -33,7 +33,6 @@ export function LiveStreams() {
           <div className="flex gap-1 flex-wrap">
             {([
               { key: 'news' as const, label: 'News', icon: Radio },
-              { key: 'lebanese' as const, label: 'Lebanese TV', icon: Video },
               { key: 'camera' as const, label: 'Live Cameras', icon: Camera },
             ]).map(tab => (
               <Button
