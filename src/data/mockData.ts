@@ -134,7 +134,7 @@ export const mockEmergencyContacts: EmergencyContact[] = [
 ];
 
 export const liveStreams = [
-  { id: 'ls1', name: 'Al Jazeera English', embedId: 'F-POY4Q0WOA', channel: 'Al Jazeera' },
-  { id: 'ls2', name: 'France 24 English', embedId: 'u9foWyMSATM', channel: 'France 24' },
-  { id: 'ls3', name: 'Al Arabiya', embedId: 'YpSGyi7bNBY', channel: 'Al Arabiya' },
+  { id: 'ls1', name: 'Al Jazeera English', channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg', channel: 'Al Jazeera' },
+  { id: 'ls2', name: 'France 24 English', channelId: 'UCQfwfsi5VrQ8yKZ-UWmAEFg', channel: 'France 24' },
+  { id: 'ls3', name: 'Sky News', channelId: 'UCoMdktPbSTixAyNGwb-UYkQ', channel: 'Sky News' },
 ];
