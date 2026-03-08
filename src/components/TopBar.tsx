@@ -1,13 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { IntelSignalsBadge } from '@/components/IntelSignalsBadge';
+import { SourceFilterModal, useSourceFilters } from '@/components/SourceFilterModal';
 import { useIntelSignals } from '@/hooks/useIntelSignals';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { exportNewsAsCSV, exportNewsAsJSON } from '@/lib/dataExport';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
 import {
   Sheet,
   SheetContent,
