@@ -27,6 +27,8 @@ const RSS_FEEDS: FeedSource[] = [
   { name: 'france24_me', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
   { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC' },
+  { name: 'mtv', url: 'https://www.mtv.com.lb/RSS/AllNews', sourceLabel: 'MTV Lebanon' },
+  { name: 'lbci', url: 'https://www.lbcgroup.tv/feed/rss/news/en', sourceLabel: 'LBCI' },
   { name: 'google_me_war', url: 'https://news.google.com/rss/search?q=middle+east+war+OR+airstrike+OR+conflict+OR+Iran+OR+Lebanon+OR+Gaza+OR+Syria+OR+Yemen+OR+Iraq&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
