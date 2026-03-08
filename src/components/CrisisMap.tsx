@@ -45,6 +45,43 @@ const hospitalIcon = new L.DivIcon({
   iconAnchor: [7, 7],
 });
 
+// Client-side fallback: extract coords from title/summary for articles missing lat/lng
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  'beirut': { lat: 33.8938, lng: 35.5018 }, 'tripoli': { lat: 34.4333, lng: 35.8333 },
+  'sidon': { lat: 33.5594, lng: 35.3717 }, 'tyre': { lat: 33.2721, lng: 35.2033 },
+  'baalbek': { lat: 34.0047, lng: 36.2110 }, 'nabatieh': { lat: 33.3633, lng: 35.4717 },
+  'dahiyeh': { lat: 33.8547, lng: 35.4900 }, 'jounieh': { lat: 33.9806, lng: 35.6178 },
+  'zahle': { lat: 33.8463, lng: 35.9020 }, 'bekaa': { lat: 33.8463, lng: 35.9020 },
+  'tel aviv': { lat: 32.0853, lng: 34.7818 }, 'jerusalem': { lat: 31.7683, lng: 35.2137 },
+  'gaza': { lat: 31.5017, lng: 34.4668 }, 'haifa': { lat: 32.7940, lng: 34.9896 },
+  'west bank': { lat: 31.9522, lng: 35.2332 }, 'rafah': { lat: 31.2969, lng: 34.2455 },
+  'khan younis': { lat: 31.3462, lng: 34.3065 }, 'nablus': { lat: 32.2211, lng: 35.2544 },
+  'damascus': { lat: 33.5138, lng: 36.2765 }, 'aleppo': { lat: 36.2021, lng: 37.1343 },
+  'homs': { lat: 34.7324, lng: 36.7137 }, 'idlib': { lat: 35.9306, lng: 36.6339 },
+  'tehran': { lat: 35.6892, lng: 51.3890 }, 'isfahan': { lat: 32.6546, lng: 51.6680 },
+  'tabriz': { lat: 38.0800, lng: 46.2919 }, 'shiraz': { lat: 29.5918, lng: 52.5837 },
+  'sanaa': { lat: 15.3694, lng: 44.1910 }, 'aden': { lat: 12.7855, lng: 45.0187 },
+  'hodeidah': { lat: 14.7980, lng: 42.9511 },
+  'baghdad': { lat: 33.3152, lng: 44.3661 }, 'basra': { lat: 30.5085, lng: 47.7804 },
+  'mosul': { lat: 36.3566, lng: 43.1593 }, 'erbil': { lat: 36.1912, lng: 44.0119 },
+  // Country-level fallbacks
+  'lebanon': { lat: 33.8547, lng: 35.8623 }, 'israel': { lat: 31.0461, lng: 34.8516 },
+  'palestine': { lat: 31.9522, lng: 35.2332 }, 'iran': { lat: 32.4279, lng: 53.6880 },
+  'syria': { lat: 34.8021, lng: 38.9968 }, 'yemen': { lat: 15.5527, lng: 48.5164 },
+  'iraq': { lat: 33.2232, lng: 43.6793 },
+  'hezbollah': { lat: 33.8547, lng: 35.8623 }, 'hamas': { lat: 31.5017, lng: 34.4668 },
+  'houthi': { lat: 15.3694, lng: 44.1910 }, 'irgc': { lat: 35.6892, lng: 51.3890 },
+  'idf': { lat: 31.0461, lng: 34.8516 },
+};
+
+function inferCoords(text: string): { lat: number; lng: number } | null {
+  const lower = text.toLowerCase();
+  for (const [place, coords] of Object.entries(CITY_COORDS)) {
+    if (lower.includes(place)) return coords;
+  }
+  return null;
+}
+
 interface LayerToggle {
   airstrikes: boolean;
   shelters: boolean;
@@ -98,8 +135,15 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Split news into conflict (shown as airstrikes) and non-conflict (shown as news)
-  const geoNews = news.filter(n => n.lat && n.lng);
+  // Enrich all news with inferred coordinates if missing
+  const enrichedNews = news.map(n => {
+    if (n.lat && n.lng) return n;
+    const inferred = inferCoords(`${n.title} ${n.summary}`);
+    if (inferred) return { ...n, lat: inferred.lat, lng: inferred.lng };
+    return n;
+  });
+
+  const geoNews = enrichedNews.filter(n => n.lat && n.lng);
   const conflictEvents = geoNews.filter(n => n.category === 'conflict' || n.severity === 'high');
   const otherNews = geoNews.filter(n => n.category !== 'conflict' && n.severity !== 'high');
 
