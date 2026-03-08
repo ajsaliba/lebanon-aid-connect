@@ -142,7 +142,10 @@ export function NewsFeed() {
               </div>
               <p className="text-muted-foreground mt-1 leading-relaxed">{sanitizeFeedText(item.summary)}</p>
               <div className="flex items-center gap-2 mt-1.5">
-                <span className={cn('uppercase font-bold text-[9px]', categoryStyles[item.category])}>
+                <span
+                  className={cn('uppercase font-bold text-[9px] cursor-pointer hover:underline', categoryStyles[item.category])}
+                  onClick={(e) => { e.stopPropagation(); setActiveCategory(activeCategory === item.category ? null : item.category); }}
+                >
                   {item.category}
                 </span>
                 <span className="text-muted-foreground">•</span>
