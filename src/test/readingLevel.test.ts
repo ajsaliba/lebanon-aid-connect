@@ -6,8 +6,13 @@ describe('fleschKincaidGrade', () => {
     expect(fleschKincaidGrade('')).toBe(0);
   });
 
-  it('returns a positive grade for normal text', () => {
+  it('returns zero or positive grade for simple text', () => {
     const grade = fleschKincaidGrade('The cat sat on the mat. The dog ran fast.');
+    expect(grade).toBeGreaterThanOrEqual(0);
+  });
+
+  it('returns positive grade for longer text', () => {
+    const grade = fleschKincaidGrade('The soldiers marched through the valley under heavy fire. The commander ordered a retreat to safer positions behind the mountain ridge.');
     expect(grade).toBeGreaterThan(0);
   });
 

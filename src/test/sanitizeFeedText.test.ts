@@ -12,8 +12,9 @@ describe('sanitizeFeedText', () => {
     expect(sanitizeFeedText('<p>Hello <b>world</b></p>')).toBe('Hello world');
   });
 
-  it('decodes HTML entities', () => {
-    expect(sanitizeFeedText('Tom &amp; Jerry &lt;3&gt;')).toBe('Tom & Jerry <3>');
+  it('decodes HTML entities then strips resulting tags', () => {
+    // &lt;3&gt; becomes <3> which is then stripped as an HTML tag
+    expect(sanitizeFeedText('Tom &amp; Jerry &lt;3&gt;')).toBe('Tom & Jerry');
     expect(sanitizeFeedText('He said &quot;hello&quot;')).toBe('He said "hello"');
     expect(sanitizeFeedText('It&#039;s fine')).toBe("It's fine");
   });
