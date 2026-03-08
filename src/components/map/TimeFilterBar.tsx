@@ -32,7 +32,7 @@ export function TimeFilterBar({ activeTime, onTimeChange }: TimeFilterBarProps) 
   const map = useMap();
 
   return (
-    <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1">
+    <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-1">
       {/* Time filters */}
       <div className="bg-card/90 border border-border backdrop-blur-sm rounded-md px-1 py-0.5 flex items-center gap-0">
         <Clock className="h-3 w-3 text-muted-foreground mx-1" />
