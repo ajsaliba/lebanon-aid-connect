@@ -24,10 +24,10 @@ interface NewsItem {
 
 const RSS_FEEDS: FeedSource[] = [
   { name: 'aljazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera' },
-  { name: 'alarabiya', url: 'https://english.alarabiya.net/tools/rss', sourceLabel: 'Al Arabiya' },
   { name: 'france24', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
-  { name: 'lbci', url: 'https://www.lbcgroup.tv/rss/feed/en', sourceLabel: 'LBCI' },
+  { name: 'reliefweb', url: 'https://reliefweb.int/updates/rss.xml?country=Lebanon', sourceLabel: 'ReliefWeb' },
+  { name: 'google_lebanon', url: 'https://news.google.com/rss/search?q=Lebanon+crisis&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
 // Lebanon/Middle East keywords for filtering
