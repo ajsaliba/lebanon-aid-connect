@@ -138,8 +138,9 @@ export function NewsFeed() {
             <article
               key={item.id}
               className={cn(
-                'p-2 rounded border text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
-                severityStyles[item.severity]
+                'p-2 rounded border border-l-[3px] text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
+                severityStyles[item.severity],
+                categoryBorderStyles[item.category]
               )}
               onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
             >
