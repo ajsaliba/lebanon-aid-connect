@@ -167,22 +167,24 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           />
         </span>
 
-        {/* Data Export */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Download className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
-              Export as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
-              Export as JSON
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Data Export — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Download className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
+                Export as JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </span>
 
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />
