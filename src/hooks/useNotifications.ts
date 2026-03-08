@@ -4,6 +4,7 @@ import { useNotificationCenter, type NotificationType } from '@/contexts/Notific
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
+import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
 
 const TYPE_CONFIG: Record<NotificationType, { label: string; icon: string; freq: number }> = {
   conflict: { label: '🔴 AIRSTRIKE / CONFLICT', icon: '💥', freq: 800 },
@@ -58,15 +59,20 @@ function playAlertSound(type: NotificationType) {
   }
 }
 
+const SOS_PROXIMITY_KM = 10;
+
 export function useNotifications() {
   const { news } = useNewsFeedContext();
   const { addNotification } = useNotificationCenter();
+  const { position } = useGeolocation();
   const seenNewsIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
   const shelterPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const housingPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seenShelterIds = useRef<Set<string>>(new Set());
   const seenHousingIds = useRef<Set<string>>(new Set());
+  const seenSosIds = useRef<Set<string>>(new Set());
+  const posRef = useRef(position);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -144,6 +150,52 @@ export function useNotifications() {
         addNotification({ type: 'housing', title });
       }
     });
+  }, [addNotification]);
+
+  // Keep posRef in sync so the realtime callback always has latest position
+  useEffect(() => { posRef.current = position; }, [position]);
+
+  // SOS proximity alert via Realtime
+  useEffect(() => {
+    // Seed seen IDs on mount
+    supabase.from('sos_signals').select('id').eq('status', 'active').then(({ data }) => {
+      if (data) data.forEach(s => seenSosIds.current.add(s.id));
+    });
+
+    const channel = supabase.channel('sos-proximity')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_signals' }, (payload) => {
+        const sos = payload.new as { id: string; lat: number; lng: number; message: string | null; people_count: number; needs: string[] | null };
+        if (seenSosIds.current.has(sos.id)) return;
+        seenSosIds.current.add(sos.id);
+
+        const pos = posRef.current;
+        const dist = pos ? distanceKm(pos.lat, pos.lng, sos.lat, sos.lng) : null;
+        const isNearby = dist !== null && dist <= SOS_PROXIMITY_KM;
+
+        const needsStr = sos.needs?.join(', ') || 'Unspecified';
+        const distStr = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
+
+        // Always notify, but make nearby ones more urgent
+        playAlertSound('conflict');
+        toast({
+          title: isNearby ? '🚨 NEARBY SOS SIGNAL' : '🆘 NEW SOS SIGNAL',
+          description: isNearby
+            ? `⚠️ ${distStr} — ${sos.people_count} people need help: ${needsStr}`
+            : `${sos.people_count} people need help: ${needsStr} (${distStr})`,
+          variant: 'destructive',
+          duration: isNearby ? 15000 : 8000,
+        });
+
+        addNotification({
+          type: 'humanitarian',
+          title: isNearby
+            ? `🚨 SOS ${distStr}: ${needsStr}`
+            : `SOS Signal: ${sos.people_count} people — ${needsStr}`,
+        });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [addNotification]);
 
   useEffect(() => {
