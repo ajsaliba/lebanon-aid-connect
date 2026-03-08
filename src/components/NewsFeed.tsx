@@ -536,6 +536,12 @@ export function NewsFeed() {
         onToggle={() => setShowSettings(false)}
       />
 
+      {/* Custom feeds panel */}
+      <CustomFeedsPanel
+        isOpen={showCustomFeeds}
+        onToggle={() => setShowCustomFeeds(false)}
+      />
+
       {/* Keyboard shortcuts help */}
       {showShortcuts && (
         <div className="border-b border-border bg-card/50 p-3 text-[10px] space-y-1">
