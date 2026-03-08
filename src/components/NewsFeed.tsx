@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { format } from 'date-fns';
 import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard } from 'lucide-react';
