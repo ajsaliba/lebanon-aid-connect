@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { mockDonations } from '@/data/mockData';
-import { Heart, ExternalLink, Plus, MessageCircle } from 'lucide-react';
+import { Heart, ExternalLink, Plus, MessageCircle, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,26 +13,14 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const catColors: Record<string, string> = {
-  general: 'border-primary/30',
-  medical: 'border-danger/30',
-  food: 'border-warning/30',
-  shelter: 'border-success/30',
+  general: 'border-primary/30', medical: 'border-danger/30', food: 'border-warning/30', shelter: 'border-success/30',
 };
 
-const platformIcons: Record<string, string> = {
-  whatsapp: '📱',
-  gofundme: '💰',
-  paypal: '💳',
-  other: '🔗',
-};
+const platformIcons: Record<string, string> = { whatsapp: '📱', gofundme: '💰', paypal: '💳', other: '🔗' };
+const catFilters = ['all', 'general', 'medical', 'food', 'shelter'] as const;
 
 interface DonationLink {
-  id: string;
-  name: string;
-  description: string | null;
-  platform: string;
-  link: string;
-  category: string;
+  id: string; name: string; description: string | null; platform: string; link: string; category: string;
 }
 
 export function DonationsPanel() {
@@ -43,6 +31,7 @@ export function DonationsPanel() {
   const [loading, setLoading] = useState(false);
   const [platform, setPlatform] = useState('whatsapp');
   const [category, setCategory] = useState('general');
+  const [filter, setFilter] = useState<string>('all');
 
   const fetchDonations = async () => {
     const { data } = await supabase.from('donation_links').select('*').order('created_at', { ascending: false });
@@ -57,30 +46,31 @@ export function DonationsPanel() {
     setLoading(true);
     const form = new FormData(e.currentTarget);
     let link = form.get('link') as string;
-
-    // Auto-format WhatsApp links
     if (platform === 'whatsapp') {
       const phone = link.replace(/[^0-9+]/g, '');
       link = `https://wa.me/${phone.replace('+', '')}`;
     }
-
     const { error } = await supabase.from('donation_links').insert({
-      user_id: user.id,
-      name: form.get('name') as string,
-      description: form.get('description') as string || null,
-      platform,
-      link,
-      category,
+      user_id: user.id, name: form.get('name') as string,
+      description: form.get('description') as string || null, platform, link, category,
     });
     setLoading(false);
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else { toast({ title: 'Donation link added' }); setOpen(false); fetchDonations(); }
+  };
+
+  const shareLink = async (name: string, url: string) => {
+    const text = `🤝 Support: ${name}\n🔗 ${url}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: name, text, url }); } catch { /* cancelled */ }
     } else {
-      toast({ title: 'Donation link added' });
-      setOpen(false);
-      fetchDonations();
+      await navigator.clipboard.writeText(text);
+      toast({ title: 'Link copied!' });
     }
   };
+
+  const filteredMock = filter === 'all' ? mockDonations : mockDonations.filter(d => d.category === filter);
+  const filteredDb = filter === 'all' ? dbDonations : dbDonations.filter(d => d.category === filter);
 
   return (
     <div className="space-y-2 p-3">
@@ -91,19 +81,12 @@ export function DonationsPanel() {
         {user && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-primary">
-                <Plus className="h-2.5 w-2.5" /> Add
-              </Button>
+              <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-primary"><Plus className="h-2.5 w-2.5" /> Add</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle className="text-sm">Add Donation / Help Link</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle className="text-sm">Add Donation / Help Link</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-2.5">
-                <div className="space-y-1">
-                  <Label className="text-xs">Name / Title *</Label>
-                  <Input name="name" required className="h-7 text-xs" placeholder="e.g. Aid for Beirut families" />
-                </div>
+                <div className="space-y-1"><Label className="text-xs">Name *</Label><Input name="name" required className="h-7 text-xs" placeholder="e.g. Aid for Beirut families" /></div>
                 <div className="space-y-1">
                   <Label className="text-xs">Platform *</Label>
                   <Select value={platform} onValueChange={setPlatform}>
@@ -117,15 +100,8 @@ export function DonationsPanel() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">
-                    {platform === 'whatsapp' ? 'Phone Number *' : 'Link / URL *'}
-                  </Label>
-                  <Input
-                    name="link"
-                    required
-                    className="h-7 text-xs"
-                    placeholder={platform === 'whatsapp' ? '+961 70 123 456' : 'https://...'}
-                  />
+                  <Label className="text-xs">{platform === 'whatsapp' ? 'Phone Number *' : 'Link / URL *'}</Label>
+                  <Input name="link" required className="h-7 text-xs" placeholder={platform === 'whatsapp' ? '+961 70 123 456' : 'https://...'} />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Category</Label>
@@ -139,61 +115,70 @@ export function DonationsPanel() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Description</Label>
-                  <Textarea name="description" className="text-xs min-h-[50px]" placeholder="Brief description of how this helps..." />
-                </div>
-                <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>
-                  {loading ? 'Adding...' : 'Add Link'}
-                </Button>
+                <div className="space-y-1"><Label className="text-xs">Description</Label><Textarea name="description" className="text-xs min-h-[50px]" /></div>
+                <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>{loading ? 'Adding...' : 'Add Link'}</Button>
               </form>
             </DialogContent>
           </Dialog>
         )}
       </div>
 
-      <p className="text-[10px] text-muted-foreground">
-        Support verified organizations and community members providing relief.
-      </p>
+      <p className="text-[10px] text-muted-foreground">Support verified organizations and community members providing relief.</p>
+
+      {/* Category Filter */}
+      <div className="flex gap-1 flex-wrap">
+        {catFilters.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              'px-2 py-0.5 rounded text-[9px] uppercase tracking-wider transition-colors border',
+              filter === f ? 'bg-primary/10 border-primary/50 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
 
       {/* Trusted orgs */}
-      {mockDonations.map((org) => (
+      {filteredMock.map((org) => (
         <div key={org.id} className={cn('p-2 rounded border bg-card/50 text-[11px] space-y-1.5', catColors[org.category])}>
           <div className="font-sans font-semibold text-foreground text-xs">{org.name}</div>
           <p className="text-muted-foreground leading-relaxed">{org.description}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-6 text-[10px] gap-1 border-primary/50 text-primary hover:bg-primary/10"
-            onClick={() => window.open(org.url, '_blank')}
-          >
-            <ExternalLink className="h-2.5 w-2.5" /> Donate Now
-          </Button>
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 flex-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => window.open(org.url, '_blank')}>
+              <ExternalLink className="h-2.5 w-2.5" /> Donate
+            </Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1 text-muted-foreground" onClick={() => shareLink(org.name, org.url)}>
+              <Share2 className="h-2.5 w-2.5" />
+            </Button>
+          </div>
         </div>
       ))}
 
-      {/* User-submitted links */}
-      {dbDonations.length > 0 && (
+      {/* Community links */}
+      {filteredDb.length > 0 && (
         <div className="pt-1 border-t border-border">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Community Links</span>
         </div>
       )}
-      {dbDonations.map((d) => (
+      {filteredDb.map((d) => (
         <div key={d.id} className={cn('p-2 rounded border bg-card/50 text-[11px] space-y-1.5', catColors[d.category] || catColors.general)}>
           <div className="flex items-center gap-1">
             <span>{platformIcons[d.platform] || '🔗'}</span>
             <span className="font-sans font-semibold text-foreground text-xs">{d.name}</span>
           </div>
           {d.description && <p className="text-muted-foreground leading-relaxed">{d.description}</p>}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-6 text-[10px] gap-1 border-primary/50 text-primary hover:bg-primary/10"
-            onClick={() => window.open(d.link, '_blank')}
-          >
-            {d.platform === 'whatsapp' ? <MessageCircle className="h-2.5 w-2.5" /> : <ExternalLink className="h-2.5 w-2.5" />}
-            {d.platform === 'whatsapp' ? 'Contact on WhatsApp' : 'Open Link'}
-          </Button>
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 flex-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => window.open(d.link, '_blank')}>
+              {d.platform === 'whatsapp' ? <MessageCircle className="h-2.5 w-2.5" /> : <ExternalLink className="h-2.5 w-2.5" />}
+              {d.platform === 'whatsapp' ? 'WhatsApp' : 'Open'}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1 text-muted-foreground" onClick={() => shareLink(d.name, d.link)}>
+              <Share2 className="h-2.5 w-2.5" />
+            </Button>
+          </div>
         </div>
       ))}
     </div>
