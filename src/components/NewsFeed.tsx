@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } f
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { format } from 'date-fns';
-import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard } from 'lucide-react';
+import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard, Rss } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { ArticleCard } from '@/components/ArticleCard';
 import { FeedSettingsPanel } from '@/components/FeedSettingsPanel';
+import { CustomFeedsPanel } from '@/components/CustomFeedsPanel';
 import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
