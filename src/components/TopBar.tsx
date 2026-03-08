@@ -63,6 +63,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
   const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
   const { news } = useNewsFeedContext();
   const signals = useIntelSignals(news);
+  const sourceFilters = useSourceFilters();
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem(SOUND_PREF_KEY) !== 'false'; } catch { return true; }
   });
