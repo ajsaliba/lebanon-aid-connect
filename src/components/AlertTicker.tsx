@@ -18,7 +18,7 @@ export function AlertTicker() {
         <div className="animate-ticker whitespace-nowrap flex items-center gap-8">
           {highAlerts.map((alert) => (
             <span key={alert.id} className="text-[11px] text-danger/90">
-              ◆ {alert.title} — {alert.source}
+              ◆ {sanitizeFeedText(alert.title)} — {alert.source}
             </span>
           ))}
           {highAlerts.map((alert) => (
