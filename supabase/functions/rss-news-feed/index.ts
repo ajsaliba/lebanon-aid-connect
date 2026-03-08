@@ -352,6 +352,9 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
 let cachedResponse: { data: string; timestamp: number } | null = null;
 const CACHE_TTL = 60_000;
 
+// ETag / Last-Modified cache per feed URL (conditional GET)
+const etagCache = new Map<string, { etag?: string; lastModified?: string; data: string }>();
+
 // Rate limiting (per IP, 30 req/min)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 30;
