@@ -5,8 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
-import { toast } from '@/hooks/use-toast';
-import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 const TYPE_CONFIG: Record<NotificationType, { label: string; icon: string; freq: number }> = {
   conflict: { label: '🔴 AIRSTRIKE / CONFLICT', icon: '💥', freq: 800 },
