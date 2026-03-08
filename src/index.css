@@ -241,3 +241,8 @@
 .light .scanline-overlay {
   display: none;
 }
+
+/* Safe area for notched phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
