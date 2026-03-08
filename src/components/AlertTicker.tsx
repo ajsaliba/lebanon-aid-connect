@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 export function AlertTicker() {
   const { news } = useNewsFeedContext();

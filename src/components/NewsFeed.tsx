@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 const severityStyles = {
   high: 'bg-danger/15 text-danger border-danger/30',
