@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { mockDonations } from '@/data/mockData';
-import { Heart, ExternalLink, Plus, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, ExternalLink, Plus, MessageCircle, Share2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,7 @@ const platformIcons: Record<string, string> = { whatsapp: '📱', gofundme: '�
 const catFilters = ['all', 'general', 'medical', 'food', 'shelter'] as const;
 
 interface DonationLink {
-  id: string; name: string; description: string | null; platform: string; link: string; category: string;
+  id: string; name: string; description: string | null; platform: string; link: string; category: string; user_id: string;
 }
 
 export function DonationsPanel() {
@@ -57,6 +57,12 @@ export function DonationsPanel() {
     setLoading(false);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else { toast({ title: 'Donation link added' }); setOpen(false); fetchDonations(); }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('donation_links').delete().eq('id', id);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else { toast({ title: 'Link removed' }); fetchDonations(); }
   };
 
   const shareLink = async (name: string, url: string) => {
@@ -163,24 +169,32 @@ export function DonationsPanel() {
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Community Links</span>
         </div>
       )}
-      {filteredDb.map((d) => (
-        <div key={d.id} className={cn('p-2 rounded border bg-card/50 text-[11px] space-y-1.5', catColors[d.category] || catColors.general)}>
-          <div className="flex items-center gap-1">
-            <span>{platformIcons[d.platform] || '🔗'}</span>
-            <span className="font-sans font-semibold text-foreground text-xs">{d.name}</span>
+      {filteredDb.map((d) => {
+        const isOwner = user?.id === d.user_id;
+        return (
+          <div key={d.id} className={cn('p-2 rounded border bg-card/50 text-[11px] space-y-1.5', catColors[d.category] || catColors.general)}>
+            <div className="flex items-center gap-1">
+              <span>{platformIcons[d.platform] || '🔗'}</span>
+              <span className="font-sans font-semibold text-foreground text-xs flex-1">{d.name}</span>
+              {isOwner && (
+                <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => handleDelete(d.id)}>
+                  <Trash2 className="h-2.5 w-2.5 text-danger" />
+                </Button>
+              )}
+            </div>
+            {d.description && <p className="text-muted-foreground leading-relaxed">{d.description}</p>}
+            <div className="flex gap-1.5">
+              <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 flex-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => window.open(d.link, '_blank')}>
+                {d.platform === 'whatsapp' ? <MessageCircle className="h-2.5 w-2.5" /> : <ExternalLink className="h-2.5 w-2.5" />}
+                {d.platform === 'whatsapp' ? 'WhatsApp' : 'Open'}
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1 text-muted-foreground" onClick={() => shareLink(d.name, d.link)}>
+                <Share2 className="h-2.5 w-2.5" />
+              </Button>
+            </div>
           </div>
-          {d.description && <p className="text-muted-foreground leading-relaxed">{d.description}</p>}
-          <div className="flex gap-1.5">
-            <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 flex-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => window.open(d.link, '_blank')}>
-              {d.platform === 'whatsapp' ? <MessageCircle className="h-2.5 w-2.5" /> : <ExternalLink className="h-2.5 w-2.5" />}
-              {d.platform === 'whatsapp' ? 'WhatsApp' : 'Open'}
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1 text-muted-foreground" onClick={() => shareLink(d.name, d.link)}>
-              <Share2 className="h-2.5 w-2.5" />
-            </Button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
