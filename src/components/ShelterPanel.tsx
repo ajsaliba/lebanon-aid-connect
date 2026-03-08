@@ -172,7 +172,7 @@ export function ShelterPanel() {
             <RefreshCw className={cn('h-2.5 w-2.5 text-muted-foreground', isRefreshing && 'animate-spin')} />
           </Button>
           {user && (
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditShelter(null); }}>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditShelter(null); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-success"><Plus className="h-2.5 w-2.5" /> Add</Button>
               </DialogTrigger>
