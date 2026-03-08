@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { type HousingListing } from '@/data/mockData';
-import { Home, DollarSign, Phone, BedDouble, Plus } from 'lucide-react';
+import { Home, DollarSign, Phone, BedDouble, Plus, RefreshCw, Pencil, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +12,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
+interface DbHousing extends HousingListing {
+  user_id: string;
+}
+
 export function HousingPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
+  const [dbHousing, setDbHousing] = useState<DbHousing[]>([]);
   const [open, setOpen] = useState(false);
+  const [editHousing, setEditHousing] = useState<DbHousing | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchHousing = async () => {
     const { data } = await supabase.from('housing_listings').select('*').order('created_at', { ascending: false });
@@ -26,21 +34,38 @@ export function HousingPanel() {
         price: h.price, currency: h.currency, bedrooms: h.bedrooms,
         address: h.address, contact: h.contact,
         available: h.available, description: h.description || '',
+        user_id: h.user_id,
       })));
     }
   };
 
-  useEffect(() => { fetchHousing(); }, []);
+  useEffect(() => {
+    fetchHousing();
+    intervalRef.current = setInterval(fetchHousing, 60000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
 
-  const allHousing = dbHousing;
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchHousing().finally(() => setTimeout(() => setIsRefreshing(false), 1000));
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('housing_listings').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Listing deleted' });
+      fetchHousing();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
     setLoading(true);
     const form = new FormData(e.currentTarget);
-    const { error } = await supabase.from('housing_listings').insert({
-      user_id: user.id,
+    const payload = {
       title: form.get('title') as string,
       address: form.get('address') as string,
       lat: parseFloat(form.get('lat') as string),
@@ -50,15 +75,28 @@ export function HousingPanel() {
       bedrooms: parseInt(form.get('bedrooms') as string),
       contact: form.get('contact') as string,
       description: form.get('description') as string,
-    });
+    };
+
+    let error;
+    if (editHousing) {
+      ({ error } = await supabase.from('housing_listings').update(payload).eq('id', editHousing.id));
+    } else {
+      ({ error } = await supabase.from('housing_listings').insert({ ...payload, user_id: user.id }));
+    }
     setLoading(false);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Housing listing added' });
+      toast({ title: editHousing ? 'Listing updated' : 'Housing listing added' });
       setOpen(false);
+      setEditHousing(null);
       fetchHousing();
     }
+  };
+
+  const openEdit = (house: DbHousing) => {
+    setEditHousing(house);
+    setOpen(true);
   };
 
   return (
@@ -67,79 +105,99 @@ export function HousingPanel() {
         <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-info flex items-center gap-2">
           <Home className="h-3 w-3" /> Housing Available
         </h2>
-        {user && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info">
-                <Plus className="h-2.5 w-2.5" /> Add
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle className="text-sm">Add Housing Listing</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-2.5">
-                <div className="space-y-1">
-                  <Label className="text-xs">Title *</Label>
-                  <Input name="title" required className="h-7 text-xs" placeholder="2BR Apartment - Safe Zone" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Address *</Label>
-                  <Input name="address" required className="h-7 text-xs" placeholder="Full address" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Latitude *</Label>
-                    <Input name="lat" type="number" step="any" required className="h-7 text-xs" placeholder="33.89" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Longitude *</Label>
-                    <Input name="lng" type="number" step="any" required className="h-7 text-xs" placeholder="35.50" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Price ($/mo) *</Label>
-                    <Input name="price" type="number" required className="h-7 text-xs" placeholder="300" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Bedrooms *</Label>
-                    <Input name="bedrooms" type="number" required className="h-7 text-xs" placeholder="2" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Contact *</Label>
-                  <Input name="contact" required className="h-7 text-xs" placeholder="+961 70 123 456" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Description</Label>
-                  <Textarea name="description" className="text-xs min-h-[60px]" placeholder="Brief description..." />
-                </div>
-                <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>
-                  {loading ? 'Adding...' : 'Add Listing'}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing} title="Refresh">
+            <RefreshCw className={cn('h-2.5 w-2.5 text-muted-foreground', isRefreshing && 'animate-spin')} />
+          </Button>
+          {user && (
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditHousing(null); }}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info">
+                  <Plus className="h-2.5 w-2.5" /> Add
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-      {allHousing.map((house) => (
-        <div key={house.id} className="p-2 rounded border border-border bg-card/50 text-[11px] space-y-1.5">
-          <div className="flex items-start justify-between">
-            <span className="font-sans font-semibold text-foreground text-xs">{house.title}</span>
-            <Badge variant="outline" className="text-[9px] h-4 border-info/50 text-info">
-              {house.available ? 'Available' : 'Taken'}
-            </Badge>
-          </div>
-          <div className="text-muted-foreground">{house.address}</div>
-          <p className="text-muted-foreground">{house.description}</p>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-info"><DollarSign className="h-2.5 w-2.5" />{house.price}/mo</span>
-            <span className="flex items-center gap-1"><BedDouble className="h-2.5 w-2.5" />{house.bedrooms} BR</span>
-          </div>
-          <div className="flex items-center gap-1 text-muted-foreground"><Phone className="h-2.5 w-2.5" /> {house.contact}</div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle className="text-sm">{editHousing ? 'Edit Listing' : 'Add Housing Listing'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-2.5">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Title *</Label>
+                    <Input name="title" required className="h-7 text-xs" placeholder="2BR Apartment - Safe Zone" defaultValue={editHousing?.title || ''} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Address *</Label>
+                    <Input name="address" required className="h-7 text-xs" placeholder="Full address" defaultValue={editHousing?.address || ''} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Latitude *</Label>
+                      <Input name="lat" type="number" step="any" required className="h-7 text-xs" placeholder="33.89" defaultValue={editHousing?.lat || ''} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Longitude *</Label>
+                      <Input name="lng" type="number" step="any" required className="h-7 text-xs" placeholder="35.50" defaultValue={editHousing?.lng || ''} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Price ($/mo) *</Label>
+                      <Input name="price" type="number" required className="h-7 text-xs" placeholder="300" defaultValue={editHousing?.price || ''} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Bedrooms *</Label>
+                      <Input name="bedrooms" type="number" required className="h-7 text-xs" placeholder="2" defaultValue={editHousing?.bedrooms || ''} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Contact *</Label>
+                    <Input name="contact" required className="h-7 text-xs" placeholder="+961 70 123 456" defaultValue={editHousing?.contact || ''} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Description</Label>
+                    <Textarea name="description" className="text-xs min-h-[60px]" placeholder="Brief description..." defaultValue={editHousing?.description || ''} />
+                  </div>
+                  <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>
+                    {loading ? (editHousing ? 'Updating...' : 'Adding...') : (editHousing ? 'Update Listing' : 'Add Listing')}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
-      ))}
+      </div>
+      {dbHousing.map((house) => {
+        const isOwner = user?.id === house.user_id;
+        return (
+          <div key={house.id} className="p-2 rounded border border-border bg-card/50 text-[11px] space-y-1.5">
+            <div className="flex items-start justify-between">
+              <span className="font-sans font-semibold text-foreground text-xs">{house.title}</span>
+              <div className="flex items-center gap-1">
+                {isOwner && (
+                  <>
+                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => openEdit(house)} title="Edit">
+                      <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => handleDelete(house.id)} title="Delete">
+                      <Trash2 className="h-2.5 w-2.5 text-danger" />
+                    </Button>
+                  </>
+                )}
+                <Badge variant="outline" className="text-[9px] h-4 border-info/50 text-info">
+                  {house.available ? 'Available' : 'Taken'}
+                </Badge>
+              </div>
+            </div>
+            <div className="text-muted-foreground">{house.address}</div>
+            <p className="text-muted-foreground">{house.description}</p>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1 text-info"><DollarSign className="h-2.5 w-2.5" />{house.price}/mo</span>
+              <span className="flex items-center gap-1"><BedDouble className="h-2.5 w-2.5" />{house.bedrooms} BR</span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground"><Phone className="h-2.5 w-2.5" /> {house.contact}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
