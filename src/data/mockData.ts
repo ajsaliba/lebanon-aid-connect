@@ -169,13 +169,23 @@ export const mockDonations: DonationOrg[] = [
 ];
 
 export const mockEmergencyContacts: EmergencyContact[] = [
+  // Official Lebanese Government Hotlines
+  { id: 'e-gov1', name: 'Ministry of Public Health Hotline', phone: '1787', category: 'medical', description: 'MoPH emergency hotline for displaced persons — health & medication' },
+  { id: 'e-gov2', name: 'Ministry of Social Affairs Call Center', phone: '1308', category: 'ngo', description: 'MoSA aid inquiries, social development centers, cash assistance' },
+  { id: 'e-gov3', name: 'High Relief Committee', phone: '+961 1 981 501', category: 'emergency', description: 'Official government disaster relief coordination' },
+  // Emergency Services
   { id: 'e1', name: 'Lebanese Red Cross', phone: '140', category: 'emergency', description: 'Ambulance and emergency services' },
   { id: 'e2', name: 'Civil Defense', phone: '125', category: 'emergency', description: 'Fire and rescue services' },
   { id: 'e3', name: 'Internal Security Forces', phone: '112', category: 'emergency', description: 'Police and security' },
+  // Mental Health
+  { id: 'e-mh1', name: 'Embrace Lifeline', phone: '1564', category: 'medical', description: '24/7 emotional support & suicide prevention' },
+  // International
   { id: 'e4', name: 'UNHCR Hotline', phone: '+961 1 611 900', category: 'ngo', description: 'UN refugee agency assistance' },
   { id: 'e5', name: 'US Embassy Beirut', phone: '+961 4 543 600', category: 'embassy', description: 'American citizens emergency' },
   { id: 'e6', name: 'UK Embassy Beirut', phone: '+961 1 960 800', category: 'embassy', description: 'British citizens emergency' },
   { id: 'e7', name: 'Rafik Hariri Hospital', phone: '+961 1 830 000', category: 'medical', description: 'Major hospital in Beirut' },
+  // GBV Support
+  { id: 'e-gbv1', name: 'Abaad GBV Emergency Safe Line', phone: '+961 81 78 81 78', category: 'ngo', description: '24/7 gender-based violence emergency support' },
 ];
 
 export const liveStreams = [
