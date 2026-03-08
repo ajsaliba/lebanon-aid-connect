@@ -271,7 +271,7 @@ export function CrisisMap() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
-              onClick={() => setShowPanel(!showPanel)}
+              onClick={() => { setShowPanel(p => !p); setShowEscalation(false); }}
             >
               <Layers className="h-4 w-4" />
             </Button>
@@ -281,7 +281,7 @@ export function CrisisMap() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
-              onClick={() => setShowEscalation(!showEscalation)}
+              onClick={() => { setShowEscalation(p => !p); setShowPanel(false); }}
             >
               <TrendingUp className="h-4 w-4" />
             </Button>
