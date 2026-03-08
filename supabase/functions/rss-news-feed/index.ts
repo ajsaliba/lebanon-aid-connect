@@ -25,14 +25,12 @@ interface NewsItem {
   lng?: number;
 }
 
-// ── Core News Feeds ──
+// ── Core News Feeds (Middle East war 2026 focused) ──
 const CORE_FEEDS: FeedSource[] = [
-  // Major outlets
   { name: 'aljazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera' },
   { name: 'france24_me', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
   { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC' },
-  // Lebanese media
   { name: 'mtv', url: 'https://www.mtv.com.lb/RSS/AllNews', sourceLabel: 'MTV Lebanon' },
   { name: 'lbci', url: 'https://www.lbcgroup.tv/feed/rss/news/en', sourceLabel: 'LBCI' },
   { name: 'naharnet', url: 'http://www.naharnet.com/stories/en/rss.xml', sourceLabel: 'Naharnet' },
@@ -43,61 +41,55 @@ const CORE_FEEDS: FeedSource[] = [
 
 // ── Wire Services ──
 const WIRE_FEEDS: FeedSource[] = [
-  { name: 'reuters_world', url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', sourceLabel: 'Reuters' },
-  { name: 'ap_topnews', url: 'https://rsshub.app/apnews/topics/world-news', sourceLabel: 'AP News' },
-  { name: 'afp_me', url: 'https://news.google.com/rss/search?q=AFP+middle+east+OR+Lebanon+OR+Gaza+OR+Iran&hl=en&gl=US&ceid=US:en', sourceLabel: 'AFP via Google' },
+  { name: 'reuters_me', url: 'https://news.google.com/rss/search?q=Reuters+middle+east+war+2026+OR+Lebanon+OR+Gaza+OR+Iran+airstrike&hl=en&gl=US&ceid=US:en', sourceLabel: 'Reuters' },
+  { name: 'ap_me', url: 'https://news.google.com/rss/search?q=AP+News+middle+east+war+2026+OR+Lebanon+ceasefire+OR+Gaza+offensive&hl=en&gl=US&ceid=US:en', sourceLabel: 'AP News' },
+  { name: 'afp_me', url: 'https://news.google.com/rss/search?q=AFP+middle+east+war+2026+OR+Lebanon+OR+Gaza+OR+Iran&hl=en&gl=US&ceid=US:en', sourceLabel: 'AFP' },
 ];
 
-// ── Think Tanks ──
+// ── Think Tanks (Middle East conflict analysis) ──
 const THINK_TANK_FEEDS: FeedSource[] = [
   { name: 'brookings_me', url: 'https://www.brookings.edu/topic/middle-east-north-africa/feed/', sourceLabel: 'Brookings' },
   { name: 'carnegie_me', url: 'https://carnegieendowment.org/publications/rss?lang=en&topic=5', sourceLabel: 'Carnegie' },
-  { name: 'chatham_me', url: 'https://www.chathamhouse.org/publications/feed?topic=middle-east-and-north-africa', sourceLabel: 'Chatham House' },
-  { name: 'iiss', url: 'https://www.iiss.org/en/publications/rss', sourceLabel: 'IISS' },
   { name: 'crisisgroup', url: 'https://www.crisisgroup.org/middle-east-north-africa/feed', sourceLabel: 'Crisis Group' },
 ];
 
-// ── Podcasts (RSS feeds with enclosures) ──
+// ── Podcasts (conflict-analysis) ──
 const PODCAST_FEEDS: FeedSource[] = [
-  { name: 'podcast_bbc_newshour', url: 'https://podcasts.files.bbci.co.uk/p002vsn1.rss', sourceLabel: '🎙 BBC Newshour', category: 'podcast' },
   { name: 'podcast_war_on_rocks', url: 'https://warontherocks.com/feed/podcast/', sourceLabel: '🎙 War on the Rocks', category: 'podcast' },
 ];
 
-// ── Government & Official Sources (via Google News) ──
+// ── Government & Official Sources ──
 const GOVERNMENT_FEEDS: FeedSource[] = [
   { name: 'un_news_me', url: 'https://news.un.org/feed/subscribe/en/news/region/middle-east/feed/rss.xml', sourceLabel: 'UN News' },
-  { name: 'gov_press', url: 'https://news.google.com/rss/search?q=site:gov.lb+OR+site:un.org+OR+site:state.gov+Lebanon+OR+Gaza+OR+ceasefire&hl=en&gl=US&ceid=US:en', sourceLabel: 'Gov Press' },
+  { name: 'gov_press', url: 'https://news.google.com/rss/search?q=site:gov.lb+OR+site:un.org+OR+site:state.gov+Lebanon+war+2026+OR+Gaza+ceasefire+2026&hl=en&gl=US&ceid=US:en', sourceLabel: 'Gov Press' },
 ];
 
-// ── YouTube Channels (via RSS) ──
+// ── YouTube Channels ──
 const YOUTUBE_FEEDS: FeedSource[] = [
   { name: 'yt_aljazeeraeng', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCNye-wNBqNL5ZzHSJj3l8Bg', sourceLabel: '▶ Al Jazeera YT' },
   { name: 'yt_bbc_news', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC16niRr50-MSBwiO3YDb3RA', sourceLabel: '▶ BBC News YT' },
-  { name: 'yt_france24', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCQfwfsi5VrQ8yKZ-UWmAEFg', sourceLabel: '▶ France24 YT' },
-  { name: 'yt_wion', url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_gUM8rL-Lrg6O3adPWGR1g', sourceLabel: '▶ WION YT' },
 ];
 
 // ── Reddit Subreddits ──
 const REDDIT_FEEDS: FeedSource[] = [
   { name: 'reddit_lebanon', url: 'https://www.reddit.com/r/lebanon/top/.rss?t=day', sourceLabel: 'r/lebanon' },
-  { name: 'reddit_worldnews', url: 'https://www.reddit.com/r/worldnews/search/.rss?q=lebanon+OR+gaza+OR+hezbollah+OR+iran+OR+syria&sort=new&restrict_sr=on&t=day', sourceLabel: 'r/worldnews' },
+  { name: 'reddit_worldnews', url: 'https://www.reddit.com/r/worldnews/search/.rss?q=lebanon+OR+gaza+OR+hezbollah+OR+iran+war+2026&sort=new&restrict_sr=on&t=day', sourceLabel: 'r/worldnews' },
   { name: 'reddit_me', url: 'https://www.reddit.com/r/MiddleEastNews/top/.rss?t=day', sourceLabel: 'r/MiddleEastNews' },
 ];
 
-// ── Google News aggregation ──
+// ── Google News aggregation (2026 war focused) ──
 const GOOGLE_FEEDS: FeedSource[] = [
-  { name: 'google_me_war', url: 'https://news.google.com/rss/search?q=middle+east+war+OR+airstrike+OR+conflict+OR+Iran+OR+Lebanon+OR+Gaza+OR+Syria+OR+Yemen+OR+Iraq&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
-  { name: 'google_lebanon', url: 'https://news.google.com/rss/search?q=Lebanon+crisis+OR+Beirut+OR+Hezbollah+OR+ceasefire+Lebanon&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
-  { name: 'google_gaza', url: 'https://news.google.com/rss/search?q=Gaza+OR+Hamas+OR+Palestine+humanitarian+OR+Israel+war&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
-  { name: 'google_iran', url: 'https://news.google.com/rss/search?q=Iran+nuclear+OR+Iran+military+OR+Iran+sanctions+OR+IRGC&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
-  { name: 'google_syria_yemen', url: 'https://news.google.com/rss/search?q=Syria+war+OR+Yemen+Houthi+OR+Iraq+militia&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_me_war', url: 'https://news.google.com/rss/search?q=middle+east+war+2026+airstrike+OR+conflict+OR+ceasefire&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_lebanon', url: 'https://news.google.com/rss/search?q=Lebanon+war+2026+OR+Beirut+airstrike+OR+Hezbollah+ceasefire&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_gaza', url: 'https://news.google.com/rss/search?q=Gaza+war+2026+OR+Hamas+OR+Palestine+ceasefire+OR+Israel+offensive&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_iran', url: 'https://news.google.com/rss/search?q=Iran+war+2026+OR+Iran+military+strikes+OR+IRGC+attack&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_syria_yemen', url: 'https://news.google.com/rss/search?q=Syria+war+2026+OR+Yemen+Houthi+attack+2026+OR+Iraq+militia&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
-// ── Arabic Blog Aggregation (via Google News Arabic) ──
+// ── Arabic News (2026 war focused) ──
 const ARABIC_FEEDS: FeedSource[] = [
-  { name: 'google_ar_lebanon', url: 'https://news.google.com/rss/search?q=لبنان+حرب+OR+أزمة+OR+حزب+الله&hl=ar&gl=LB&ceid=LB:ar', sourceLabel: 'أخبار عربية' },
-  { name: 'google_ar_gaza', url: 'https://news.google.com/rss/search?q=غزة+OR+فلسطين+OR+حماس&hl=ar&gl=SA&ceid=SA:ar', sourceLabel: 'أخبار عربية' },
-  { name: 'google_ar_me', url: 'https://news.google.com/rss/search?q=الشرق+الأوسط+حرب+OR+صراع&hl=ar&gl=SA&ceid=SA:ar', sourceLabel: 'أخبار عربية' },
+  { name: 'google_ar_lebanon', url: 'https://news.google.com/rss/search?q=لبنان+حرب+2026+OR+غارة+OR+حزب+الله&hl=ar&gl=LB&ceid=LB:ar', sourceLabel: 'أخبار عربية' },
+  { name: 'google_ar_gaza', url: 'https://news.google.com/rss/search?q=غزة+حرب+2026+OR+فلسطين+OR+حماس&hl=ar&gl=SA&ceid=SA:ar', sourceLabel: 'أخبار عربية' },
 ];
 
 // All built-in feeds combined
@@ -117,12 +109,12 @@ const RSS_FEEDS: FeedSource[] = [
 const ME_FOCUSED_FEEDS = new Set([
   'france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'naharnet', 'dailystar', 'alarabiya', 'arabnews',
   'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen',
-  'un_news_me', 'gov_press', 'afp_me',
+  'un_news_me', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
   'reddit_lebanon', 'reddit_worldnews', 'reddit_me',
-  'brookings_me', 'carnegie_me', 'chatham_me', 'crisisgroup',
-  'google_ar_lebanon', 'google_ar_gaza', 'google_ar_me',
-  'yt_aljazeeraeng', 'yt_bbc_news', 'yt_france24', 'yt_wion',
-  'podcast_bbc_newshour', 'podcast_war_on_rocks',
+  'brookings_me', 'carnegie_me', 'crisisgroup',
+  'google_ar_lebanon', 'google_ar_gaza',
+  'yt_aljazeeraeng', 'yt_bbc_news',
+  'podcast_war_on_rocks',
 ]);
 
 const ME_KEYWORDS = [
