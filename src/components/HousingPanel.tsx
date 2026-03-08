@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { type HousingListing } from '@/data/mockData';
 import { useGeolocation, distanceKm, getDirectionsUrl } from '@/hooks/useGeolocation';
+import { LocationPicker } from '@/components/LocationPicker';
 import { Home, DollarSign, Phone, BedDouble, Plus, RefreshCw, Pencil, Trash2, Navigation, Search, MessageCircle, Heart, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
