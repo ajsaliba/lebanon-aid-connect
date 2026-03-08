@@ -24,9 +24,12 @@ export function useNewsFeeds(): NewsFeedResult {
   const [pollInterval, setPollInterval] = useState(60 * 1000);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews = useCallback(async (retentionDays?: number) => {
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/rss-news-feed`, {
+      const params = new URLSearchParams();
+      if (retentionDays && retentionDays > 0) params.set('retention', String(retentionDays));
+      const url = `${SUPABASE_URL}/functions/v1/rss-news-feed${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_KEY,

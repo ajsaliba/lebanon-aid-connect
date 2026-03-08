@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
-import { Settings, X, Upload, Download, Volume2, VolumeX } from 'lucide-react';
+import { Settings, X, Upload, Download, VolumeX, FileDown, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { type FeedSettings, type CardStyle, type PollFrequency } from '@/hooks/useFeedSettings';
+import { type FeedSettings, type CardStyle, type PollFrequency, type RetentionDays } from '@/hooks/useFeedSettings';
+import { type NewsItem } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 interface FeedSettingsPanelProps {
   settings: FeedSettings;
@@ -14,6 +16,7 @@ interface FeedSettingsPanelProps {
   onRemoveMuted: (k: string) => void;
   onExport: () => void;
   onImport: (json: string) => boolean;
+  articles: NewsItem[];
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -41,9 +44,54 @@ const categoryOptions = [
 
 const timeOptions = ['1h', '6h', '24h', '48h', '7d', 'All'];
 
+const retentionOptions: { value: RetentionDays; label: string }[] = [
+  { value: 0, label: 'Forever' },
+  { value: 7, label: '7 days' },
+  { value: 30, label: '30 days' },
+  { value: 90, label: '90 days' },
+];
+
+function downloadFile(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportAsJSON(articles: NewsItem[]) {
+  const data = articles.map(a => ({
+    title: sanitizeFeedText(a.title),
+    summary: sanitizeFeedText(a.summary),
+    source: a.source,
+    url: a.url,
+    publishedAt: a.publishedAt,
+    severity: a.severity,
+    category: a.category,
+  }));
+  downloadFile(JSON.stringify(data, null, 2), `cedarsalert-articles-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+}
+
+function exportAsCSV(articles: NewsItem[]) {
+  const headers = ['Title', 'Summary', 'Source', 'URL', 'Published', 'Severity', 'Category'];
+  const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+  const rows = articles.map(a => [
+    escape(sanitizeFeedText(a.title)),
+    escape(sanitizeFeedText(a.summary)),
+    escape(a.source),
+    escape(a.url || ''),
+    escape(a.publishedAt),
+    escape(a.severity),
+    escape(a.category),
+  ].join(','));
+  downloadFile([headers.join(','), ...rows].join('\n'), `cedarsalert-articles-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv');
+}
+
 export function FeedSettingsPanel({
   settings, onUpdateSettings, mutedKeywords, onAddMuted, onRemoveMuted,
-  onExport, onImport, isOpen, onToggle,
+  onExport, onImport, articles, isOpen, onToggle,
 }: FeedSettingsPanelProps) {
   const { toast } = useToast();
   const [muteInput, setMuteInput] = useState('');
@@ -120,6 +168,20 @@ export function FeedSettingsPanel({
         </div>
       </div>
 
+      {/* Data retention */}
+      <div className="space-y-1">
+        <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+          <Timer className="h-2.5 w-2.5" /> Data Retention
+        </span>
+        <div className="flex gap-1">
+          {retentionOptions.map(o => (
+            <Button key={o.value} variant={settings.retentionDays === o.value ? 'default' : 'ghost'}
+              size="sm" className="h-5 px-2 text-[9px]"
+              onClick={() => onUpdateSettings({ retentionDays: o.value })}>{o.label}</Button>
+          ))}
+        </div>
+      </div>
+
       {/* Muted keywords */}
       <div className="space-y-1">
         <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
@@ -145,13 +207,30 @@ export function FeedSettingsPanel({
         )}
       </div>
 
-      {/* Import / Export */}
+      {/* Export articles */}
+      <div className="space-y-1">
+        <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+          <FileDown className="h-2.5 w-2.5" /> Export Articles ({articles.length})
+        </span>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1"
+            onClick={() => { exportAsJSON(articles); toast({ title: 'Exported as JSON' }); }}>
+            📄 JSON
+          </Button>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1"
+            onClick={() => { exportAsCSV(articles); toast({ title: 'Exported as CSV' }); }}>
+            📊 CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Import / Export settings */}
       <div className="flex gap-2">
         <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={onExport}>
-          <Download className="h-3 w-3" /> Export
+          <Download className="h-3 w-3" /> Export Settings
         </Button>
         <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={() => fileRef.current?.click()}>
-          <Upload className="h-3 w-3" /> Import
+          <Upload className="h-3 w-3" /> Import Settings
         </Button>
         <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
       </div>
