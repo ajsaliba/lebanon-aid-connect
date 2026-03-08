@@ -274,6 +274,10 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
 
     const items: NewsItem[] = [];
     for (const raw of rawItems) {
+      // Only include articles from 2026 onwards
+      const pubDate = raw.pubDate ? new Date(raw.pubDate) : new Date();
+      if (pubDate.getFullYear() < 2026) continue;
+
       const fullText = `${raw.title} ${raw.description}`;
       const meFocused = ME_FOCUSED_FEEDS.has(feed.name) || feed.name.startsWith('custom_');
       if (!meFocused && !isMiddleEast(fullText)) continue;
@@ -285,7 +289,7 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
         summary: raw.description.slice(0, 300),
         source: feed.sourceLabel,
         url: raw.link,
-        publishedAt: raw.pubDate ? new Date(raw.pubDate).toISOString() : new Date().toISOString(),
+        publishedAt: pubDate.toISOString(),
         severity: classifySeverity(fullText),
         category: classifyCategory(fullText),
         ...coords,
