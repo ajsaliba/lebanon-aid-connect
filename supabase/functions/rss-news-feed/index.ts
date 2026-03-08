@@ -63,21 +63,81 @@ const WIRE_FEEDS: FeedSource[] = [
   { name: 'reuters_me', url: 'https://news.google.com/rss/search?q=Reuters+middle+east+war+2026+OR+Lebanon+OR+Gaza+OR+Iran+airstrike&hl=en&gl=US&ceid=US:en', sourceLabel: 'Reuters' },
   { name: 'ap_me', url: 'https://news.google.com/rss/search?q=AP+News+middle+east+war+2026+OR+Lebanon+ceasefire+OR+Gaza+offensive&hl=en&gl=US&ceid=US:en', sourceLabel: 'AP News' },
   { name: 'afp_me', url: 'https://news.google.com/rss/search?q=AFP+middle+east+war+2026+OR+Lebanon+OR+Gaza+OR+Iran&hl=en&gl=US&ceid=US:en', sourceLabel: 'AFP' },
+  { name: 'bloomberg_me', url: 'https://news.google.com/rss/search?q=site:bloomberg.com+middle+east+OR+Lebanon+OR+Gaza+OR+Iran+when:2d&hl=en&gl=US&ceid=US:en', sourceLabel: 'Bloomberg' },
+];
+
+// ── Defense & Military Intel ──
+const DEFENSE_FEEDS: FeedSource[] = [
+  { name: 'defense_one', url: 'https://www.defenseone.com/rss/all/', sourceLabel: 'Defense One' },
+  { name: 'breaking_defense', url: 'https://breakingdefense.com/feed/', sourceLabel: 'Breaking Defense' },
+  { name: 'the_war_zone', url: 'https://www.twz.com/feed', sourceLabel: 'The War Zone' },
+  { name: 'janes', url: 'https://news.google.com/rss/search?q=site:janes.com+when:3d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Janes' },
+  { name: 'military_times', url: 'https://www.militarytimes.com/arc/outboundfeeds/rss/?outputType=xml', sourceLabel: 'Military Times' },
+  { name: 'task_purpose', url: 'https://taskandpurpose.com/feed/', sourceLabel: 'Task & Purpose' },
+  { name: 'usni_news', url: 'https://news.usni.org/feed', sourceLabel: 'USNI News' },
+  { name: 'gcaptain', url: 'https://gcaptain.com/feed/', sourceLabel: 'gCaptain' },
+  { name: 'oryx_osint', url: 'https://www.oryxspioenkop.com/feeds/posts/default?alt=rss', sourceLabel: 'Oryx OSINT' },
+  { name: 'uk_mod', url: 'https://www.gov.uk/government/organisations/ministry-of-defence.atom', sourceLabel: 'UK MOD' },
 ];
 
 // ── Think Tanks & Analysis ──
 const THINK_TANK_FEEDS: FeedSource[] = [
   { name: 'brookings_me', url: 'https://www.brookings.edu/topic/middle-east-north-africa/feed/', sourceLabel: 'Brookings' },
   { name: 'carnegie_me', url: 'https://carnegieendowment.org/publications/rss?lang=en&topic=5', sourceLabel: 'Carnegie' },
-  { name: 'crisisgroup', url: 'https://www.crisisgroup.org/middle-east-north-africa/feed', sourceLabel: 'Crisis Group' },
+  { name: 'crisisgroup', url: 'https://www.crisisgroup.org/rss', sourceLabel: 'Crisis Group' },
   { name: 'me_monitor', url: 'https://www.middleeastmonitor.com/feed/', sourceLabel: 'ME Monitor' },
   { name: 'bellingcat', url: 'https://www.bellingcat.com/feed/', sourceLabel: 'Bellingcat' },
+  { name: 'atlantic_council', url: 'https://www.atlanticcouncil.org/feed/', sourceLabel: 'Atlantic Council' },
+  { name: 'foreign_affairs', url: 'https://www.foreignaffairs.com/rss.xml', sourceLabel: 'Foreign Affairs' },
+  { name: 'csis', url: 'https://news.google.com/rss/search?q=site:csis.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'CSIS' },
+  { name: 'rand', url: 'https://news.google.com/rss/search?q=site:rand.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'RAND' },
+  { name: 'mei', url: 'https://news.google.com/rss/search?q=site:mei.edu+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Middle East Institute' },
+  { name: 'chatham_house', url: 'https://news.google.com/rss/search?q=site:chathamhouse.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Chatham House' },
+  { name: 'ecfr', url: 'https://news.google.com/rss/search?q=site:ecfr.eu+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'ECFR' },
+  { name: 'rusi', url: 'https://news.google.com/rss/search?q=site:rusi.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'RUSI' },
+  { name: 'cnas', url: 'https://news.google.com/rss/search?q=site:cnas.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'CNAS' },
+  { name: 'aei', url: 'https://www.aei.org/feed/', sourceLabel: 'AEI' },
+  { name: 'responsible_statecraft', url: 'https://responsiblestatecraft.org/feed/', sourceLabel: 'Responsible Statecraft' },
+  { name: 'fpri', url: 'https://www.fpri.org/feed/', sourceLabel: 'FPRI' },
+  { name: 'jamestown', url: 'https://jamestown.org/feed/', sourceLabel: 'Jamestown' },
+  { name: 'wilson_center', url: 'https://news.google.com/rss/search?q=site:wilsoncenter.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Wilson Center' },
+  { name: 'gmf', url: 'https://news.google.com/rss/search?q=site:gmfus.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'GMF' },
+  { name: 'stimson', url: 'https://www.stimson.org/feed/', sourceLabel: 'Stimson Center' },
+  { name: 'lowy', url: 'https://news.google.com/rss/search?q=site:lowyinstitute.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Lowy Institute' },
 ];
 
 // ── Human Rights & NGOs ──
 const NGO_FEEDS: FeedSource[] = [
   { name: 'amnesty', url: 'https://www.amnesty.org/en/latest/news/feed/', sourceLabel: 'Amnesty' },
   { name: 'msf', url: 'https://www.msf.org/rss/all', sourceLabel: 'MSF' },
+];
+
+// ── Crisis & International Orgs ──
+const CRISIS_FEEDS: FeedSource[] = [
+  { name: 'iaea', url: 'https://www.iaea.org/feeds/topnews', sourceLabel: 'IAEA' },
+  { name: 'who', url: 'https://www.who.int/rss-feeds/news-english.xml', sourceLabel: 'WHO' },
+  { name: 'unhcr', url: 'https://news.google.com/rss/search?q=site:unhcr.org+OR+UNHCR+refugees+when:3d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'UNHCR' },
+  { name: 'fao_news', url: 'https://www.fao.org/feeds/fao-newsroom-rss', sourceLabel: 'FAO' },
+];
+
+// ── Nuclear & Arms Control ──
+const NUCLEAR_FEEDS: FeedSource[] = [
+  { name: 'arms_control', url: 'https://news.google.com/rss/search?q=site:armscontrol.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Arms Control Assn' },
+  { name: 'bulletin_atomic', url: 'https://news.google.com/rss/search?q=site:thebulletin.org+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Bulletin of Atomic Scientists' },
+  { name: 'fas', url: 'https://news.google.com/rss/search?q=site:fas.org+nuclear+weapons+security&hl=en&gl=US&ceid=US:en', sourceLabel: 'FAS' },
+  { name: 'nti', url: 'https://news.google.com/rss/search?q=site:nti.org+when:30d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'NTI' },
+];
+
+// ── Additional ME Sources (from World Monitor) ──
+const EXTRA_ME_FEEDS: FeedSource[] = [
+  { name: 'haaretz', url: 'https://news.google.com/rss/search?q=site:haaretz.com+when:7d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Haaretz' },
+  { name: 'iran_intl', url: 'https://news.google.com/rss/search?q=site:iranintl.com+when:2d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Iran International' },
+  { name: 'fars_news', url: 'https://news.google.com/rss/search?q=site:farsnews.ir+when:2d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Fars News' },
+  { name: 'the_national', url: 'https://news.google.com/rss/search?q=site:thenationalnews.com+when:2d&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'The National' },
+  { name: 'bbc_persian', url: 'http://feeds.bbci.co.uk/persian/tv-and-radio-37434376/rss.xml', sourceLabel: 'BBC Persian' },
+  { name: 'rudaw', url: 'https://news.google.com/rss/search?q=site:rudaw.net+when:7d&hl=en&gl=US&ceid=US:en', sourceLabel: 'Rudaw' },
+  { name: 'asharq_biz', url: 'https://asharqbusiness.com/rss.xml', sourceLabel: 'Asharq Business' },
+  { name: 'oman_observer', url: 'https://www.omanobserver.om/rssFeed/1', sourceLabel: 'Oman Observer' },
 ];
 
 // ── Independent / Investigative ──
@@ -99,6 +159,9 @@ const GOVERNMENT_FEEDS: FeedSource[] = [
   { name: 'un_news_me', url: 'https://news.un.org/feed/subscribe/en/news/region/middle-east/feed/rss.xml', sourceLabel: 'UN Middle East' },
   { name: 'un_peace', url: 'https://news.un.org/feed/subscribe/en/news/topic/peace-and-security/feed/rss.xml', sourceLabel: 'UN Peace' },
   { name: 'gov_press', url: 'https://news.google.com/rss/search?q=site:gov.lb+OR+site:un.org+OR+site:state.gov+Lebanon+war+2026+OR+Gaza+ceasefire+2026&hl=en&gl=US&ceid=US:en', sourceLabel: 'Gov Press' },
+  { name: 'white_house', url: 'https://news.google.com/rss/search?q=site:whitehouse.gov+middle+east+OR+Lebanon+OR+Gaza+OR+Iran&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'White House' },
+  { name: 'state_dept', url: 'https://news.google.com/rss/search?q=site:state.gov+middle+east+OR+Lebanon+OR+Gaza+OR+Iran&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'State Dept' },
+  { name: 'pentagon', url: 'https://news.google.com/rss/search?q=site:defense.gov+OR+Pentagon+middle+east+OR+CENTCOM&hl=en-US&gl=US&ceid=US:en', sourceLabel: 'Pentagon' },
 ];
 
 // ── YouTube Channels ──
@@ -133,8 +196,12 @@ const ARABIC_FEEDS: FeedSource[] = [
 const RSS_FEEDS: FeedSource[] = [
   ...CORE_FEEDS,
   ...WIRE_FEEDS,
+  ...DEFENSE_FEEDS,
   ...THINK_TANK_FEEDS,
   ...NGO_FEEDS,
+  ...CRISIS_FEEDS,
+  ...NUCLEAR_FEEDS,
+  ...EXTRA_ME_FEEDS,
   ...INDIE_FEEDS,
   ...PODCAST_FEEDS,
   ...GOVERNMENT_FEEDS,
