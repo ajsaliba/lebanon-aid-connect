@@ -124,23 +124,6 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         </div>
       </div>
 
-      <div className="hidden md:flex items-center gap-1">
-        {regions.map((r) => (
-          <Button
-            key={r.id}
-            variant={activeRegion === r.id ? 'default' : 'ghost'}
-            size="sm"
-            className={cn(
-              'h-7 text-[11px] uppercase tracking-wider gap-1',
-              activeRegion === r.id && 'bg-primary text-primary-foreground'
-            )}
-            onClick={() => onRegionChange(r.id)}
-          >
-            <r.icon className="h-3 w-3" />
-            {r.label}
-          </Button>
-        ))}
-      </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
         <div className="text-[11px] text-muted-foreground font-mono hidden sm:flex items-center gap-3">
