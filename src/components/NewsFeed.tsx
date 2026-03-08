@@ -75,7 +75,7 @@ function extractTrendingKeywords(news: Array<{ title: string; summary: string }>
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch } = useNewsFeedContext();
   const [search, setSearch] = useState('');
-  const [activeTime, setActiveTime] = useState<string>('7d');
+  const [activeTime, setActiveTime] = useState<string>('All');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
