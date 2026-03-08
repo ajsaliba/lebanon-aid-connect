@@ -8,6 +8,7 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HotspotLayer } from '@/components/map/HotspotLayer';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -83,6 +84,7 @@ function inferCoords(text: string): { lat: number; lng: number } | null {
 }
 
 interface LayerToggle {
+  hotspots: boolean;
   airstrikes: boolean;
   shelters: boolean;
   housing: boolean;
@@ -101,6 +103,7 @@ function MapController() {
 export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const [layers, setLayers] = useState<LayerToggle>({
+    hotspots: true,
     airstrikes: true,
     shelters: true,
     housing: true,
@@ -160,6 +163,9 @@ export function CrisisMap() {
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
+
+        {/* Hotspot escalation zones */}
+        <HotspotLayer news={news} visible={layers.hotspots} />
 
         {layers.airstrikes && conflictEvents.map((event) => (
           <CircleMarker
@@ -269,6 +275,7 @@ export function CrisisMap() {
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
             {([
+              { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
               { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
               { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },

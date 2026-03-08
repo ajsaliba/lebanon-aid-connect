@@ -301,19 +301,38 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
     console.log(`Fetching ${feed.name}`);
+
+    // Build conditional GET headers (ETag / If-Modified-Since)
+    const conditionalHeaders: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Accept': 'application/rss+xml, application/xml, application/atom+xml, text/xml, */*',
+    };
+    const cached = etagCache.get(feed.url);
+    if (cached?.etag) conditionalHeaders['If-None-Match'] = cached.etag;
+    if (cached?.lastModified) conditionalHeaders['If-Modified-Since'] = cached.lastModified;
+
     const response = await fetch(feed.url, {
       signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/rss+xml, application/xml, application/atom+xml, text/xml, */*',
-      },
+      headers: conditionalHeaders,
     });
     clearTimeout(timeout);
-    if (!response.ok) {
+
+    // 304 Not Modified — use cached XML
+    if (response.status === 304 && cached?.data) {
+      console.log(`Feed ${feed.name}: 304 Not Modified (using cached)`);
+      var xml = cached.data;
+    } else if (!response.ok) {
       console.warn(`Feed ${feed.name} returned ${response.status}`);
       return [];
+    } else {
+      var xml = await response.text();
+      // Store ETag/Last-Modified for next request
+      const etag = response.headers.get('etag') || undefined;
+      const lastModified = response.headers.get('last-modified') || undefined;
+      if (etag || lastModified) {
+        etagCache.set(feed.url, { etag, lastModified, data: xml });
+      }
     }
-    const xml = await response.text();
     const rawItems = extractItems(xml);
     console.log(`Feed ${feed.name}: ${rawItems.length} items`);
 
@@ -351,6 +370,9 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
 // In-memory cache (60s TTL)
 let cachedResponse: { data: string; timestamp: number } | null = null;
 const CACHE_TTL = 60_000;
+
+// ETag / Last-Modified cache per feed URL (conditional GET)
+const etagCache = new Map<string, { etag?: string; lastModified?: string; data: string }>();
 
 // Rate limiting (per IP, 30 req/min)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
