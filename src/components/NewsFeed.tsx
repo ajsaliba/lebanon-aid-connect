@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } f
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { format } from 'date-fns';
-import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard } from 'lucide-react';
+import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard, Rss } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { ArticleCard } from '@/components/ArticleCard';
 import { FeedSettingsPanel } from '@/components/FeedSettingsPanel';
+import { CustomFeedsPanel } from '@/components/CustomFeedsPanel';
 import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
@@ -193,6 +194,7 @@ export function NewsFeed() {
   const [searchHistory, setSearchHistory] = useState<string[]>(getSearchHistory());
   const [viewMode, setViewMode] = useState<ViewMode>('feed');
   const [showSettings, setShowSettings] = useState(false);
+  const [showCustomFeeds, setShowCustomFeeds] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const trendingRef = useRef<HTMLDivElement>(null);
@@ -374,8 +376,12 @@ export function NewsFeed() {
               <ListChecks className="h-3 w-3" />
             </Button>
             <Button variant={showSettings ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
-              onClick={() => setShowSettings(prev => !prev)} title="Settings">
+              onClick={() => { setShowSettings(prev => !prev); setShowCustomFeeds(false); }} title="Settings">
               <Settings className="h-3 w-3" />
+            </Button>
+            <Button variant={showCustomFeeds ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
+              onClick={() => { setShowCustomFeeds(prev => !prev); setShowSettings(false); }} title="Custom Feeds">
+              <Rss className="h-3 w-3" />
             </Button>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0"
               onClick={() => setShowShortcuts(prev => !prev)} title="Keyboard shortcuts (?)">
@@ -528,6 +534,12 @@ export function NewsFeed() {
         articles={filtered}
         isOpen={showSettings}
         onToggle={() => setShowSettings(false)}
+      />
+
+      {/* Custom feeds panel */}
+      <CustomFeedsPanel
+        isOpen={showCustomFeeds}
+        onToggle={() => setShowCustomFeeds(false)}
       />
 
       {/* Keyboard shortcuts help */}
