@@ -20,14 +20,20 @@ export function useThreatClassification(news: NewsItem[]) {
   const [classifications, setClassifications] = useState<ClassificationCache>({});
   const [isClassifying, setIsClassifying] = useState(false);
   const processedRef = useRef<Set<string>>(new Set());
+  const backoffRef = useRef(10000); // start at 10s
+  const lastCallRef = useRef(0);
 
   useEffect(() => {
-    // Find unclassified articles
-    const unclassified = news.filter(n => !processedRef.current.has(n.id)).slice(0, 20);
+    const unclassified = news.filter(n => !processedRef.current.has(n.id)).slice(0, 10);
     if (unclassified.length === 0) return;
+
+    const now = Date.now();
+    const timeSinceLast = now - lastCallRef.current;
+    const delay = Math.max(backoffRef.current, 10000 - timeSinceLast);
 
     const classify = async () => {
       setIsClassifying(true);
+      lastCallRef.current = Date.now();
       try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/classify-threat`, {
           method: 'POST',
@@ -41,12 +47,20 @@ export function useThreatClassification(news: NewsItem[]) {
           }),
         });
 
+        if (res.status === 429) {
+          console.warn('Classification rate limited, backing off');
+          backoffRef.current = Math.min(backoffRef.current * 2, 120000);
+          return;
+        }
+
         if (!res.ok) {
           console.warn('Classification failed:', res.status);
-          // Mark as processed to avoid retrying
           unclassified.forEach(a => processedRef.current.add(a.id));
           return;
         }
+
+        // Success — reset backoff
+        backoffRef.current = 10000;
 
         const data = await res.json();
         if (data.classifications) {
@@ -68,8 +82,7 @@ export function useThreatClassification(news: NewsItem[]) {
       }
     };
 
-    // Debounce: wait 3s after news changes before classifying
-    const timer = setTimeout(classify, 3000);
+    const timer = setTimeout(classify, delay);
     return () => clearTimeout(timer);
   }, [news]);
 
