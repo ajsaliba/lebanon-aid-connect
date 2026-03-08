@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useNewsFeeds } from '@/hooks/useNewsFeeds';
-import type { NewsItem } from '@/data/mockData';
+import { mockNews, type NewsItem } from '@/data/mockData';
 
 interface NewsFeedContextValue {
   news: NewsItem[];
@@ -11,7 +11,16 @@ interface NewsFeedContextValue {
   refetch: () => void;
 }
 
-const NewsFeedContext = createContext<NewsFeedContextValue | null>(null);
+const defaultValue: NewsFeedContextValue = {
+  news: mockNews,
+  isLoading: false,
+  error: null,
+  lastUpdated: null,
+  isLive: false,
+  refetch: () => {},
+};
+
+const NewsFeedContext = createContext<NewsFeedContextValue>(defaultValue);
 
 export function NewsFeedProvider({ children }: { children: ReactNode }) {
   const feedData = useNewsFeeds();
@@ -23,7 +32,5 @@ export function NewsFeedProvider({ children }: { children: ReactNode }) {
 }
 
 export function useNewsFeedContext() {
-  const ctx = useContext(NewsFeedContext);
-  if (!ctx) throw new Error('useNewsFeedContext must be used within NewsFeedProvider');
-  return ctx;
+  return useContext(NewsFeedContext);
 }
