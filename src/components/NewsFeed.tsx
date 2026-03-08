@@ -568,6 +568,7 @@ export function NewsFeed() {
             search={search}
             focusedIndex={focusedIndex}
             cardStyle={settings.cardStyle}
+            duplicateMap={duplicateMap}
             isBookmarked={isBookmarked}
             isInReadingList={isInReadingList}
             isRead={isRead}
