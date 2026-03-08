@@ -103,13 +103,18 @@ export function ShelterPanel() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    if (formLat === 0 && formLng === 0 && !editShelter) {
+      toast({ title: 'Please select a location', variant: 'destructive' });
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const form = new FormData(e.currentTarget);
     const payload = {
       name: form.get('name') as string,
-      address: form.get('address') as string,
-      lat: parseFloat(form.get('lat') as string),
-      lng: parseFloat(form.get('lng') as string),
+      address: formAddress || (editShelter?.address || ''),
+      lat: formLat || (editShelter?.lat || 0),
+      lng: formLng || (editShelter?.lng || 0),
       capacity: parseInt(form.get('capacity') as string),
       current_occupancy: parseInt(form.get('occupancy') as string) || 0,
       contact: form.get('contact') as string,
