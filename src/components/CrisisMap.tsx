@@ -3,9 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
+import { lebanonHospitals } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
