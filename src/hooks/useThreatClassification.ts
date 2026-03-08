@@ -51,9 +51,9 @@ export function useThreatClassification(news: NewsItem[]) {
         });
 
         if (res.status === 429) {
-          console.warn('Classification rate limited, backing off');
-          backoffRef.current = Math.min(backoffRef.current * 2, 120000);
-          // Mark as processed to prevent retry loop
+          console.warn('Classification rate limited, backing off 5min');
+          backoffRef.current = Math.min(backoffRef.current * 3, 300000);
+          rateLimitedUntilRef.current = Date.now() + backoffRef.current;
           unclassified.forEach(a => processedRef.current.add(a.id));
           return;
         }
