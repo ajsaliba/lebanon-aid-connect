@@ -315,7 +315,14 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Live mode: fetch from RSS, persist, return
+  // Live mode: check cache first
+  if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_TTL) {
+    console.log('Returning cached response');
+    return new Response(cachedResponse.data, {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+    });
+  }
+
   try {
     const results = await Promise.allSettled(RSS_FEEDS.map(fetchFeed));
     const allNews: NewsItem[] = [];
