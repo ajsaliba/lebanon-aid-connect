@@ -82,13 +82,17 @@ export function HousingPanel() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    if (formLat === 0 && formLng === 0 && !editHousing) {
+      toast({ title: 'Please select a location', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     const form = new FormData(e.currentTarget);
     const payload = {
       title: form.get('title') as string,
-      address: form.get('address') as string,
-      lat: parseFloat(form.get('lat') as string),
-      lng: parseFloat(form.get('lng') as string),
+      address: formAddress || (editHousing?.address || ''),
+      lat: formLat || (editHousing?.lat || 0),
+      lng: formLng || (editHousing?.lng || 0),
       price: isFreeForm ? 0 : parseInt(form.get('price') as string),
       currency: 'USD',
       bedrooms: parseInt(form.get('bedrooms') as string),
