@@ -59,21 +59,32 @@ export function LiveStreams() {
                 onClick={() => setActiveStream(stream)}
               >
                 {stream.channel}
+                {!stream.live && <span className="ml-1 text-muted-foreground">(off)</span>}
               </Button>
             ))}
           </div>
 
-          {/* Video player */}
-          <div className="aspect-[16/9] bg-muted rounded overflow-hidden w-full">
-            <iframe
-              src={`https://www.youtube.com/embed/${activeStream.embedId}?autoplay=1&mute=1`}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={activeStream.name}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground truncate">{activeStream.name}</p>
+          {/* Video player or no-live message */}
+          {activeStream.live ? (
+            <>
+              <div className="aspect-[16/9] bg-muted rounded overflow-hidden w-full">
+                <iframe
+                  src={`https://www.youtube.com/embed/${activeStream.embedId}?autoplay=1&mute=1`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={activeStream.name}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground truncate">{activeStream.name}</p>
+            </>
+          ) : (
+            <div className="aspect-[16/9] bg-muted rounded overflow-hidden w-full flex flex-col items-center justify-center gap-1">
+              <Video className="h-6 w-6 text-muted-foreground" />
+              <p className="text-xs font-medium text-muted-foreground">No ongoing live stream</p>
+              <p className="text-[10px] text-muted-foreground">{activeStream.channel}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
