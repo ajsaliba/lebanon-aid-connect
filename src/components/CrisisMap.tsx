@@ -303,6 +303,22 @@ export function CrisisMap() {
           </div>
         )}
       </div>
+
+      {/* Escalation Panel - bottom right */}
+      <div className="absolute bottom-3 right-3 z-[1000]">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
+          onClick={() => setShowEscalation(!showEscalation)}
+        >
+          <TrendingUp className="h-4 w-4" />
+        </Button>
+        {showEscalation && (
+          <div className="absolute bottom-10 right-0 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 min-w-[280px]">
+            <EscalationPanel scores={scores} historyMap={historyMap} />
+          </div>
+        )}
+      </div>
     </div>
-  );
 }
