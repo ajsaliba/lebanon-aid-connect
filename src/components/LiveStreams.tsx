@@ -15,7 +15,7 @@ export function LiveStreams() {
       >
         <div className="flex items-center gap-2">
           <Video className="h-3 w-3 text-danger" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Live Streams</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Live Streams</span>
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse-danger" />
         </div>
         {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
