@@ -242,9 +242,9 @@ export function CrisisMap() {
         ))}
       </MapContainer>
 
-      {/* Live indicator */}
+      {/* Live indicator - next to zoom controls (top-left, below zoom) */}
       {isLive && (
-        <div className="absolute bottom-3 right-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
+        <div className="absolute top-[120px] left-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
           <span className="text-[10px] font-bold text-danger uppercase">Live</span>
           {lastUpdated && (
@@ -255,8 +255,8 @@ export function CrisisMap() {
         </div>
       )}
 
-      {/* Layer Control Panel */}
-      <div className="absolute top-14 left-3 z-[1000]">
+      {/* Layer Control Panel - bottom left (replaces old legend) */}
+      <div className="absolute bottom-3 left-3 z-[1000]">
         <Button
           variant="ghost"
           size="icon"
@@ -286,16 +286,6 @@ export function CrisisMap() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md p-2 text-[10px] space-y-1">
-        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-danger" />Conflict / Airstrike</div>
-        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-success" />Shelter</div>
-        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-info" />Housing</div>
-        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" />News Event</div>
-        <div className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm bg-white border-2 border-danger text-danger text-[8px] font-bold flex items-center justify-center leading-none">+</span>Hospital</div>
-      </div>
     </div>
   );
 }
