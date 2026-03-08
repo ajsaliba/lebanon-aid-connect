@@ -73,10 +73,7 @@ export function ShelterPanel() {
 
   // "I'm heading here" — increments heading_count and opens directions
   const handleHeadingHere = async (shelter: DbShelter) => {
-    // Unmark previous if any
-    if (headingTo && headingTo !== shelter.id) {
-      await supabase.rpc('', {}).catch(() => {}); // no-op, just decrement locally
-    }
+    // Mark this shelter as the one we're heading to
     setHeadingTo(shelter.id);
     // Increment heading count
     await supabase.from('shelters').update({
