@@ -164,6 +164,9 @@ export function CrisisMap() {
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
+        {/* Hotspot escalation zones */}
+        <HotspotLayer news={news} visible={layers.hotspots} />
+
         {layers.airstrikes && conflictEvents.map((event) => (
           <CircleMarker
             key={event.id}
