@@ -321,4 +321,5 @@ export function CrisisMap() {
         )}
       </div>
     </div>
+  );
 }
