@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { mockNews } from '@/data/mockData';
-import { ExternalLink, Clock, Search, Filter } from 'lucide-react';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+import { ExternalLink, Clock, Search, Wifi, WifiOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 const severityStyles = {
@@ -20,14 +21,28 @@ const categoryStyles = {
 
 const timeFilters = ['1h', '6h', '24h', '48h', '7d'] as const;
 
+function getTimeFilterMs(filter: string): number {
+  const map: Record<string, number> = {
+    '1h': 3600000,
+    '6h': 21600000,
+    '24h': 86400000,
+    '48h': 172800000,
+    '7d': 604800000,
+  };
+  return map[filter] || 86400000;
+}
+
 export function NewsFeed() {
+  const { news, isLoading, isLive } = useNewsFeedContext();
   const [search, setSearch] = useState('');
   const [activeTime, setActiveTime] = useState<string>('24h');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const filtered = mockNews.filter(n => {
+  const filtered = news.filter(n => {
     if (search && !n.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCategory && n.category !== activeCategory) return false;
+    const age = Date.now() - new Date(n.publishedAt).getTime();
+    if (age > getTimeFilterMs(activeTime)) return false;
     return true;
   });
 
@@ -44,7 +59,17 @@ export function NewsFeed() {
       <div className="p-3 border-b border-border space-y-2">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
-          <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse-danger" />
+          {isLive ? (
+            <span className="flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+              <Wifi className="h-2.5 w-2.5 text-success" />
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+              <WifiOff className="h-2.5 w-2.5 text-warning" />
+            </span>
+          )}
         </div>
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -87,33 +112,48 @@ export function NewsFeed() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {filtered.map((news) => (
-          <article
-            key={news.id}
-            className={cn(
-              'p-2 rounded border text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
-              severityStyles[news.severity]
-            )}
-          >
-            <div className="flex items-start justify-between gap-1">
-              <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{news.title}</h3>
-              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="p-2 rounded border border-border space-y-1.5">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-2 w-1/2" />
             </div>
-            <p className="text-muted-foreground mt-1 leading-relaxed">{news.summary}</p>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className={cn('uppercase font-bold text-[9px]', categoryStyles[news.category])}>
-                {news.category}
-              </span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">{news.source}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="flex items-center gap-0.5 text-muted-foreground">
-                <Clock className="h-2.5 w-2.5" />
-                {timeAgo(news.publishedAt)}
-              </span>
-            </div>
-          </article>
-        ))}
+          ))
+        ) : filtered.length === 0 ? (
+          <div className="text-center text-muted-foreground text-xs py-8">
+            No news found for the selected filters
+          </div>
+        ) : (
+          filtered.map((item) => (
+            <article
+              key={item.id}
+              className={cn(
+                'p-2 rounded border text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
+                severityStyles[item.severity]
+              )}
+              onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
+            >
+              <div className="flex items-start justify-between gap-1">
+                <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{item.title}</h3>
+                <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground mt-1 leading-relaxed">{item.summary}</p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className={cn('uppercase font-bold text-[9px]', categoryStyles[item.category])}>
+                  {item.category}
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">{item.source}</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="flex items-center gap-0.5 text-muted-foreground">
+                  <Clock className="h-2.5 w-2.5" />
+                  {timeAgo(item.publishedAt)}
+                </span>
+              </div>
+            </article>
+          ))
+        )}
       </div>
     </div>
   );
