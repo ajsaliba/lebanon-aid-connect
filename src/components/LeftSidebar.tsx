@@ -8,7 +8,7 @@ export function LeftSidebar({ isOpen }: { isOpen: boolean }) {
   return (
     <aside className={cn(
       'h-full border-r border-border bg-card flex flex-col overflow-hidden transition-all duration-300',
-      isOpen ? 'w-80' : 'w-0'
+      isOpen ? 'w-96' : 'w-0'
     )}>
       {isOpen && (
         <>
