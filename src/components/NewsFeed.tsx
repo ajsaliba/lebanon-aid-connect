@@ -142,7 +142,7 @@ function VirtualArticleList({
         const item = items[virtualRow.index];
         return (
           <div
-            key={item.id}
+            key={`${item.id}-${item.source}-${item.publishedAt}-${virtualRow.index}`}
             style={{
               position: 'absolute',
               top: 0,
