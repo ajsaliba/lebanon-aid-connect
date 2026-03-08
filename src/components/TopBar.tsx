@@ -148,10 +148,10 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           <span className="text-primary font-medium">{utcTime} UTC</span>
         </div>
 
-        {/* Cmd+K hint */}
+        {/* Cmd+K hint — desktop only */}
         <button
           onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-          className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded border border-border text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded border border-border text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <Search className="h-3 w-3" />
           <kbd className="text-[9px]">⌘K</kbd>
