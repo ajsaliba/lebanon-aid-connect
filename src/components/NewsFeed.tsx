@@ -32,6 +32,15 @@ function getTimeFilterMs(filter: string): number {
   return map[filter] || 86400000;
 }
 
+function stripHtml(text: string): string {
+  return text
+    .replace(/<[^>]*>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function NewsFeed() {
   const { news, isLoading, isLive } = useNewsFeedContext();
   const [search, setSearch] = useState('');
