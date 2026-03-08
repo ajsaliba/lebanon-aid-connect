@@ -53,7 +53,7 @@ const STOP_WORDS = new Set([
 function extractTrendingKeywords(news: Array<{ title: string; summary: string }>, max = 12): string[] {
   const freq: Record<string, number> = {};
   for (const item of news) {
-    const text = sanitizeFeedText(`${item.title} ${item.summary}`).toLowerCase();
+    const text = sanitizeFeedText(item.title).toLowerCase();
     const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
     const seen = new Set<string>();
     for (const w of words) {
