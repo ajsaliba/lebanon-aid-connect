@@ -37,7 +37,7 @@ describe('computeHotspotScores', () => {
   });
 
   it('high severity articles boost score', () => {
-    const low = computeHotspotScores([makeArticle('Gaza update', 'low')]);
+    const low = computeHotspotScores([makeArticle('Gaza update', 'monitoring')]);
     const high = computeHotspotScores([makeArticle('Gaza update', 'high')]);
     const gazaLow = low.find(s => s.hotspot.id === 'gaza')!;
     const gazaHigh = high.find(s => s.hotspot.id === 'gaza')!;
