@@ -507,7 +507,7 @@ export function NewsFeed() {
               <TrendingUp className="h-2.5 w-2.5 text-primary" />
               <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Trending Now</span>
             </div>
-            <div ref={trendingRef} className="flex gap-1 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div ref={trendingRef} className="flex gap-1 flex-wrap pb-0.5">
               {trending.map(keyword => (
                 <button key={keyword}
                   className={cn('px-1.5 py-0.5 rounded text-[9px] border transition-colors whitespace-nowrap shrink-0',
