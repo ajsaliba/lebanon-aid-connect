@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { mockShelters, type Shelter } from '@/data/mockData';
+import { type Shelter } from '@/data/mockData';
 import { MapPin, Users, Phone, CheckCircle, XCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ export function ShelterPanel() {
 
   useEffect(() => { fetchShelters(); }, []);
 
-  const allShelters = [...dbShelters, ...mockShelters];
+  const allShelters = dbShelters;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

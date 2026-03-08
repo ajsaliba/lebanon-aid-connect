@@ -3,8 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { mockAirstrikes, mockShelters, mockHousing } from '@/data/mockData';
+import { mockAirstrikes, lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -37,11 +38,19 @@ const newsIcon = new L.DivIcon({
   iconAnchor: [4, 4],
 });
 
+const hospitalIcon = new L.DivIcon({
+  html: `<div style="background:#ffffff;width:14px;height:14px;border-radius:3px;border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:#ef4444;line-height:1;box-shadow:0 0 6px #ef444480;">+</div>`,
+  className: '',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
 interface LayerToggle {
   airstrikes: boolean;
   shelters: boolean;
   housing: boolean;
   news: boolean;
+  hospitals: boolean;
 }
 
 function MapController() {
@@ -59,8 +68,31 @@ export function CrisisMap() {
     shelters: true,
     housing: true,
     news: true,
+    hospitals: true,
   });
   const [showPanel, setShowPanel] = useState(true);
+  const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
+  const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
+
+  useEffect(() => {
+    supabase.from('shelters').select('*').then(({ data }) => {
+      if (data) setDbShelters(data.map(s => ({
+        id: s.id, name: s.name, lat: s.lat, lng: s.lng,
+        capacity: s.capacity, currentOccupancy: s.current_occupancy,
+        address: s.address, contact: s.contact,
+        status: s.status as 'open' | 'full' | 'closed',
+        amenities: s.amenities || [],
+      })));
+    });
+    supabase.from('housing_listings').select('*').then(({ data }) => {
+      if (data) setDbHousing(data.map(h => ({
+        id: h.id, title: h.title, lat: h.lat, lng: h.lng,
+        price: h.price, currency: h.currency, bedrooms: h.bedrooms,
+        address: h.address, contact: h.contact,
+        available: h.available, description: h.description || '',
+      })));
+    });
+  }, []);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
@@ -109,7 +141,7 @@ export function CrisisMap() {
           </CircleMarker>
         ))}
 
-        {layers.shelters && mockShelters.map((shelter) => (
+        {layers.shelters && dbShelters.map((shelter) => (
           <Marker key={shelter.id} position={[shelter.lat, shelter.lng]} icon={shelterIcon}>
             <Popup>
               <div className="text-xs space-y-1">
@@ -126,7 +158,7 @@ export function CrisisMap() {
           </Marker>
         ))}
 
-        {layers.housing && mockHousing.map((house) => (
+        {layers.housing && dbHousing.map((house) => (
           <Marker key={house.id} position={[house.lat, house.lng]} icon={housingIcon}>
             <Popup>
               <div className="text-xs space-y-1">
@@ -145,6 +177,18 @@ export function CrisisMap() {
               <div className="text-xs space-y-1">
                 <div className="font-bold text-foreground">{news.title}</div>
                 <div className="text-muted-foreground">{news.source}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {layers.hospitals && lebanonHospitals.map((hospital) => (
+          <Marker key={hospital.id} position={[hospital.lat, hospital.lng]} icon={hospitalIcon}>
+            <Popup>
+              <div className="text-xs space-y-1">
+                <div className="font-bold text-foreground">{hospital.name}</div>
+                <div className="text-muted-foreground">{hospital.city}</div>
+                <div className="text-muted-foreground">{hospital.phone}</div>
               </div>
             </Popup>
           </Marker>
@@ -169,6 +213,7 @@ export function CrisisMap() {
               { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },
               { key: 'news' as const, label: 'News', color: 'text-warning' },
+              { key: 'hospitals' as const, label: 'Hospitals', color: 'text-[#ef4444]' },
             ]).map(layer => (
               <button
                 key={layer.key}
@@ -189,6 +234,7 @@ export function CrisisMap() {
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-success" />Shelter</div>
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-info" />Housing</div>
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" />News Event</div>
+        <div className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm bg-white border-2 border-danger text-danger text-[8px] font-bold flex items-center justify-center leading-none">+</span>Hospital</div>
       </div>
     </div>
   );
