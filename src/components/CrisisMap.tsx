@@ -106,6 +106,7 @@ function MapController() {
 
 export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
+  const { scores, historyMap } = useEscalationHistory(news);
   const [layers, setLayers] = useState<LayerToggle>({
     hotspots: true,
     airstrikes: true,
@@ -113,8 +114,10 @@ export function CrisisMap() {
     housing: true,
     news: true,
     hospitals: true,
+    infrastructure: true,
   });
   const [showPanel, setShowPanel] = useState(true);
+  const [showEscalation, setShowEscalation] = useState(false);
   const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
   const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
 
