@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { type NewsItem } from '@/data/mockData';
 import { Bookmark, BookmarkCheck, ListPlus, ListChecks, Share2, Copy, Clock, ExternalLink, Languages, BookOpen, Layers } from 'lucide-react';
+import { SourceBadge } from '@/components/SourceBadge';
+import { type ThreatClassification, THREAT_CATEGORY_CONFIG, THREAT_LEVEL_CONFIG } from '@/hooks/useThreatClassification';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
