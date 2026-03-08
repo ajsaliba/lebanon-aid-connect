@@ -189,9 +189,18 @@ export const mockEmergencyContacts: EmergencyContact[] = [
 ];
 
 export const liveStreams = [
-  { id: 'ls1', name: 'Al Jazeera English', embedId: 'gCNeDWCI0vo', channel: 'Al Jazeera' },
-  { id: 'ls2', name: 'Al Jazeera Arabic', embedId: 'bNyUyrR0PHo', channel: 'الجزيرة' },
-  { id: 'ls3', name: 'Al Arabiya', embedId: '6LL9m-Xhob0', channel: 'Al Arabiya' },
-  { id: 'ls4', name: 'France 24 English', embedId: 'Ap-EvaCBaRA', channel: 'France 24' },
-  { id: 'ls5', name: 'Sky News', embedId: '9Auq9mYxFEE', channel: 'Sky News' },
+  // News channels
+  { id: 'ls1', name: 'Al Jazeera English', embedId: 'gCNeDWCI0vo', channel: 'Al Jazeera EN', category: 'news' },
+  { id: 'ls2', name: 'Al Jazeera Arabic', embedId: 'bNyUyrR0PHo', channel: 'الجزيرة', category: 'news' },
+  { id: 'ls3', name: 'Al Arabiya', embedId: '6LL9m-Xhob0', channel: 'Al Arabiya', category: 'news' },
+  { id: 'ls4', name: 'France 24 English', embedId: 'Ap-EvaCBaRA', channel: 'France 24', category: 'news' },
+  { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free TV', category: 'news' },
+  // Multi-cam & location cameras
+  { id: 'ls6', name: 'Middle East Multi-Cam 24/7', embedId: 'gmtlJ_m2r5A', channel: 'Source Global', category: 'camera' },
+  { id: 'ls7', name: 'Iran/Israel/ME HD Cameras', embedId: 'Pdwghh0hZ3E', channel: 'NEMICO', category: 'camera' },
+  { id: 'ls8', name: 'Israel & US Attack Iran – Multi-Cam', embedId: '6ccj1_fFExY', channel: 'Multi-Cam', category: 'camera' },
+  { id: 'ls9', name: 'Rafah, Gaza – Live View', embedId: 'TV5UujqIoKs', channel: 'Rafah Cam', category: 'camera' },
+  { id: 'ls10', name: 'Gaza/Israel/Beirut Multi-Cam', embedId: 'TVy8Jgw0M7M', channel: 'ME Live', category: 'camera' },
+  { id: 'ls11', name: 'Iran Realtime HD Cameras', embedId: 'DcyV79s0oWU', channel: 'Iran Cams', category: 'camera' },
+  { id: 'ls12', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news' },
 ];
