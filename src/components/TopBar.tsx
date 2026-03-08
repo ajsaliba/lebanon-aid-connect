@@ -157,13 +157,15 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           <kbd className="text-[9px]">⌘K</kbd>
         </button>
 
-        {/* Source Filter */}
-        <SourceFilterModal
-          disabledSources={sourceFilters.disabledSources}
-          toggleSource={sourceFilters.toggleSource}
-          enableAll={sourceFilters.enableAll}
-          disableAll={sourceFilters.disableAll}
-        />
+        {/* Source Filter — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <SourceFilterModal
+            disabledSources={sourceFilters.disabledSources}
+            toggleSource={sourceFilters.toggleSource}
+            enableAll={sourceFilters.enableAll}
+            disableAll={sourceFilters.disableAll}
+          />
+        </span>
 
         {/* Data Export */}
         <DropdownMenu>
