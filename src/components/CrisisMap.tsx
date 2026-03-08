@@ -106,6 +106,9 @@ export function CrisisMap() {
     infrastructure: true,
     sos: true,
   });
+  const [showPanel, setShowPanel] = useState(true);
+  const [showEscalation, setShowEscalation] = useState(false);
+  const [mapTimeFilter, setMapTimeFilter] = useState('all');
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
