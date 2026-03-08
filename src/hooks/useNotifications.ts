@@ -59,15 +59,20 @@ function playAlertSound(type: NotificationType) {
   }
 }
 
+const SOS_PROXIMITY_KM = 10;
+
 export function useNotifications() {
   const { news } = useNewsFeedContext();
   const { addNotification } = useNotificationCenter();
+  const { position } = useGeolocation();
   const seenNewsIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
   const shelterPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const housingPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seenShelterIds = useRef<Set<string>>(new Set());
   const seenHousingIds = useRef<Set<string>>(new Set());
+  const seenSosIds = useRef<Set<string>>(new Set());
+  const posRef = useRef(position);
 
   useEffect(() => {
     if (initialLoad.current) {
