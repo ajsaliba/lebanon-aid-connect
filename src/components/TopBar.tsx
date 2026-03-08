@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { IntelSignalsBadge } from '@/components/IntelSignalsBadge';
+import { SourceFilterModal, useSourceFilters } from '@/components/SourceFilterModal';
 import { useIntelSignals } from '@/hooks/useIntelSignals';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { exportNewsAsCSV, exportNewsAsJSON } from '@/lib/dataExport';
 import {
   Sheet,
   SheetContent,
@@ -16,6 +18,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
 
 interface TopBarProps {
@@ -46,6 +54,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
   const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
   const { news } = useNewsFeedContext();
   const signals = useIntelSignals(news);
+  const sourceFilters = useSourceFilters();
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem(SOUND_PREF_KEY) !== 'false'; } catch { return true; }
   });
@@ -146,6 +155,31 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           <Search className="h-3 w-3" />
           <kbd className="text-[9px]">⌘K</kbd>
         </button>
+
+        {/* Source Filter */}
+        <SourceFilterModal
+          disabledSources={sourceFilters.disabledSources}
+          toggleSource={sourceFilters.toggleSource}
+          enableAll={sourceFilters.enableAll}
+          disableAll={sourceFilters.disableAll}
+        />
+
+        {/* Data Export */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Download className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
+              Export as CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
+              Export as JSON
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />

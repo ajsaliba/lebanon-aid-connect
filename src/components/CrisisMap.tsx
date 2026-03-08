@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { lebanonHospitals } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { Layers, Eye, EyeOff, TrendingUp } from 'lucide-react';
+import { Layers, Eye, EyeOff, TrendingUp, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
 import { EscalationPanel } from '@/components/map/EscalationTimeline';
 import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
 import { HumanitarianLayer } from '@/components/map/HumanitarianLayer';
+import { DayNightOverlay } from '@/components/map/DayNightOverlay';
+import { MarkerClusterLayer } from '@/components/map/MarkerClusterGroup';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
+import { useSearchParams } from 'react-router-dom';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -21,7 +24,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
-
 
 const newsIcon = new L.DivIcon({
   html: `<div style="background:#f59e0b;width:8px;height:8px;border-radius:2px;border:1px solid #0a0a0a;box-shadow:0 0 6px #f59e0b80;"></div>`,
@@ -37,7 +39,7 @@ const hospitalIcon = new L.DivIcon({
   iconAnchor: [7, 7],
 });
 
-// Client-side fallback: extract coords from title/summary for articles missing lat/lng
+// Client-side fallback: extract coords from title/summary
 const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   'beirut': { lat: 33.8938, lng: 35.5018 }, 'tripoli': { lat: 34.4333, lng: 35.8333 },
   'sidon': { lat: 33.5594, lng: 35.3717 }, 'tyre': { lat: 33.2721, lng: 35.2033 },
@@ -56,7 +58,6 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   'hodeidah': { lat: 14.7980, lng: 42.9511 },
   'baghdad': { lat: 33.3152, lng: 44.3661 }, 'basra': { lat: 30.5085, lng: 47.7804 },
   'mosul': { lat: 36.3566, lng: 43.1593 }, 'erbil': { lat: 36.1912, lng: 44.0119 },
-  // Country-level fallbacks
   'lebanon': { lat: 33.8547, lng: 35.8623 }, 'israel': { lat: 31.0461, lng: 34.8516 },
   'palestine': { lat: 31.9522, lng: 35.2332 }, 'iran': { lat: 32.4279, lng: 53.6880 },
   'syria': { lat: 34.8021, lng: 38.9968 }, 'yemen': { lat: 15.5527, lng: 48.5164 },
@@ -83,6 +84,7 @@ interface LayerToggle {
   hospitals: boolean;
   infrastructure: boolean;
   sos: boolean;
+  daynight: boolean;
 }
 
 function MapController() {
@@ -93,9 +95,43 @@ function MapController() {
   return null;
 }
 
+/** Syncs map position to URL search params */
+function URLStateSync({ timeFilter, layers }: { timeFilter: string; layers: LayerToggle }) {
+  const map = useMap();
+  const [, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const handler = () => {
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      setSearchParams(prev => {
+        prev.set('lat', center.lat.toFixed(4));
+        prev.set('lng', center.lng.toFixed(4));
+        prev.set('z', zoom.toString());
+        prev.set('t', timeFilter);
+        return prev;
+      }, { replace: true });
+    };
+    map.on('moveend', handler);
+    return () => { map.off('moveend', handler); };
+  }, [map, setSearchParams, timeFilter]);
+
+  return null;
+}
+
 export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const { scores, historyMap } = useEscalationHistory(news);
+  const [searchParams] = useSearchParams();
+
+  // Restore map state from URL
+  const initialCenter: [number, number] = [
+    parseFloat(searchParams.get('lat') || '30'),
+    parseFloat(searchParams.get('lng') || '45'),
+  ];
+  const initialZoom = parseInt(searchParams.get('z') || '5', 10);
+  const initialTime = searchParams.get('t') || 'all';
+
   const [layers, setLayers] = useState<LayerToggle>({
     hotspots: true,
     airstrikes: true,
@@ -105,16 +141,16 @@ export function CrisisMap() {
     hospitals: true,
     infrastructure: true,
     sos: true,
+    daynight: false,
   });
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
-  const [mapTimeFilter, setMapTimeFilter] = useState('all');
+  const [mapTimeFilter, setMapTimeFilter] = useState(initialTime);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Enrich all news with inferred coordinates if missing, then apply time filter
   const timeFilterMs = getTimeFilterMs(mapTimeFilter);
   const timeFilteredNews = news.filter(n => {
     if (timeFilterMs === Infinity) return true;
@@ -132,20 +168,33 @@ export function CrisisMap() {
   const conflictEvents = geoNews.filter(n => n.category === 'conflict' || n.severity === 'high');
   const otherNews = geoNews.filter(n => n.category !== 'conflict' && n.severity !== 'high');
 
+  // Prepare clustered markers for news layer
+  const newsClusterMarkers = useMemo(() => otherNews.map(item => ({
+    id: item.id,
+    lat: item.lat!,
+    lng: item.lng!,
+    popupContent: `<div class="text-xs space-y-1"><div class="font-bold">${item.title}</div><div class="text-gray-500">${item.source}</div></div>`,
+    icon: newsIcon,
+  })), [otherNews]);
+
   return (
     <div className="relative w-full h-full">
       <MapContainer
-        center={[30, 45]}
-        zoom={5}
+        center={initialCenter}
+        zoom={initialZoom}
         className="w-full h-full z-0"
         zoomControl={true}
       >
         <MapController />
+        <URLStateSync timeFilter={mapTimeFilter} layers={layers} />
         <TimeFilterBar activeTime={mapTimeFilter} onTimeChange={setMapTimeFilter} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
+
+        {/* Day/Night overlay */}
+        <DayNightOverlay visible={layers.daynight} />
 
         {/* Hotspot escalation zones */}
         <HotspotLayer news={news} visible={layers.hotspots} />
@@ -180,16 +229,13 @@ export function CrisisMap() {
 
         <HumanitarianLayer showSos={layers.sos} showShelters={layers.shelters} showHousing={layers.housing} />
 
-        {layers.news && otherNews.map((item) => (
-          <Marker key={item.id} position={[item.lat!, item.lng!]} icon={newsIcon}>
-            <Popup>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{item.title}</div>
-                <div className="text-muted-foreground">{item.source}</div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        {/* News markers — clustered */}
+        <MarkerClusterLayer
+          markers={newsClusterMarkers}
+          visible={layers.news}
+          maxClusterRadius={40}
+          clusterColor="#f59e0b"
+        />
 
         {layers.hospitals && lebanonHospitals.map((hospital) => (
           <Marker key={hospital.id} position={[hospital.lat, hospital.lng]} icon={hospitalIcon}>
@@ -204,7 +250,7 @@ export function CrisisMap() {
         ))}
       </MapContainer>
 
-      {/* Live indicator - next to zoom controls (top-left, below zoom) */}
+      {/* Live indicator */}
       {isLive && (
         <div className="absolute top-3 left-[55px] z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
@@ -258,6 +304,7 @@ export function CrisisMap() {
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },
               { key: 'news' as const, label: 'News', color: 'text-warning' },
               { key: 'hospitals' as const, label: 'Hospitals', color: 'text-[#ef4444]' },
+              { key: 'daynight' as const, label: 'Day/Night', color: 'text-[#fbbf24]' },
             ]).map(layer => (
               <button
                 key={layer.key}
