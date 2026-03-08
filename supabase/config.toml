@@ -2,3 +2,6 @@ project_id = "qmakvcizkocctnojbskf"
 
 [functions.rss-news-feed]
 verify_jwt = false
+
+[functions.classify-threat]
+verify_jwt = false

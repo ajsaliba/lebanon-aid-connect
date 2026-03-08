@@ -17,6 +17,7 @@ import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
 import { findDuplicates } from '@/lib/duplicateDetection';
+import { useThreatClassification } from '@/hooks/useThreatClassification';
 
 const categoryStyles = {
   conflict: 'text-danger',
@@ -108,7 +109,7 @@ const CATEGORIES = ['conflict', 'humanitarian', 'political', 'infrastructure'] a
 
 // Virtualized article list for 1000+ articles
 function VirtualArticleList({
-  items, parentRef, search, focusedIndex, cardStyle, duplicateMap,
+  items, parentRef, search, focusedIndex, cardStyle, duplicateMap, threatClassifications,
   isBookmarked, isInReadingList, isRead,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: {
@@ -118,6 +119,7 @@ function VirtualArticleList({
   focusedIndex: number;
   cardStyle: import('@/hooks/useFeedSettings').CardStyle;
   duplicateMap: Map<string, string[]>;
+  threatClassifications: Record<string, any>;
   isBookmarked: (id: string) => boolean;
   isInReadingList: (id: string) => boolean;
   isRead: (id: string) => boolean;
@@ -163,6 +165,7 @@ function VirtualArticleList({
               isFocused={virtualRow.index === focusedIndex}
               cardStyle={cardStyle}
               duplicateOf={duplicateMap.get(item.id)}
+              threatClassification={threatClassifications[item.id]}
               onToggleBookmark={onToggleBookmark}
               onToggleReadingList={onToggleReadingList}
               onCategoryClick={onCategoryClick}
@@ -178,6 +181,7 @@ function VirtualArticleList({
 
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch, setPollInterval } = useNewsFeedContext();
+  const { classifications: threatClassifications } = useThreatClassification(news);
   const {
     settings, updateSettings,
     mutedKeywords, addMutedKeyword, removeMutedKeyword,
@@ -583,6 +587,7 @@ export function NewsFeed() {
             focusedIndex={focusedIndex}
             cardStyle={settings.cardStyle}
             duplicateMap={duplicateMap}
+            threatClassifications={threatClassifications}
             isBookmarked={isBookmarked}
             isInReadingList={isInReadingList}
             isRead={isRead}

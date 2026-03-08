@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { type NewsItem } from '@/data/mockData';
 import { Bookmark, BookmarkCheck, ListPlus, ListChecks, Share2, Copy, Clock, ExternalLink, Languages, BookOpen, Layers } from 'lucide-react';
+import { SourceBadge } from '@/components/SourceBadge';
+import { type ThreatClassification, THREAT_CATEGORY_CONFIG, THREAT_LEVEL_CONFIG } from '@/hooks/useThreatClassification';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -110,6 +112,7 @@ interface ArticleCardProps {
   isFocused: boolean;
   cardStyle: CardStyle;
   duplicateOf?: string[];
+  threatClassification?: ThreatClassification;
   onToggleBookmark: (id: string) => void;
   onToggleReadingList: (id: string) => void;
   onCategoryClick: (cat: string) => void;
@@ -118,7 +121,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({
-  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle, duplicateOf,
+  item, search, isBookmarked, isInReadingList, isRead, isFocused, cardStyle, duplicateOf, threatClassification,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: ArticleCardProps) {
   const { toast } = useToast();
@@ -265,6 +268,7 @@ export function ArticleCard({
         {item.category}
       </span>
       <span className="text-muted-foreground">•</span>
+      <SourceBadge source={item.source} />
       <span className="text-muted-foreground">{item.source}</span>
       <span className="text-muted-foreground">•</span>
       <span className="flex items-center gap-0.5 text-muted-foreground">
@@ -302,6 +306,31 @@ export function ArticleCard({
         <>
           <span className="text-muted-foreground">•</span>
           <span className="text-primary text-[9px] font-bold">{TRANSLATE_LANGS.find(l => l.code === currentLang)?.label}</span>
+        </>
+      )}
+      {threatClassification && (
+        <>
+          <span className="text-muted-foreground">•</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={cn('text-[9px] font-bold cursor-help', THREAT_CATEGORY_CONFIG[threatClassification.primary_category]?.color)}>
+                {THREAT_CATEGORY_CONFIG[threatClassification.primary_category]?.icon} {threatClassification.primary_category}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-[10px] space-y-0.5 max-w-[200px]">
+              <div className="font-bold">AI Threat Analysis</div>
+              <div className={cn('font-bold', THREAT_LEVEL_CONFIG[threatClassification.threat_level]?.color)}>
+                Level: {threatClassification.threat_level} ({Math.round(threatClassification.confidence * 100)}%)
+              </div>
+              {threatClassification.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {threatClassification.tags.map(tag => (
+                    <span key={tag} className="bg-muted px-1 rounded text-[9px]">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </TooltipContent>
+          </Tooltip>
         </>
       )}
     </div>

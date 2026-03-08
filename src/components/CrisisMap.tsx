@@ -6,9 +6,12 @@ import 'leaflet/dist/leaflet.css';
 import { lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Layers, Eye, EyeOff } from 'lucide-react';
+import { Layers, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
+import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
+import { EscalationPanel } from '@/components/map/EscalationTimeline';
+import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -90,6 +93,7 @@ interface LayerToggle {
   housing: boolean;
   news: boolean;
   hospitals: boolean;
+  infrastructure: boolean;
 }
 
 function MapController() {
@@ -102,6 +106,7 @@ function MapController() {
 
 export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
+  const { scores, historyMap } = useEscalationHistory(news);
   const [layers, setLayers] = useState<LayerToggle>({
     hotspots: true,
     airstrikes: true,
@@ -109,8 +114,10 @@ export function CrisisMap() {
     housing: true,
     news: true,
     hospitals: true,
+    infrastructure: true,
   });
   const [showPanel, setShowPanel] = useState(true);
+  const [showEscalation, setShowEscalation] = useState(false);
   const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
   const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
 
@@ -166,6 +173,7 @@ export function CrisisMap() {
 
         {/* Hotspot escalation zones */}
         <HotspotLayer news={news} visible={layers.hotspots} />
+        <InfrastructureLayer news={news} visible={layers.infrastructure} />
 
         {layers.airstrikes && conflictEvents.map((event) => (
           <CircleMarker
@@ -277,6 +285,7 @@ export function CrisisMap() {
             {([
               { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
               { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
+              { key: 'infrastructure' as const, label: 'Infra', color: 'text-[#06b6d4]' },
               { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },
               { key: 'news' as const, label: 'News', color: 'text-warning' },
@@ -291,6 +300,23 @@ export function CrisisMap() {
                 <span className={layers[layer.key] ? layer.color : 'text-muted-foreground'}>{layer.label}</span>
               </button>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Escalation Panel - bottom right */}
+      <div className="absolute bottom-3 right-3 z-[1000]">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
+          onClick={() => setShowEscalation(!showEscalation)}
+        >
+          <TrendingUp className="h-4 w-4" />
+        </Button>
+        {showEscalation && (
+          <div className="absolute bottom-10 right-0 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 min-w-[280px]">
+            <EscalationPanel scores={scores} historyMap={historyMap} />
           </div>
         )}
       </div>
