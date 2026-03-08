@@ -377,7 +377,7 @@ export function ArticleCard({
       onClick={handleClick}
     >
       <div className="flex items-start justify-between gap-1">
-        <h3 className="font-sans font-semibold text-foreground text-xs leading-tight flex-1">
+      <h3 className="font-sans font-semibold text-foreground text-sm leading-tight flex-1">
           <GlossaryText text={cleanTitle} query={search} />
         </h3>
         <ActionButtons />
