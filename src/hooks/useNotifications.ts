@@ -152,6 +152,52 @@ export function useNotifications() {
     });
   }, [addNotification]);
 
+  // Keep posRef in sync so the realtime callback always has latest position
+  useEffect(() => { posRef.current = position; }, [position]);
+
+  // SOS proximity alert via Realtime
+  useEffect(() => {
+    // Seed seen IDs on mount
+    supabase.from('sos_signals').select('id').eq('status', 'active').then(({ data }) => {
+      if (data) data.forEach(s => seenSosIds.current.add(s.id));
+    });
+
+    const channel = supabase.channel('sos-proximity')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_signals' }, (payload) => {
+        const sos = payload.new as { id: string; lat: number; lng: number; message: string | null; people_count: number; needs: string[] | null };
+        if (seenSosIds.current.has(sos.id)) return;
+        seenSosIds.current.add(sos.id);
+
+        const pos = posRef.current;
+        const dist = pos ? distanceKm(pos.lat, pos.lng, sos.lat, sos.lng) : null;
+        const isNearby = dist !== null && dist <= SOS_PROXIMITY_KM;
+
+        const needsStr = sos.needs?.join(', ') || 'Unspecified';
+        const distStr = dist !== null ? `${dist.toFixed(1)} km away` : 'Distance unknown';
+
+        // Always notify, but make nearby ones more urgent
+        playAlertSound('conflict');
+        toast({
+          title: isNearby ? '🚨 NEARBY SOS SIGNAL' : '🆘 NEW SOS SIGNAL',
+          description: isNearby
+            ? `⚠️ ${distStr} — ${sos.people_count} people need help: ${needsStr}`
+            : `${sos.people_count} people need help: ${needsStr} (${distStr})`,
+          variant: 'destructive',
+          duration: isNearby ? 15000 : 8000,
+        });
+
+        addNotification({
+          type: 'humanitarian',
+          title: isNearby
+            ? `🚨 SOS ${distStr}: ${needsStr}`
+            : `SOS Signal: ${sos.people_count} people — ${needsStr}`,
+        });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [addNotification]);
+
   useEffect(() => {
     checkShelters();
     checkHousing();
