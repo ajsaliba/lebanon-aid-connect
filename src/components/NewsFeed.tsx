@@ -376,8 +376,12 @@ export function NewsFeed() {
               <ListChecks className="h-3 w-3" />
             </Button>
             <Button variant={showSettings ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
-              onClick={() => setShowSettings(prev => !prev)} title="Settings">
+              onClick={() => { setShowSettings(prev => !prev); setShowCustomFeeds(false); }} title="Settings">
               <Settings className="h-3 w-3" />
+            </Button>
+            <Button variant={showCustomFeeds ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
+              onClick={() => { setShowCustomFeeds(prev => !prev); setShowSettings(false); }} title="Custom Feeds">
+              <Rss className="h-3 w-3" />
             </Button>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0"
               onClick={() => setShowShortcuts(prev => !prev)} title="Keyboard shortcuts (?)">
