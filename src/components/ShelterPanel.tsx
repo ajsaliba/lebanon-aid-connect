@@ -34,7 +34,7 @@ export function ShelterPanel() {
 
   useEffect(() => { fetchShelters(); }, []);
 
-  const allShelters = [...dbShelters, ...mockShelters];
+  const allShelters = dbShelters;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

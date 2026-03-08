@@ -92,17 +92,53 @@ export const mockAirstrikes: AirstrikeEvent[] = [
   { id: '18', lat: 36.3566, lng: 43.1593, date: '2024-11-30T19:00:00Z', description: 'Mosul area - suspected insurgent targets', severity: 'monitoring', source: 'Reuters' },
 ];
 
-export const mockShelters: Shelter[] = [
-  { id: 's1', name: 'Beirut Central Shelter', lat: 33.8969, lng: 35.4730, capacity: 500, currentOccupancy: 423, address: 'Downtown Beirut, Martyrs Square', contact: '+961 1 234 567', status: 'open', amenities: ['Water', 'Food', 'Medical', 'WiFi'] },
-  { id: 's2', name: 'Tripoli Community Center', lat: 34.4333, lng: 35.8333, capacity: 300, currentOccupancy: 300, address: 'Tripoli, Al-Mina District', contact: '+961 6 234 567', status: 'full', amenities: ['Water', 'Food', 'Blankets'] },
-  { id: 's3', name: 'Jounieh School Shelter', lat: 33.9806, lng: 35.6178, capacity: 200, currentOccupancy: 145, address: 'Jounieh, Main Street', contact: '+961 9 234 567', status: 'open', amenities: ['Water', 'Food', 'Medical'] },
-  { id: 's4', name: 'Byblos Relief Center', lat: 34.1236, lng: 35.6511, capacity: 150, currentOccupancy: 88, address: 'Byblos, Old Souk Area', contact: '+961 9 876 543', status: 'open', amenities: ['Water', 'Food', 'Childcare'] },
-];
+export const mockShelters: Shelter[] = [];
 
-export const mockHousing: HousingListing[] = [
-  { id: 'h1', title: '2BR Apartment - Safe Zone', lat: 33.9806, lng: 35.6178, price: 300, currency: 'USD', bedrooms: 2, address: 'Jounieh, Kaslik', contact: '+961 70 123 456', available: true, description: 'Furnished apartment in safe area, suitable for families.' },
-  { id: 'h2', title: 'Studio - Central Beirut', lat: 33.8938, lng: 35.5018, price: 200, currency: 'USD', bedrooms: 1, address: 'Beirut, Hamra', contact: '+961 70 234 567', available: true, description: 'Small studio near essential services.' },
-  { id: 'h3', title: '3BR House - Mountain', lat: 33.9500, lng: 35.6500, price: 450, currency: 'USD', bedrooms: 3, address: 'Broummana, Mount Lebanon', contact: '+961 70 345 678', available: true, description: 'Spacious house in mountain area, away from conflict zones.' },
+export const mockHousing: HousingListing[] = [];
+
+export interface Hospital {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  phone: string;
+  city: string;
+}
+
+export const lebanonHospitals: Hospital[] = [
+  // Beirut
+  { id: 'h-01', name: 'American University of Beirut Medical Center (AUBMC)', lat: 33.9003, lng: 35.4784, phone: '+961 1 350 000', city: 'Beirut' },
+  { id: 'h-02', name: 'Rafik Hariri University Hospital', lat: 33.8333, lng: 35.4833, phone: '+961 1 830 000', city: 'Beirut' },
+  { id: 'h-03', name: 'Hotel Dieu de France', lat: 33.8917, lng: 35.5139, phone: '+961 1 615 300', city: 'Beirut' },
+  { id: 'h-04', name: 'Saint George Hospital University Medical Center', lat: 33.9025, lng: 35.5050, phone: '+961 1 441 000', city: 'Beirut' },
+  { id: 'h-05', name: 'Clemenceau Medical Center', lat: 33.8972, lng: 35.4819, phone: '+961 1 374 888', city: 'Beirut' },
+  { id: 'h-06', name: 'Geitaoui Hospital', lat: 33.8903, lng: 35.5225, phone: '+961 1 580 680', city: 'Beirut' },
+  { id: 'h-07', name: 'Makassed General Hospital', lat: 33.8828, lng: 35.5094, phone: '+961 1 636 000', city: 'Beirut' },
+  { id: 'h-08', name: 'Rizk Hospital', lat: 33.8892, lng: 35.5117, phone: '+961 1 200 800', city: 'Beirut' },
+  { id: 'h-09', name: 'Sahel General Hospital', lat: 33.8558, lng: 35.4917, phone: '+961 1 840 026', city: 'Beirut' },
+  { id: 'h-10', name: 'Bahman Hospital', lat: 33.8519, lng: 35.4828, phone: '+961 1 300 200', city: 'Beirut' },
+  // Mount Lebanon
+  { id: 'h-11', name: 'Mount Lebanon Hospital', lat: 33.8833, lng: 35.5500, phone: '+961 5 457 111', city: 'Hadat' },
+  { id: 'h-12', name: 'Bellevue Medical Center', lat: 33.8611, lng: 35.5639, phone: '+961 5 465 465', city: 'Mansourieh' },
+  { id: 'h-13', name: 'Keserwan Medical Center', lat: 33.9806, lng: 35.6178, phone: '+961 9 857 000', city: 'Jounieh' },
+  { id: 'h-14', name: 'Notre Dame des Secours (Byblos)', lat: 34.1236, lng: 35.6511, phone: '+961 9 547 254', city: 'Byblos' },
+  { id: 'h-15', name: 'Hammoud Hospital', lat: 33.8522, lng: 35.4922, phone: '+961 1 840 590', city: 'Saida' },
+  { id: 'h-16', name: 'Middle East Institute of Health (Bsalim)', lat: 33.8875, lng: 35.5875, phone: '+961 4 960 300', city: 'Bsalim' },
+  // North
+  { id: 'h-17', name: 'Nini Hospital', lat: 34.4333, lng: 35.8333, phone: '+961 6 410 610', city: 'Tripoli' },
+  { id: 'h-18', name: 'Monla Hospital', lat: 34.4350, lng: 35.8350, phone: '+961 6 432 071', city: 'Tripoli' },
+  { id: 'h-19', name: 'Haykal Hospital', lat: 34.4300, lng: 35.8400, phone: '+961 6 601 600', city: 'Tripoli' },
+  { id: 'h-20', name: 'Zgharta Governmental Hospital', lat: 34.3983, lng: 35.8942, phone: '+961 6 660 550', city: 'Zgharta' },
+  // South
+  { id: 'h-21', name: 'Labib Medical Center (Sidon)', lat: 33.5594, lng: 35.3717, phone: '+961 7 725 111', city: 'Sidon' },
+  { id: 'h-22', name: 'Jabal Amel Hospital (Tyre)', lat: 33.2721, lng: 35.2033, phone: '+961 7 740 534', city: 'Tyre' },
+  { id: 'h-23', name: 'Nabatieh Governmental Hospital', lat: 33.3633, lng: 35.4717, phone: '+961 7 760 868', city: 'Nabatieh' },
+  { id: 'h-24', name: 'Hiram Hospital (Tyre)', lat: 33.2750, lng: 35.2060, phone: '+961 7 741 592', city: 'Tyre' },
+  // Bekaa
+  { id: 'h-25', name: 'Chtaura Governmental Hospital', lat: 33.8150, lng: 35.8600, phone: '+961 8 543 333', city: 'Chtaura' },
+  { id: 'h-26', name: 'Bekaa Hospital (Zahle)', lat: 33.8463, lng: 35.9020, phone: '+961 8 801 116', city: 'Zahle' },
+  { id: 'h-27', name: 'Dar Al Amal Hospital', lat: 34.0047, lng: 36.2110, phone: '+961 8 370 714', city: 'Baalbek' },
+  { id: 'h-28', name: 'Rayak Hospital', lat: 33.8500, lng: 35.9900, phone: '+961 8 900 735', city: 'Rayak' },
 ];
 
 export const mockNews: NewsItem[] = [

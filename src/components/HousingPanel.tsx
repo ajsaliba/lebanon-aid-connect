@@ -32,7 +32,7 @@ export function HousingPanel() {
 
   useEffect(() => { fetchHousing(); }, []);
 
-  const allHousing = [...dbHousing, ...mockHousing];
+  const allHousing = dbHousing;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
