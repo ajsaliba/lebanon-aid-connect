@@ -160,6 +160,7 @@ function VirtualArticleList({
               isRead={isRead(item.id)}
               isFocused={virtualRow.index === focusedIndex}
               cardStyle={cardStyle}
+              duplicateOf={duplicateMap.get(item.id)}
               onToggleBookmark={onToggleBookmark}
               onToggleReadingList={onToggleReadingList}
               onCategoryClick={onCategoryClick}
