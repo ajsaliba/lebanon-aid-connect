@@ -163,11 +163,18 @@ export function ArticleCard({
       const originalSummary = sanitizeFeedText(item.summary);
       const translateText = async (text: string, target: string) => {
         if (!text) return '';
-        const res = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=auto|${target}`
-        );
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text: text.slice(0, 500), targetLang: target }),
+        });
         const data = await res.json();
-        return data.responseData?.translatedText || text;
+        return data.translatedText || text;
       };
       const [tTitle, tSummary] = await Promise.all([
         translateText(originalTitle, targetLang),
