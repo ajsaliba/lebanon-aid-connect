@@ -38,7 +38,7 @@ export function LiveStreams() {
           </div>
           <div className="aspect-video bg-muted rounded overflow-hidden">
             <iframe
-              src={`https://www.youtube.com/embed/${activeStream.embedId}?autoplay=0`}
+              src={`https://www.youtube.com/embed/live_stream?channel=${activeStream.channelId}&autoplay=0`}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
