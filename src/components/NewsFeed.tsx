@@ -1,9 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { ExternalLink, Clock, Search, Wifi, WifiOff, RefreshCw, TrendingUp } from 'lucide-react';
+import { format } from 'date-fns';
+import { ExternalLink, Clock, Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
@@ -51,17 +54,19 @@ const STOP_WORDS = new Set([
   'report','reports','according','amid',
 ]);
 
-function extractTrendingKeywords(news: Array<{ title: string }>, max = 12): string[] {
+// Extract trending from last hour's articles only
+function extractTrendingKeywords(news: Array<{ title: string; publishedAt: string }>, max = 15): string[] {
+  const oneHourAgo = Date.now() - 3600000;
+  const recentNews = news.filter(n => new Date(n.publishedAt).getTime() > oneHourAgo);
+  // Fall back to all news if nothing in last hour
+  const source = recentNews.length >= 3 ? recentNews : news;
   const freq: Record<string, number> = {};
-  for (const item of news) {
+  for (const item of source) {
     const text = sanitizeFeedText(item.title).toLowerCase();
     const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
     const seen = new Set<string>();
     for (const w of words) {
-      if (!seen.has(w)) {
-        seen.add(w);
-        freq[w] = (freq[w] || 0) + 1;
-      }
+      if (!seen.has(w)) { seen.add(w); freq[w] = (freq[w] || 0) + 1; }
     }
   }
   return Object.entries(freq)
@@ -71,12 +76,12 @@ function extractTrendingKeywords(news: Array<{ title: string }>, max = 12): stri
     .map(([word]) => word);
 }
 
-function getSearchSuggestions(news: Array<{ title: string }>, query: string, max = 8): string[] {
+function getSearchSuggestions(news: Array<{ title: string; summary: string }>, query: string, max = 8): string[] {
   if (!query || query.length < 2) return [];
   const lower = query.toLowerCase();
   const freq: Record<string, number> = {};
   for (const item of news) {
-    const text = sanitizeFeedText(item.title).toLowerCase();
+    const text = `${sanitizeFeedText(item.title)} ${sanitizeFeedText(item.summary)}`.toLowerCase();
     const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
     for (const w of words) {
       if (w.startsWith(lower) && w !== lower) {
@@ -90,6 +95,41 @@ function getSearchSuggestions(news: Array<{ title: string }>, query: string, max
     .map(([word]) => word);
 }
 
+// Search history helpers
+const SEARCH_HISTORY_KEY = 'cedarsalert_search_history';
+const MAX_HISTORY = 8;
+
+function getSearchHistory(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+  } catch { return []; }
+}
+
+function addToSearchHistory(term: string) {
+  if (!term || term.length < 2) return;
+  const history = getSearchHistory().filter(h => h !== term);
+  history.unshift(term);
+  localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+}
+
+function clearSearchHistory() {
+  localStorage.removeItem(SEARCH_HISTORY_KEY);
+}
+
+// Highlight matching text
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  if (!query || query.length < 2) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase()
+          ? <mark key={i} className="bg-primary/30 text-foreground rounded-sm px-0.5">{part}</mark>
+          : part
+      )}
+    </>
+  );
+}
 
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch } = useNewsFeedContext();
@@ -98,18 +138,59 @@ export function NewsFeed() {
   const [activeTime, setActiveTime] = useState<string>('All');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [searchHistory, setSearchHistory] = useState<string[]>(getSearchHistory());
+  const trendingRef = useRef<HTMLDivElement>(null);
 
   const suggestions = useMemo(() => getSearchSuggestions(news, search), [news, search]);
-
   const trending = useMemo(() => extractTrendingKeywords(news), [news]);
 
-  const filtered = news.filter(n => {
-    if (search && !sanitizeFeedText(n.title).toLowerCase().includes(search.toLowerCase())) return false;
-    if (activeCategory && n.category !== activeCategory) return false;
-    const age = Date.now() - new Date(n.publishedAt).getTime();
-    if (age > getTimeFilterMs(activeTime)) return false;
-    return true;
-  });
+  const commitSearch = useCallback((term: string) => {
+    setSearch(term);
+    setShowSuggestions(false);
+    if (term.length >= 2) {
+      addToSearchHistory(term);
+      setSearchHistory(getSearchHistory());
+    }
+  }, []);
+
+  const handleClearHistory = () => {
+    clearSearchHistory();
+    setSearchHistory([]);
+  };
+
+  const filtered = useMemo(() => {
+    return news.filter(n => {
+      // Full-text search across title and summary
+      if (search) {
+        const q = search.toLowerCase();
+        const title = sanitizeFeedText(n.title).toLowerCase();
+        const summary = sanitizeFeedText(n.summary).toLowerCase();
+        if (!title.includes(q) && !summary.includes(q)) return false;
+      }
+      if (activeCategory && n.category !== activeCategory) return false;
+
+      // Date range filter
+      if (dateRange.from || dateRange.to) {
+        const pubDate = new Date(n.publishedAt);
+        if (dateRange.from) {
+          const start = new Date(dateRange.from);
+          start.setHours(0, 0, 0, 0);
+          if (pubDate < start) return false;
+        }
+        if (dateRange.to) {
+          const end = new Date(dateRange.to);
+          end.setHours(23, 59, 59, 999);
+          if (pubDate > end) return false;
+        }
+      } else {
+        // Only apply time filter when no date range is set
+        const age = Date.now() - new Date(n.publishedAt).getTime();
+        if (age > getTimeFilterMs(activeTime)) return false;
+      }
+      return true;
+    });
+  }, [news, search, activeCategory, activeTime, dateRange]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -124,6 +205,8 @@ export function NewsFeed() {
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
   };
+
+  const hasDateFilter = dateRange.from || dateRange.to;
 
   return (
     <div className="flex flex-col h-full">
@@ -142,55 +225,150 @@ export function NewsFeed() {
                 <WifiOff className="h-2.5 w-2.5 text-warning" />
               </span>
             )}
+            <span className="text-[9px] text-muted-foreground">{filtered.length} articles</span>
           </div>
           <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh feeds"
+            variant="ghost" size="sm" className="h-6 w-6 p-0"
+            onClick={handleRefresh} disabled={isRefreshing} title="Refresh feeds"
           >
             <RefreshCw className={cn('h-3 w-3 text-muted-foreground', isRefreshing && 'animate-spin')} />
           </Button>
         </div>
+
+        {/* Search with suggestions + history */}
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Search headlines..."
+            placeholder="Search titles & snippets..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="h-7 pl-7 text-[11px] bg-muted border-border"
+            onKeyDown={(e) => { if (e.key === 'Enter') commitSearch(search); }}
+            className="h-7 pl-7 pr-7 text-[11px] bg-muted border-border"
           />
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-popover border border-border rounded shadow-lg max-h-32 overflow-y-auto">
-              {suggestions.map(s => (
+          {search && (
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              onMouseDown={(e) => { e.preventDefault(); setSearch(''); }}
+            >
+              <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+          {showSuggestions && (suggestions.length > 0 || (!search && searchHistory.length > 0)) && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-popover border border-border rounded shadow-lg max-h-40 overflow-y-auto">
+              {/* Show history when input is empty */}
+              {!search && searchHistory.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between px-2 py-1 border-b border-border">
+                    <span className="text-[9px] uppercase text-muted-foreground font-bold flex items-center gap-1">
+                      <History className="h-2.5 w-2.5" /> Recent
+                    </span>
+                    <button
+                      className="text-[9px] text-muted-foreground hover:text-foreground"
+                      onMouseDown={(e) => { e.preventDefault(); handleClearHistory(); }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {searchHistory.map(h => (
+                    <button
+                      key={h}
+                      className="w-full text-left px-2 py-1 text-[11px] text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+                      onMouseDown={(e) => { e.preventDefault(); commitSearch(h); }}
+                    >
+                      <History className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                      {h}
+                    </button>
+                  ))}
+                </>
+              )}
+              {/* Show suggestions when typing */}
+              {search && suggestions.map(s => (
                 <button
                   key={s}
                   className="w-full text-left px-2 py-1 text-[11px] text-foreground hover:bg-muted transition-colors"
-                  onMouseDown={(e) => { e.preventDefault(); setSearch(s); setShowSuggestions(false); }}
+                  onMouseDown={(e) => { e.preventDefault(); commitSearch(s); }}
                 >
-                  {s}
+                  <HighlightedText text={s} query={search} />
                 </button>
               ))}
             </div>
           )}
         </div>
-        <div className="flex gap-1">
+
+        {/* Search history chips */}
+        {searchHistory.length > 0 && !search && (
+          <div className="flex gap-1 flex-wrap">
+            {searchHistory.slice(0, 5).map(h => (
+              <button
+                key={h}
+                className="px-1.5 py-0.5 rounded text-[9px] border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                onClick={() => commitSearch(h)}
+              >
+                {h}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Time + Date filters */}
+        <div className="flex gap-1 items-center">
           {timeFilters.map(t => (
             <Button
               key={t}
-              variant={activeTime === t ? 'default' : 'ghost'}
+              variant={!hasDateFilter && activeTime === t ? 'default' : 'ghost'}
               size="sm"
               className="h-5 px-1.5 text-[9px] uppercase"
-              onClick={() => setActiveTime(t)}
+              onClick={() => { setActiveTime(t); setDateRange({}); }}
             >
               {t}
             </Button>
           ))}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={hasDateFilter ? 'default' : 'ghost'}
+                size="sm"
+                className="h-5 px-1.5 text-[9px] gap-0.5"
+              >
+                <CalendarIcon className="h-2.5 w-2.5" />
+                {hasDateFilter
+                  ? dateRange.from && dateRange.to
+                    ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d')}`
+                    : dateRange.from
+                      ? format(dateRange.from, 'MMM d')
+                      : ''
+                  : 'Date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-2 space-y-2">
+                <Calendar
+                  mode="range"
+                  selected={dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined}
+                  onSelect={(range) => {
+                    setDateRange({ from: range?.from, to: range?.to });
+                  }}
+                  className="p-3 pointer-events-auto"
+                  disabled={(date) => date > new Date()}
+                />
+                {hasDateFilter && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full h-6 text-[10px]"
+                    onClick={() => setDateRange({})}
+                  >
+                    Clear date filter
+                  </Button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
+
+        {/* Category filters */}
         <div className="flex gap-1 flex-wrap">
           {(['conflict', 'humanitarian', 'political', 'infrastructure'] as const).map(cat => (
             <Button
@@ -208,23 +386,28 @@ export function NewsFeed() {
           ))}
         </div>
 
+        {/* Trending keywords bar — horizontal scroller */}
         {trending.length > 0 && (
           <div className="space-y-1">
             <div className="flex items-center gap-1">
               <TrendingUp className="h-2.5 w-2.5 text-primary" />
-              <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Trending</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Trending Now</span>
             </div>
-            <div className="flex gap-1 flex-wrap">
+            <div
+              ref={trendingRef}
+              className="flex gap-1 overflow-x-auto scrollbar-hide pb-0.5"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {trending.map(keyword => (
                 <button
                   key={keyword}
                   className={cn(
-                    'px-1.5 py-0.5 rounded text-[9px] border transition-colors',
+                    'px-1.5 py-0.5 rounded text-[9px] border transition-colors whitespace-nowrap shrink-0',
                     search.toLowerCase() === keyword
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
                   )}
-                  onClick={() => setSearch(search.toLowerCase() === keyword ? '' : keyword)}
+                  onClick={() => commitSearch(search.toLowerCase() === keyword ? '' : keyword)}
                 >
                   {keyword}
                 </button>
@@ -259,9 +442,18 @@ export function NewsFeed() {
               onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
             >
               <div className="flex items-start justify-between gap-1">
-              <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{sanitizeFeedText(item.title)}</h3>
+                <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">
+                  <HighlightedText text={sanitizeFeedText(item.title)} query={search} />
+                </h3>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
               </div>
+
+              {/* Show snippet with highlighting when searching */}
+              {search && item.summary && sanitizeFeedText(item.summary).toLowerCase().includes(search.toLowerCase()) && (
+                <p className="text-muted-foreground text-[10px] mt-0.5 line-clamp-2">
+                  <HighlightedText text={sanitizeFeedText(item.summary).slice(0, 150)} query={search} />
+                </p>
+              )}
               
               <div className="flex items-center gap-2 mt-1.5">
                 <span
