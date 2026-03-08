@@ -41,7 +41,7 @@ export function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const filtered = news.filter(n => {
-    if (search && !n.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !sanitizeFeedText(n.title).toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCategory && n.category !== activeCategory) return false;
     const age = Date.now() - new Date(n.publishedAt).getTime();
     if (age > getTimeFilterMs(activeTime)) return false;
