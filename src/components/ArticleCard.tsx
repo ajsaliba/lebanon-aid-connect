@@ -344,10 +344,10 @@ export function ArticleCard({
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground text-xs leading-tight truncate">
+            <h3 className="font-semibold text-foreground text-sm leading-tight truncate">
               <GlossaryText text={cleanTitle} query={search} />
             </h3>
-            <div className="flex items-center gap-2 mt-0.5 text-[9px] text-muted-foreground">
+            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
               <span className={cn('uppercase font-bold', categoryStyles[item.category])}>{item.category}</span>
               <span>{item.source}</span>
               <span>{timeAgo(item.publishedAt)}</span>
