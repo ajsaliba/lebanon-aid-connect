@@ -7,11 +7,14 @@ const READ_HISTORY_KEY = 'cedarsalert_read_history';
 export type CardStyle = 'standard' | 'headlines' | 'list';
 export type PollFrequency = 15 | 30 | 60 | 0; // 0 = manual
 
+export type RetentionDays = 0 | 7 | 30 | 90; // 0 = keep forever
+
 export interface FeedSettings {
   pollFrequency: PollFrequency;
   defaultCategory: string | null;
   defaultTimeFilter: string;
   cardStyle: CardStyle;
+  retentionDays: RetentionDays;
 }
 
 const defaultSettings: FeedSettings = {
@@ -19,6 +22,7 @@ const defaultSettings: FeedSettings = {
   defaultCategory: null,
   defaultTimeFilter: 'All',
   cardStyle: 'standard',
+  retentionDays: 0,
 };
 
 function loadSettings(): FeedSettings {
