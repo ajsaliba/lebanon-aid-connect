@@ -17,6 +17,7 @@ import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
 import { findDuplicates } from '@/lib/duplicateDetection';
+import { useThreatClassification } from '@/hooks/useThreatClassification';
 
 const categoryStyles = {
   conflict: 'text-danger',
