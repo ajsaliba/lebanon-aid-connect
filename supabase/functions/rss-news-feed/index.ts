@@ -135,12 +135,13 @@ function extractItems(xml: string): Array<{ title: string; description: string; 
 async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
+    console.log(`Fetching ${feed.name}: ${feed.url}`);
     const response = await fetch(feed.url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; CrisisTracker/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*',
       },
     });
@@ -152,21 +153,24 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
     }
 
     const xml = await response.text();
+    console.log(`Feed ${feed.name}: got ${xml.length} bytes`);
     const rawItems = extractItems(xml);
+    console.log(`Feed ${feed.name}: parsed ${rawItems.length} items`);
 
     const items: NewsItem[] = [];
     for (const raw of rawItems) {
       const fullText = `${raw.title} ${raw.description}`;
 
-      // Only include relevant items (or all items from Middle East-focused feeds)
-      if (!isRelevant(fullText) && !['france24', 'middleeasteye'].includes(feed.name)) {
+      // For general feeds, filter for relevance; for targeted feeds, include all
+      const targeted = ['france24', 'middleeasteye', 'reliefweb', 'google_lebanon'].includes(feed.name);
+      if (!targeted && !isRelevant(fullText)) {
         continue;
       }
 
       const coords = extractCoords(fullText);
 
       items.push({
-        id: `${feed.name}-${btoa(raw.title).slice(0, 12)}`,
+        id: `${feed.name}-${btoa(encodeURIComponent(raw.title)).slice(0, 16)}`,
         title: raw.title,
         summary: raw.description.slice(0, 300),
         source: feed.sourceLabel,
@@ -178,6 +182,7 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
       });
     }
 
+    console.log(`Feed ${feed.name}: returning ${items.length} relevant items`);
     return items;
   } catch (err) {
     console.warn(`Failed to fetch ${feed.name}:`, err);
