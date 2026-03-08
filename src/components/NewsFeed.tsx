@@ -256,6 +256,8 @@ export function NewsFeed() {
     });
   }, [news, search, activeCategory, activeTime, dateRange, viewMode, bookmarkedIds, readingListIds, mutedKeywords]);
 
+  const duplicateMap = useMemo(() => findDuplicates(filtered), [filtered]);
+
   const handleRefresh = async () => { setIsRefreshing(true); refetch(); setTimeout(() => setIsRefreshing(false), 2000); };
   const hasDateFilter = dateRange.from || dateRange.to;
 
