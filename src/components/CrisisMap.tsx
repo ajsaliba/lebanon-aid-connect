@@ -8,6 +8,7 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HotspotLayer } from '@/components/map/HotspotLayer';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
