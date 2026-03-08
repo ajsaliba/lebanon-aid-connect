@@ -134,6 +134,8 @@ const RSS_FEEDS: FeedSource[] = [
   ...CORE_FEEDS,
   ...WIRE_FEEDS,
   ...THINK_TANK_FEEDS,
+  ...NGO_FEEDS,
+  ...INDIE_FEEDS,
   ...PODCAST_FEEDS,
   ...GOVERNMENT_FEEDS,
   ...YOUTUBE_FEEDS,
@@ -144,14 +146,20 @@ const RSS_FEEDS: FeedSource[] = [
 
 // ME-focused feed names (skip ME keyword filter)
 const ME_FOCUSED_FEEDS = new Set([
-  'france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'naharnet', 'dailystar', 'alarabiya', 'arabnews',
+  'aljazeera_en', 'aljazeera_ar', 'france24_me', 'france24_ar', 'middleeasteye',
+  'bbc_me', 'bbc_ar_me', 'bbc_ar', 'mtv', 'lbci', 'lbci_latest', 'lbci_war',
+  'naharnet', 'dailystar', 'alarabiya', 'arabnews', 'the961', 'almanar',
+  'newarab', 'alquds', 'guardian_me', 'skynews_ar', 'almonitor', 'dw_ar',
+  'lebforces', 'asharq', 'jpost', 'anadolu',
   'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen',
-  'un_news_me', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
+  'un_news_me', 'un_peace', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
   'reddit_lebanon', 'reddit_worldnews', 'reddit_me',
-  'brookings_me', 'carnegie_me', 'crisisgroup',
+  'brookings_me', 'carnegie_me', 'crisisgroup', 'me_monitor',
   'google_ar_lebanon', 'google_ar_gaza',
   'yt_aljazeeraeng', 'yt_bbc_news',
-  'podcast_war_on_rocks',
+  'podcast_war_on_rocks', 'war_on_rocks',
+  'msf', 'amnesty',
+  'plus972', 'mondoweiss', 'electronicintifada',
 ]);
 
 const ME_KEYWORDS = [
