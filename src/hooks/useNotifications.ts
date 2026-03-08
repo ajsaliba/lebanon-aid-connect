@@ -152,7 +152,7 @@ export function useNotifications(geoPosition?: { lat: number; lng: number } | nu
   }, [addNotification]);
 
   // Keep posRef in sync so the realtime callback always has latest position
-  useEffect(() => { posRef.current = position; }, [position]);
+  useEffect(() => { posRef.current = geoPosition ?? null; }, [geoPosition]);
 
   // SOS proximity alert via Realtime
   useEffect(() => {

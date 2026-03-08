@@ -6,9 +6,11 @@ import { CrisisMap } from '@/components/CrisisMap';
 import { RightPanel } from '@/components/RightPanel';
 import { StatusBar } from '@/components/StatusBar';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 const Index = () => {
-  useNotifications();
+  const { position } = useGeolocation();
+  useNotifications(position);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [activeRegion, setActiveRegion] = useState('lebanon');
