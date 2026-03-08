@@ -15,6 +15,7 @@ import { FeedSettingsPanel } from '@/components/FeedSettingsPanel';
 import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
+import { findDuplicates } from '@/lib/duplicateDetection';
 
 const categoryStyles = {
   conflict: 'text-danger',
