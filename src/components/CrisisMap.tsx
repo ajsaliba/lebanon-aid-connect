@@ -104,32 +104,8 @@ export function CrisisMap() {
     news: true,
     hospitals: true,
     infrastructure: true,
+    sos: true,
   });
-  const [showPanel, setShowPanel] = useState(true);
-  const [showEscalation, setShowEscalation] = useState(false);
-  const [mapTimeFilter, setMapTimeFilter] = useState('all');
-  const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
-  const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
-
-  useEffect(() => {
-    supabase.from('shelters').select('*').then(({ data }) => {
-      if (data) setDbShelters(data.map(s => ({
-        id: s.id, name: s.name, lat: s.lat, lng: s.lng,
-        capacity: s.capacity, currentOccupancy: s.current_occupancy,
-        address: s.address, contact: s.contact,
-        status: s.status as 'open' | 'full' | 'closed',
-        amenities: s.amenities || [],
-      })));
-    });
-    supabase.from('housing_listings').select('*').then(({ data }) => {
-      if (data) setDbHousing(data.map(h => ({
-        id: h.id, title: h.title, lat: h.lat, lng: h.lng,
-        price: h.price, currency: h.currency, bedrooms: h.bedrooms,
-        address: h.address, contact: h.contact,
-        available: h.available, description: h.description || '',
-      })));
-    });
-  }, []);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
