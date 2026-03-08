@@ -109,12 +109,12 @@ const RSS_FEEDS: FeedSource[] = [
 const ME_FOCUSED_FEEDS = new Set([
   'france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'naharnet', 'dailystar', 'alarabiya', 'arabnews',
   'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen',
-  'un_news_me', 'gov_press', 'afp_me',
+  'un_news_me', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
   'reddit_lebanon', 'reddit_worldnews', 'reddit_me',
-  'brookings_me', 'carnegie_me', 'chatham_me', 'crisisgroup',
-  'google_ar_lebanon', 'google_ar_gaza', 'google_ar_me',
-  'yt_aljazeeraeng', 'yt_bbc_news', 'yt_france24', 'yt_wion',
-  'podcast_bbc_newshour', 'podcast_war_on_rocks',
+  'brookings_me', 'carnegie_me', 'crisisgroup',
+  'google_ar_lebanon', 'google_ar_gaza',
+  'yt_aljazeeraeng', 'yt_bbc_news',
+  'podcast_war_on_rocks',
 ]);
 
 const ME_KEYWORDS = [
