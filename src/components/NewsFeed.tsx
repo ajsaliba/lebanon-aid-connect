@@ -479,10 +479,10 @@ export function NewsFeed() {
         </div>
       )}
 
-      <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-2">
+      <div ref={listRef} className="flex-1 overflow-y-auto p-2">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="p-2 rounded border border-border space-y-1.5">
+            <div key={i} className="p-2 rounded border border-border space-y-1.5 mb-2">
               <Skeleton className="h-3 w-3/4" /><Skeleton className="h-2 w-full" /><Skeleton className="h-2 w-1/2" />
             </div>
           ))
@@ -491,23 +491,21 @@ export function NewsFeed() {
             {viewMode === 'bookmarks' ? 'No bookmarked articles yet' : viewMode === 'reading-list' ? 'Reading list is empty' : 'No news found for the selected filters'}
           </div>
         ) : (
-          filtered.map((item, index) => (
-            <ArticleCard
-              key={item.id}
-              item={item}
-              search={search}
-              isBookmarked={isBookmarked(item.id)}
-              isInReadingList={isInReadingList(item.id)}
-              isRead={isRead(item.id)}
-              isFocused={index === focusedIndex}
-              cardStyle={settings.cardStyle}
-              onToggleBookmark={toggleBookmark}
-              onToggleReadingList={toggleReadingList}
-              onCategoryClick={handleCategoryClick}
-              onArticleOpen={handleArticleOpen}
-              activeCategory={activeCategory}
-            />
-          ))
+          <VirtualArticleList
+            items={filtered}
+            parentRef={listRef}
+            search={search}
+            focusedIndex={focusedIndex}
+            cardStyle={settings.cardStyle}
+            isBookmarked={isBookmarked}
+            isInReadingList={isInReadingList}
+            isRead={isRead}
+            onToggleBookmark={toggleBookmark}
+            onToggleReadingList={toggleReadingList}
+            onCategoryClick={handleCategoryClick}
+            onArticleOpen={handleArticleOpen}
+            activeCategory={activeCategory}
+          />
         )}
       </div>
     </div>
