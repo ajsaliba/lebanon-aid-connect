@@ -71,8 +71,8 @@ export function CrisisMap() {
   return (
     <div className="relative w-full h-full">
       <MapContainer
-        center={[20, 30]}
-        zoom={3}
+        center={[30, 45]}
+        zoom={5}
         className="w-full h-full z-0"
         zoomControl={true}
       >

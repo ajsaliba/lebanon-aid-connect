@@ -32,7 +32,7 @@ export function StatusBar() {
       <div className="flex items-center gap-3">
         <span className="flex items-center gap-1">
           <MapPin className="h-2.5 w-2.5" />
-          Focus: Global
+          Focus: Middle East
         </span>
         <span>v0.2.0</span>
       </div>

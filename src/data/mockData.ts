@@ -66,12 +66,30 @@ export interface EmergencyContact {
 }
 
 export const mockAirstrikes: AirstrikeEvent[] = [
+  // Lebanon
   { id: '1', lat: 33.8938, lng: 35.5018, date: '2024-12-01T14:30:00Z', description: 'Airstrike reported in southern Beirut suburbs', severity: 'high', source: 'Al Jazeera' },
   { id: '2', lat: 33.2721, lng: 35.2033, date: '2024-12-01T12:15:00Z', description: 'Multiple strikes in Tyre district', severity: 'high', source: 'Reuters' },
   { id: '3', lat: 33.5094, lng: 35.3737, date: '2024-12-01T10:45:00Z', description: 'Strike near Sidon outskirts', severity: 'elevated', source: 'AFP' },
   { id: '4', lat: 34.4333, lng: 35.8333, date: '2024-12-01T08:00:00Z', description: 'Reported activity near Baalbek', severity: 'elevated', source: 'LBC' },
   { id: '5', lat: 33.3633, lng: 35.4717, date: '2024-12-01T06:30:00Z', description: 'Strike in Nabatieh governorate', severity: 'high', source: 'NNA' },
   { id: '6', lat: 33.8547, lng: 35.8623, date: '2024-11-30T22:00:00Z', description: 'Bekaa Valley - infrastructure targeted', severity: 'monitoring', source: 'Reuters' },
+  // Gaza / Palestine
+  { id: '7', lat: 31.5017, lng: 34.4668, date: '2024-12-01T13:00:00Z', description: 'Heavy bombardment in Gaza City', severity: 'high', source: 'Al Jazeera' },
+  { id: '8', lat: 31.2969, lng: 34.2455, date: '2024-12-01T11:30:00Z', description: 'Strikes near Rafah crossing', severity: 'high', source: 'AFP' },
+  { id: '9', lat: 31.3462, lng: 34.3065, date: '2024-12-01T09:00:00Z', description: 'Khan Younis area targeted', severity: 'high', source: 'Reuters' },
+  // Syria
+  { id: '10', lat: 33.5138, lng: 36.2765, date: '2024-12-01T07:00:00Z', description: 'Airstrikes reported near Damascus outskirts', severity: 'elevated', source: 'Al Arabiya' },
+  { id: '11', lat: 35.9306, lng: 36.6339, date: '2024-12-01T05:30:00Z', description: 'Strikes in Idlib province', severity: 'high', source: 'Reuters' },
+  { id: '12', lat: 35.3359, lng: 40.1408, date: '2024-11-30T20:00:00Z', description: 'Deir ez-Zor military targets struck', severity: 'elevated', source: 'AFP' },
+  // Yemen
+  { id: '13', lat: 15.3694, lng: 44.1910, date: '2024-12-01T04:00:00Z', description: 'Coalition strikes in Sanaa', severity: 'high', source: 'Al Jazeera' },
+  { id: '14', lat: 14.7980, lng: 42.9511, date: '2024-12-01T02:00:00Z', description: 'Port of Hodeidah targeted', severity: 'elevated', source: 'Reuters' },
+  // Iran
+  { id: '15', lat: 35.6892, lng: 51.3890, date: '2024-12-01T01:00:00Z', description: 'Strikes reported near Tehran military installations', severity: 'high', source: 'BBC' },
+  { id: '16', lat: 32.6546, lng: 51.6680, date: '2024-11-30T23:00:00Z', description: 'Isfahan nuclear facility area targeted', severity: 'high', source: 'France 24' },
+  // Iraq
+  { id: '17', lat: 33.3152, lng: 44.3661, date: '2024-11-30T21:00:00Z', description: 'Baghdad - militia positions struck', severity: 'elevated', source: 'Al Arabiya' },
+  { id: '18', lat: 36.3566, lng: 43.1593, date: '2024-11-30T19:00:00Z', description: 'Mosul area - suspected insurgent targets', severity: 'monitoring', source: 'Reuters' },
 ];
 
 export const mockShelters: Shelter[] = [
