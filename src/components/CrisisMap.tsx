@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
 import { EscalationPanel } from '@/components/map/EscalationTimeline';
+import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 
 // Fix default marker icon
@@ -118,6 +119,7 @@ export function CrisisMap() {
   });
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
+  const [mapTimeFilter, setMapTimeFilter] = useState('all');
   const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
   const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
 
@@ -145,8 +147,14 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Enrich all news with inferred coordinates if missing
-  const enrichedNews = news.map(n => {
+  // Enrich all news with inferred coordinates if missing, then apply time filter
+  const timeFilterMs = getTimeFilterMs(mapTimeFilter);
+  const timeFilteredNews = news.filter(n => {
+    if (timeFilterMs === Infinity) return true;
+    return Date.now() - new Date(n.publishedAt).getTime() < timeFilterMs;
+  });
+
+  const enrichedNews = timeFilteredNews.map(n => {
     if (n.lat && n.lng) return n;
     const inferred = inferCoords(`${n.title} ${n.summary}`);
     if (inferred) return { ...n, lat: inferred.lat, lng: inferred.lng };
@@ -166,6 +174,7 @@ export function CrisisMap() {
         zoomControl={true}
       >
         <MapController />
+        <TimeFilterBar activeTime={mapTimeFilter} onTimeChange={setMapTimeFilter} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
