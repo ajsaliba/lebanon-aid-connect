@@ -194,6 +194,7 @@ export function NewsFeed() {
   const [searchHistory, setSearchHistory] = useState<string[]>(getSearchHistory());
   const [viewMode, setViewMode] = useState<ViewMode>('feed');
   const [showSettings, setShowSettings] = useState(false);
+  const [showCustomFeeds, setShowCustomFeeds] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const trendingRef = useRef<HTMLDivElement>(null);
