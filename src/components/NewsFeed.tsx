@@ -53,7 +53,7 @@ const STOP_WORDS = new Set([
 function extractTrendingKeywords(news: Array<{ title: string; summary: string }>, max = 12): string[] {
   const freq: Record<string, number> = {};
   for (const item of news) {
-    const text = sanitizeFeedText(`${item.title} ${item.summary}`).toLowerCase();
+    const text = sanitizeFeedText(item.title).toLowerCase();
     const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
     const seen = new Set<string>();
     for (const w of words) {
@@ -224,7 +224,7 @@ export function NewsFeed() {
               <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{sanitizeFeedText(item.title)}</h3>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mt-1 leading-relaxed">{sanitizeFeedText(item.summary)}</p>
+              
               <div className="flex items-center gap-2 mt-1.5">
                 <span
                   className={cn('uppercase font-bold text-[9px] cursor-pointer hover:underline', categoryStyles[item.category])}
