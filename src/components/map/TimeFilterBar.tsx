@@ -32,16 +32,16 @@ export function TimeFilterBar({ activeTime, onTimeChange }: TimeFilterBarProps) 
   const map = useMap();
 
   return (
-    <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
+    <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1">
       {/* Time filters */}
-      <div className="bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1.5 flex items-center gap-1">
-        <Clock className="h-4 w-4 text-muted-foreground mr-1" />
+      <div className="bg-card/90 border border-border backdrop-blur-sm rounded-md px-1 py-0.5 flex items-center gap-0">
+        <Clock className="h-3 w-3 text-muted-foreground mx-1" />
         {TIME_RANGES.map(t => (
           <button
             key={t.id}
             onClick={() => onTimeChange(t.id)}
             className={cn(
-              'px-2.5 py-1 rounded text-[11px] font-bold uppercase transition-colors',
+              'px-1.5 py-0.5 rounded text-[9px] font-bold uppercase transition-colors',
               activeTime === t.id
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -53,13 +53,13 @@ export function TimeFilterBar({ activeTime, onTimeChange }: TimeFilterBarProps) 
       </div>
 
       {/* Region presets */}
-      <div className="bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1.5 flex items-center gap-1">
-        <Globe className="h-4 w-4 text-muted-foreground mr-1" />
+      <div className="bg-card/90 border border-border backdrop-blur-sm rounded-md px-1 py-0.5 flex items-center gap-0">
+        <Globe className="h-3 w-3 text-muted-foreground mx-1" />
         {REGION_PRESETS.map(r => (
           <button
             key={r.id}
             onClick={() => map.flyTo(r.center, r.zoom, { duration: 1.5 })}
-            className="px-2.5 py-1 rounded text-[11px] font-bold uppercase text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
             {r.label}
           </button>
