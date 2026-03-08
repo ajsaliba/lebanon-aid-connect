@@ -122,6 +122,9 @@ export function HousingPanel() {
     setEditHousing(house);
     setIsFreeForm(house.is_free);
     setUrgencyForm(house.urgency);
+    setFormLat(house.lat);
+    setFormLng(house.lng);
+    setFormAddress(house.address);
     setOpen(true);
   };
 
