@@ -135,11 +135,13 @@ export type Database = {
           currency: string
           description: string | null
           id: string
+          is_free: boolean
           lat: number
           lng: number
           price: number
           title: string
           updated_at: string
+          urgency: string
           user_id: string
         }
         Insert: {
@@ -151,11 +153,13 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          is_free?: boolean
           lat: number
           lng: number
           price: number
           title: string
           updated_at?: string
+          urgency?: string
           user_id: string
         }
         Update: {
@@ -167,11 +171,43 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          is_free?: boolean
           lat?: number
           lng?: number
           price?: number
           title?: string
           updated_at?: string
+          urgency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      safety_checkins: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          message: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          message?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          message?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -184,6 +220,7 @@ export type Database = {
           contact: string
           created_at: string
           current_occupancy: number
+          heading_count: number
           id: string
           lat: number
           lng: number
@@ -199,6 +236,7 @@ export type Database = {
           contact: string
           created_at?: string
           current_occupancy?: number
+          heading_count?: number
           id?: string
           lat: number
           lng: number
@@ -214,12 +252,58 @@ export type Database = {
           contact?: string
           created_at?: string
           current_occupancy?: number
+          heading_count?: number
           id?: string
           lat?: number
           lng?: number
           name?: string
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sos_signals: {
+        Row: {
+          accuracy: number | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          message: string | null
+          needs: string[] | null
+          people_count: number
+          resolved_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          message?: string | null
+          needs?: string[] | null
+          people_count?: number
+          resolved_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          message?: string | null
+          needs?: string[] | null
+          people_count?: number
+          resolved_at?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
