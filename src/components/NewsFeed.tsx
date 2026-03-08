@@ -51,7 +51,7 @@ const STOP_WORDS = new Set([
   'report','reports','according','amid',
 ]);
 
-function extractTrendingKeywords(news: Array<{ title: string; summary: string }>, max = 12): string[] {
+function extractTrendingKeywords(news: Array<{ title: string }>, max = 12): string[] {
   const freq: Record<string, number> = {};
   for (const item of news) {
     const text = sanitizeFeedText(item.title).toLowerCase();
@@ -66,6 +66,25 @@ function extractTrendingKeywords(news: Array<{ title: string; summary: string }>
   }
   return Object.entries(freq)
     .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([word]) => word);
+}
+
+function getSearchSuggestions(news: Array<{ title: string }>, query: string, max = 8): string[] {
+  if (!query || query.length < 2) return [];
+  const lower = query.toLowerCase();
+  const freq: Record<string, number> = {};
+  for (const item of news) {
+    const text = sanitizeFeedText(item.title).toLowerCase();
+    const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+    for (const w of words) {
+      if (w.startsWith(lower) && w !== lower) {
+        freq[w] = (freq[w] || 0) + 1;
+      }
+    }
+  }
+  return Object.entries(freq)
     .sort((a, b) => b[1] - a[1])
     .slice(0, max)
     .map(([word]) => word);
