@@ -60,7 +60,14 @@ export function HousingPanel() {
   useEffect(() => {
     fetchHousing();
     intervalRef.current = setInterval(fetchHousing, 60000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    const channel = supabase
+      .channel('housing-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'housing_listings' }, () => fetchHousing())
+      .subscribe();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleRefresh = () => {

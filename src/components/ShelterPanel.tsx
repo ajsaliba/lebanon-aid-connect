@@ -77,13 +77,9 @@ export function ShelterPanel() {
 
   // "I'm heading here" — increments heading_count and opens directions
   const handleHeadingHere = async (shelter: DbShelter) => {
-    // Mark this shelter as the one we're heading to
     setHeadingTo(shelter.id);
-    // Increment heading count
-    await supabase.from('shelters').update({
-      heading_count: shelter.heading_count + 1
-    }).eq('id', shelter.id);
-    // Open Google Maps directions
+    // Use security definer function so any authenticated user can increment
+    await supabase.rpc('increment_heading_count', { shelter_id: shelter.id });
     window.open(getDirectionsUrl(shelter.lat, shelter.lng), '_blank');
     toast({ title: `Navigating to ${shelter.name}`, description: 'Follow directions in Google Maps.' });
     fetchShelters();
