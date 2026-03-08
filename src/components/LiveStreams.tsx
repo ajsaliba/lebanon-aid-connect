@@ -46,7 +46,6 @@ export function LiveStreams() {
                 <tab.icon className="h-3 w-3" /> {tab.label}
               </Button>
             ))}
-            </Button>
           </div>
 
           {/* Stream buttons */}
