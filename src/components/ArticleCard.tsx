@@ -268,6 +268,7 @@ export function ArticleCard({
         {item.category}
       </span>
       <span className="text-muted-foreground">•</span>
+      <SourceBadge source={item.source} />
       <span className="text-muted-foreground">{item.source}</span>
       <span className="text-muted-foreground">•</span>
       <span className="flex items-center gap-0.5 text-muted-foreground">
