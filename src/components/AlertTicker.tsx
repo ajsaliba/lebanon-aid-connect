@@ -23,7 +23,7 @@ export function AlertTicker() {
           ))}
           {highAlerts.map((alert) => (
             <span key={`dup-${alert.id}`} className="text-[11px] text-danger/90">
-              ◆ {alert.title} — {alert.source}
+              ◆ {sanitizeFeedText(alert.title)} — {alert.source}
             </span>
           ))}
         </div>

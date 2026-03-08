@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
 
 interface TopBarProps {
   onToggleSidebar: () => void;
@@ -16,8 +25,18 @@ const regions = [
   { id: 'global', label: 'Global', icon: Radio },
 ];
 
+const typeLabel: Record<string, string> = {
+  conflict: 'Airstrike / Conflict',
+  news: 'War Update',
+  humanitarian: 'Humanitarian',
+  infrastructure: 'Infrastructure',
+  shelter: 'New Shelter',
+  housing: 'New Housing',
+};
+
 export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBarProps) {
   const [time, setTime] = useState(new Date());
+  const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
@@ -68,6 +87,47 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           <span>{utcDate}</span>
           <span className="text-primary font-medium">{utcTime} UTC</span>
         </div>
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 relative" aria-label="Open notifications">
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-danger text-danger-foreground text-[9px] leading-4 text-center font-bold">
+                  {Math.min(unreadCount, 99)}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[360px] sm:max-w-[420px] p-4">
+            <SheetHeader>
+              <SheetTitle className="text-base">War Notifications</SheetTitle>
+              <SheetDescription>Middle East war-related alerts and updates.</SheetDescription>
+            </SheetHeader>
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={markAllAsRead}>
+                Mark all as read
+              </Button>
+            </div>
+            <div className="mt-3 space-y-2 max-h-[75vh] overflow-y-auto pr-1">
+              {notifications.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No notifications yet.</p>
+              ) : (
+                notifications.map((n) => (
+                  <article key={n.id} className={cn('rounded-md border border-border p-2 text-xs', !n.read && 'bg-muted/40')}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-foreground">{typeLabel[n.type] ?? n.type}</span>
+                      <span className="text-[10px] text-muted-foreground">{new Date(n.createdAt).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="mt-1 text-foreground">{n.title}</p>
+                    {n.source && <p className="mt-1 text-[11px] text-muted-foreground">Source: {n.source}</p>}
+                  </article>
+                ))
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <AuthDialog />
       </div>
     </header>
