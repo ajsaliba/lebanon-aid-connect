@@ -6,9 +6,12 @@ import 'leaflet/dist/leaflet.css';
 import { lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Layers, Eye, EyeOff } from 'lucide-react';
+import { Layers, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
+import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
+import { EscalationPanel } from '@/components/map/EscalationTimeline';
+import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
