@@ -263,7 +263,7 @@ Deno.serve(async (req) => {
       return true;
     });
     deduped.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    const final = deduped.slice(0, 80);
+    const final = deduped; // No cap — return all unique articles, sorted newest first
     return new Response(JSON.stringify({
       news: final,
       fetchedAt: new Date().toISOString(),
