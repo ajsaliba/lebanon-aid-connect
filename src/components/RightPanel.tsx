@@ -16,21 +16,32 @@ const tabs = [
 
 type TabId = typeof tabs[number]['id'];
 
-export function RightPanel({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
+interface RightPanelProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  /** On mobile, take full width */
+  fullWidth?: boolean;
+}
+
+export function RightPanel({ isOpen, onToggle, fullWidth }: RightPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('sos');
 
   return (
-    <div className="relative flex">
-      <button
-        onClick={onToggle}
-        className="absolute -left-6 top-1/2 -translate-y-1/2 z-10 h-12 w-6 bg-card border border-border border-r-0 rounded-l flex items-center justify-center hover:bg-muted"
-      >
-        {isOpen ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-      </button>
+    <div className={cn('relative flex', fullWidth && 'w-full h-full')}>
+      {/* Toggle handle — hidden on mobile */}
+      {!fullWidth && (
+        <button
+          onClick={onToggle}
+          className="absolute -left-6 top-1/2 -translate-y-1/2 z-10 h-12 w-6 bg-card border border-border border-r-0 rounded-l flex items-center justify-center hover:bg-muted"
+        >
+          {isOpen ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
+      )}
 
       <aside className={cn(
-        'h-full border-l border-border bg-card flex flex-col overflow-hidden transition-all duration-300',
-        isOpen ? 'w-80' : 'w-0'
+        'h-full bg-card flex flex-col overflow-hidden transition-all duration-300',
+        fullWidth ? 'w-full border-0' : 'border-l border-border',
+        !fullWidth && (isOpen ? 'w-80' : 'w-0')
       )}>
         {isOpen && (
           <>

@@ -106,15 +106,16 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
   const utcDate = time.toISOString().split('T')[0];
 
   return (
-    <header className="h-12 border-b border-border bg-card flex items-center justify-between px-3 shrink-0">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleSidebar}>
+    <header className="h-12 border-b border-border bg-card flex items-center justify-between px-2 sm:px-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hidden md:flex" onClick={onToggleSidebar}>
           <Menu className="h-4 w-4" />
         </Button>
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-primary" />
-          <h1 className="font-sans font-bold text-sm tracking-wider uppercase text-primary">
-            Lebanon Crisis Monitor
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <AlertTriangle className="h-4 w-4 text-primary shrink-0" />
+          <h1 className="font-sans font-bold text-xs sm:text-sm tracking-wider uppercase text-primary truncate">
+            <span className="sm:hidden">Cedars Alert</span>
+            <span className="hidden sm:inline">Lebanon Crisis Monitor</span>
           </h1>
         </div>
         <div className="hidden md:flex items-center gap-1 ml-4">
@@ -141,60 +142,66 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <div className="text-[11px] text-muted-foreground font-mono hidden sm:flex items-center gap-3">
           <span>{utcDate}</span>
           <span className="text-primary font-medium">{utcTime} UTC</span>
         </div>
 
-        {/* Cmd+K hint */}
+        {/* Cmd+K hint — desktop only */}
         <button
           onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-          className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded border border-border text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded border border-border text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <Search className="h-3 w-3" />
           <kbd className="text-[9px]">⌘K</kbd>
         </button>
 
-        {/* Source Filter */}
-        <SourceFilterModal
-          disabledSources={sourceFilters.disabledSources}
-          toggleSource={sourceFilters.toggleSource}
-          enableAll={sourceFilters.enableAll}
-          disableAll={sourceFilters.disableAll}
-        />
+        {/* Source Filter — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <SourceFilterModal
+            disabledSources={sourceFilters.disabledSources}
+            toggleSource={sourceFilters.toggleSource}
+            enableAll={sourceFilters.enableAll}
+            disableAll={sourceFilters.disableAll}
+          />
+        </span>
 
-        {/* Data Export */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Download className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
-              Export as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
-              Export as JSON
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Data Export — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Download className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
+                Export as JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </span>
 
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />
 
-        {/* Sound toggle */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleSound}>
-              {soundEnabled ? <Volume2 className="h-4 w-4 text-success" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-[10px]">
-            Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
-          </TooltipContent>
-        </Tooltip>
+        {/* Sound toggle — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleSound}>
+                {soundEnabled ? <Volume2 className="h-4 w-4 text-success" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-[10px]">
+              Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
+            </TooltipContent>
+          </Tooltip>
+        </span>
 
         <Sheet>
           <SheetTrigger asChild>

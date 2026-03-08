@@ -13,7 +13,7 @@ export function StatusBar() {
   };
 
   return (
-    <footer className="h-6 border-t border-border bg-card flex items-center justify-between px-3 text-[9px] text-muted-foreground shrink-0">
+    <footer className="h-6 border-t border-border bg-card hidden md:flex items-center justify-between px-3 text-[9px] text-muted-foreground shrink-0">
       <div className="flex items-center gap-3">
         <span className="flex items-center gap-1">
           <span className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-success' : 'bg-warning'}`} />
