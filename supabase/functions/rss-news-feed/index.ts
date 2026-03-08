@@ -23,13 +23,26 @@ interface NewsItem {
 }
 
 const RSS_FEEDS: FeedSource[] = [
+  // Major international
   { name: 'aljazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera' },
   { name: 'france24_me', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
   { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC' },
+  { name: 'reuters_world', url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', sourceLabel: 'Reuters' },
+  // Regional / Lebanese
   { name: 'mtv', url: 'https://www.mtv.com.lb/RSS/AllNews', sourceLabel: 'MTV Lebanon' },
   { name: 'lbci', url: 'https://www.lbcgroup.tv/feed/rss/news/en', sourceLabel: 'LBCI' },
+  { name: 'naharnet', url: 'http://www.naharnet.com/stories/en/rss.xml', sourceLabel: 'Naharnet' },
+  { name: 'dailystar', url: 'https://www.dailystar.com.lb/RSS.aspx', sourceLabel: 'Daily Star' },
+  // Arab news
+  { name: 'alarabiya', url: 'https://english.alarabiya.net/tools/rss', sourceLabel: 'Al Arabiya' },
+  { name: 'arabnews', url: 'https://www.arabnews.com/rss.xml', sourceLabel: 'Arab News' },
+  // Google News aggregation (multiple queries for breadth)
   { name: 'google_me_war', url: 'https://news.google.com/rss/search?q=middle+east+war+OR+airstrike+OR+conflict+OR+Iran+OR+Lebanon+OR+Gaza+OR+Syria+OR+Yemen+OR+Iraq&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_lebanon', url: 'https://news.google.com/rss/search?q=Lebanon+crisis+OR+Beirut+OR+Hezbollah+OR+ceasefire+Lebanon&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_gaza', url: 'https://news.google.com/rss/search?q=Gaza+OR+Hamas+OR+Palestine+humanitarian+OR+Israel+war&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_iran', url: 'https://news.google.com/rss/search?q=Iran+nuclear+OR+Iran+military+OR+Iran+sanctions+OR+IRGC&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'google_syria_yemen', url: 'https://news.google.com/rss/search?q=Syria+war+OR+Yemen+Houthi+OR+Iraq+militia&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
 // Middle East region keywords for filtering general feeds (Al Jazeera has global coverage)
