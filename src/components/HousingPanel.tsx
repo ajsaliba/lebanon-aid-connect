@@ -173,19 +173,20 @@ export function HousingPanel() {
             <RefreshCw className={cn('h-2.5 w-2.5 text-muted-foreground', isRefreshing && 'animate-spin')} />
           </Button>
           {user && (
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); } }}>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info"><Plus className="h-2.5 w-2.5" /> Add</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader><DialogTitle className="text-sm">{editHousing ? 'Edit' : 'Add Housing'}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Title *</Label><Input name="title" required className="h-7 text-xs" defaultValue={editHousing?.title || ''} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Address *</Label><Input name="address" required className="h-7 text-xs" defaultValue={editHousing?.address || ''} /></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1"><Label className="text-xs">Lat *</Label><Input name="lat" type="number" step="any" required className="h-7 text-xs" defaultValue={editHousing?.lat || ''} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Lng *</Label><Input name="lng" type="number" step="any" required className="h-7 text-xs" defaultValue={editHousing?.lng || ''} /></div>
-                  </div>
+                  <div className="space-y-1"><Label className="text-xs">Title *</Label><Input name="title" required className="h-7 text-xs" placeholder="e.g. 2BR Apartment - Hamra" defaultValue={editHousing?.title || ''} /></div>
+                  <LocationPicker
+                    defaultAddress={editHousing?.address}
+                    defaultLat={editHousing?.lat}
+                    defaultLng={editHousing?.lng}
+                    onSelect={(addr, lat, lng) => { setFormAddress(addr); setFormLat(lat); setFormLng(lng); }}
+                  />
 
                   {/* Free housing toggle */}
                   <div className="flex items-center justify-between bg-success/5 border border-success/20 rounded p-2">
