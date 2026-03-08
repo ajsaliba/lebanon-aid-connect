@@ -16,13 +16,13 @@ export function AlertTicker() {
       </div>
       <div className="overflow-hidden flex-1">
         <div className="animate-ticker whitespace-nowrap flex items-center gap-8">
-          {highAlerts.map((alert) => (
-            <span key={alert.id} className="text-[11px] text-danger/90">
+          {highAlerts.map((alert, i) => (
+            <span key={`a-${i}-${alert.id}`} className="text-[11px] text-danger/90">
               ◆ {sanitizeFeedText(alert.title)} — {alert.source}
             </span>
           ))}
-          {highAlerts.map((alert) => (
-            <span key={`dup-${alert.id}`} className="text-[11px] text-danger/90">
+          {highAlerts.map((alert, i) => (
+            <span key={`b-${i}-${alert.id}`} className="text-[11px] text-danger/90">
               ◆ {sanitizeFeedText(alert.title)} — {alert.source}
             </span>
           ))}
