@@ -1,8 +1,11 @@
 import { AlertTriangle } from 'lucide-react';
-import { mockNews } from '@/data/mockData';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 
 export function AlertTicker() {
-  const highAlerts = mockNews.filter(n => n.severity === 'high');
+  const { news } = useNewsFeedContext();
+  const highAlerts = news.filter(n => n.severity === 'high');
+
+  if (highAlerts.length === 0) return null;
 
   return (
     <div className="h-7 bg-danger/10 border-b border-danger/30 flex items-center overflow-hidden shrink-0">

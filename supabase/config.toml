@@ -1,0 +1,4 @@
+project_id = "qmakvcizkocctnojbskf"
+
+[functions.rss-news-feed]
+verify_jwt = false

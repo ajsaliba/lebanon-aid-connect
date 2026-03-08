@@ -3,7 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { mockAirstrikes, mockShelters, mockHousing, mockNews } from '@/data/mockData';
+import { mockAirstrikes, mockShelters, mockHousing } from '@/data/mockData';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { Layers, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -52,6 +53,7 @@ function MapController() {
 }
 
 export function CrisisMap() {
+  const { news } = useNewsFeedContext();
   const [layers, setLayers] = useState<LayerToggle>({
     airstrikes: true,
     shelters: true,
@@ -64,7 +66,7 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const geoNews = mockNews.filter(n => n.lat && n.lng);
+  const geoNews = news.filter(n => n.lat && n.lng);
 
   return (
     <div className="relative w-full h-full">
