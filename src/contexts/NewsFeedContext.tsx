@@ -9,6 +9,8 @@ interface NewsFeedContextValue {
   lastUpdated: Date | null;
   isLive: boolean;
   refetch: () => void;
+  pollInterval: number;
+  setPollInterval: (ms: number) => void;
 }
 
 const defaultValue: NewsFeedContextValue = {
@@ -18,6 +20,8 @@ const defaultValue: NewsFeedContextValue = {
   lastUpdated: null,
   isLive: false,
   refetch: () => {},
+  pollInterval: 60000,
+  setPollInterval: () => {},
 };
 
 const NewsFeedContext = createContext<NewsFeedContextValue>(defaultValue);

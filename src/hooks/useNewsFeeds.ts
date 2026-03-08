@@ -8,9 +8,10 @@ interface NewsFeedResult {
   lastUpdated: Date | null;
   isLive: boolean;
   refetch: () => void;
+  pollInterval: number;
+  setPollInterval: (ms: number) => void;
 }
 
-const POLL_INTERVAL = 60 * 1000; // 1 minute
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -20,6 +21,7 @@ export function useNewsFeeds(): NewsFeedResult {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [pollInterval, setPollInterval] = useState(60 * 1000);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchNews = useCallback(async () => {
@@ -32,10 +34,7 @@ export function useNewsFeeds(): NewsFeedResult {
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
 
       if (data?.news && data.news.length > 0) {
@@ -59,11 +58,15 @@ export function useNewsFeeds(): NewsFeedResult {
 
   useEffect(() => {
     fetchNews();
-    intervalRef.current = setInterval(fetchNews, POLL_INTERVAL);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
   }, [fetchNews]);
 
-  return { news, isLoading, error, lastUpdated, isLive, refetch: fetchNews };
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (pollInterval > 0) {
+      intervalRef.current = setInterval(fetchNews, pollInterval);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [fetchNews, pollInterval]);
+
+  return { news, isLoading, error, lastUpdated, isLive, refetch: fetchNews, pollInterval, setPollInterval };
 }
