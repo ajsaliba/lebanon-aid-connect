@@ -20,6 +20,13 @@ const categoryStyles = {
   infrastructure: 'text-info',
 };
 
+const categoryBorderStyles = {
+  conflict: 'border-l-danger',
+  humanitarian: 'border-l-success',
+  political: 'border-l-warning',
+  infrastructure: 'border-l-info',
+};
+
 const timeFilters = ['1h', '6h', '24h', '48h', '7d'] as const;
 
 function getTimeFilterMs(filter: string): number {
@@ -131,8 +138,9 @@ export function NewsFeed() {
             <article
               key={item.id}
               className={cn(
-                'p-2 rounded border text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
-                severityStyles[item.severity]
+                'p-2 rounded border border-l-[3px] text-[11px] cursor-pointer hover:bg-muted/50 transition-colors',
+                severityStyles[item.severity],
+                categoryBorderStyles[item.category]
               )}
               onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
             >
