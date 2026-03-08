@@ -165,6 +165,7 @@ function VirtualArticleList({
               isFocused={virtualRow.index === focusedIndex}
               cardStyle={cardStyle}
               duplicateOf={duplicateMap.get(item.id)}
+              threatClassification={threatClassifications[item.id]}
               onToggleBookmark={onToggleBookmark}
               onToggleReadingList={onToggleReadingList}
               onCategoryClick={onCategoryClick}
