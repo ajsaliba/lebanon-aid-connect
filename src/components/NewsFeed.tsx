@@ -27,7 +27,7 @@ const categoryBorderStyles = {
   infrastructure: 'border-l-info',
 };
 
-const timeFilters = ['1h', '6h', '24h', '48h', '7d'] as const;
+const timeFilters = ['1h', '6h', '24h', '48h', '7d', 'All'] as const;
 
 function getTimeFilterMs(filter: string): number {
   const map: Record<string, number> = {
@@ -36,8 +36,9 @@ function getTimeFilterMs(filter: string): number {
     '24h': 86400000,
     '48h': 172800000,
     '7d': 604800000,
+    'All': Infinity,
   };
-  return map[filter] || 86400000;
+  return map[filter] || Infinity;
 }
 
 const STOP_WORDS = new Set([
@@ -74,7 +75,7 @@ function extractTrendingKeywords(news: Array<{ title: string; summary: string }>
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch } = useNewsFeedContext();
   const [search, setSearch] = useState('');
-  const [activeTime, setActiveTime] = useState<string>('7d');
+  const [activeTime, setActiveTime] = useState<string>('All');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
