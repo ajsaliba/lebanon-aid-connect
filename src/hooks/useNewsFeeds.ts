@@ -10,7 +10,7 @@ interface NewsFeedResult {
   refetch: () => void;
 }
 
-const POLL_INTERVAL = 3 * 60 * 1000;
+const POLL_INTERVAL = 60 * 1000; // 1 minute
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
