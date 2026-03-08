@@ -157,11 +157,26 @@ export function NewsFeed() {
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Search news..."
+            placeholder="Search headlines..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="h-7 pl-7 text-[11px] bg-muted border-border"
           />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-popover border border-border rounded shadow-lg max-h-32 overflow-y-auto">
+              {suggestions.map(s => (
+                <button
+                  key={s}
+                  className="w-full text-left px-2 py-1 text-[11px] text-foreground hover:bg-muted transition-colors"
+                  onMouseDown={(e) => { e.preventDefault(); setSearch(s); setShowSuggestions(false); }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex gap-1">
           {timeFilters.map(t => (
