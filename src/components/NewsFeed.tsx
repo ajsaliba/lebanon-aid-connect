@@ -410,7 +410,7 @@ export function NewsFeed() {
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onKeyDown={(e) => { if (e.key === 'Enter') commitSearch(search); if (e.key === 'Escape') { setSearch(''); (e.target as HTMLElement).blur(); } }}
-            className="h-7 pl-7 pr-7 text-[11px] bg-muted border-border"
+            className="h-8 pl-8 pr-8 text-xs bg-muted border-border"
           />
           {search && (
             <button className="absolute right-2 top-1/2 -translate-y-1/2" onMouseDown={(e) => { e.preventDefault(); setSearch(''); }}>

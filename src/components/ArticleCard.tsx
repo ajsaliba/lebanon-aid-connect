@@ -249,7 +249,7 @@ export function ArticleCard({
 
   const MetaInfo = () => (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className={cn('uppercase font-bold text-[9px] cursor-pointer hover:underline', categoryStyles[item.category])}
+      <span className={cn('uppercase font-bold text-[10px] cursor-pointer hover:underline', categoryStyles[item.category])}
         onClick={(e) => { e.stopPropagation(); onCategoryClick(item.category); }}>
         {item.category}
       </span>
