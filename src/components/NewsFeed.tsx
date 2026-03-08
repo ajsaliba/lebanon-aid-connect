@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 const severityStyles = {
   high: 'bg-danger/15 text-danger border-danger/30',
@@ -32,14 +33,6 @@ function getTimeFilterMs(filter: string): number {
   return map[filter] || 86400000;
 }
 
-function stripHtml(text: string): string {
-  return text
-    .replace(/<[^>]*>/g, '')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 export function NewsFeed() {
   const { news, isLoading, isLive } = useNewsFeedContext();
@@ -48,7 +41,7 @@ export function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const filtered = news.filter(n => {
-    if (search && !n.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !sanitizeFeedText(n.title).toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCategory && n.category !== activeCategory) return false;
     const age = Date.now() - new Date(n.publishedAt).getTime();
     if (age > getTimeFilterMs(activeTime)) return false;
@@ -144,10 +137,10 @@ export function NewsFeed() {
               onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank')}
             >
               <div className="flex items-start justify-between gap-1">
-              <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{stripHtml(item.title)}</h3>
+              <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{sanitizeFeedText(item.title)}</h3>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mt-1 leading-relaxed">{stripHtml(item.summary)}</p>
+              <p className="text-muted-foreground mt-1 leading-relaxed">{sanitizeFeedText(item.summary)}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={cn('uppercase font-bold text-[9px]', categoryStyles[item.category])}>
                   {item.category}
