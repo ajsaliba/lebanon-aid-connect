@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { mockNews, type NewsItem } from '@/data/mockData';
 
 interface NewsFeedResult {
@@ -59,10 +60,12 @@ export function useNewsFeeds(): NewsFeedResult {
     }
   }, []);
 
+  // Initial fetch
   useEffect(() => {
     fetchNews();
   }, [fetchNews]);
 
+  // Polling fallback
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (pollInterval > 0) {
@@ -70,6 +73,56 @@ export function useNewsFeeds(): NewsFeedResult {
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [fetchNews, pollInterval]);
+
+  // Realtime: listen for new articles via Supabase Realtime
+  useEffect(() => {
+    const channel = supabase
+      .channel('articles-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'articles' },
+        (payload) => {
+          const row = payload.new as any;
+          const newItem: NewsItem = {
+            id: row.external_id,
+            title: row.title,
+            summary: row.summary || '',
+            source: row.source,
+            url: row.url || '',
+            publishedAt: row.published_at,
+            severity: row.severity as NewsItem['severity'],
+            category: row.category as NewsItem['category'],
+            lat: row.lat ?? undefined,
+            lng: row.lng ?? undefined,
+          };
+          setNews(prev => {
+            // Deduplicate by id
+            if (prev.some(n => n.id === newItem.id)) return prev;
+            const updated = [newItem, ...prev];
+            updated.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+            return updated;
+          });
+          setLastUpdated(new Date());
+          setIsLive(true);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Background sync: refetch when tab becomes visible
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchNews();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [fetchNews]);
 
   return { news, isLoading, error, lastUpdated, isLive, refetch: fetchNews, pollInterval, setPollInterval };
 }

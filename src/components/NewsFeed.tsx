@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { format } from 'date-fns';
 import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard } from 'lucide-react';
@@ -102,6 +103,74 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 type ViewMode = 'feed' | 'bookmarks' | 'reading-list';
 
 const CATEGORIES = ['conflict', 'humanitarian', 'political', 'infrastructure'] as const;
+
+// Virtualized article list for 1000+ articles
+function VirtualArticleList({
+  items, parentRef, search, focusedIndex, cardStyle,
+  isBookmarked, isInReadingList, isRead,
+  onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
+}: {
+  items: any[];
+  parentRef: React.RefObject<HTMLDivElement>;
+  search: string;
+  focusedIndex: number;
+  cardStyle: import('@/hooks/useFeedSettings').CardStyle;
+  isBookmarked: (id: string) => boolean;
+  isInReadingList: (id: string) => boolean;
+  isRead: (id: string) => boolean;
+  onToggleBookmark: (id: string) => void;
+  onToggleReadingList: (id: string) => void;
+  onCategoryClick: (cat: string) => void;
+  onArticleOpen: (id: string) => void;
+  activeCategory: string | null;
+}) {
+  const estimateSize = cardStyle === 'headlines' ? 32 : cardStyle === 'list' ? 48 : 80;
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => estimateSize,
+    overscan: 10,
+    gap: 8,
+  });
+
+  return (
+    <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+      {virtualizer.getVirtualItems().map((virtualRow) => {
+        const item = items[virtualRow.index];
+        return (
+          <div
+            key={item.id}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+            ref={virtualizer.measureElement}
+            data-index={virtualRow.index}
+          >
+            <ArticleCard
+              item={item}
+              search={search}
+              isBookmarked={isBookmarked(item.id)}
+              isInReadingList={isInReadingList(item.id)}
+              isRead={isRead(item.id)}
+              isFocused={virtualRow.index === focusedIndex}
+              cardStyle={cardStyle}
+              onToggleBookmark={onToggleBookmark}
+              onToggleReadingList={onToggleReadingList}
+              onCategoryClick={onCategoryClick}
+              onArticleOpen={onArticleOpen}
+              activeCategory={activeCategory}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch, setPollInterval } = useNewsFeedContext();
@@ -478,10 +547,10 @@ export function NewsFeed() {
         </div>
       )}
 
-      <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-2">
+      <div ref={listRef} className="flex-1 overflow-y-auto p-2">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="p-2 rounded border border-border space-y-1.5">
+            <div key={i} className="p-2 rounded border border-border space-y-1.5 mb-2">
               <Skeleton className="h-3 w-3/4" /><Skeleton className="h-2 w-full" /><Skeleton className="h-2 w-1/2" />
             </div>
           ))
@@ -490,23 +559,21 @@ export function NewsFeed() {
             {viewMode === 'bookmarks' ? 'No bookmarked articles yet' : viewMode === 'reading-list' ? 'Reading list is empty' : 'No news found for the selected filters'}
           </div>
         ) : (
-          filtered.map((item, index) => (
-            <ArticleCard
-              key={item.id}
-              item={item}
-              search={search}
-              isBookmarked={isBookmarked(item.id)}
-              isInReadingList={isInReadingList(item.id)}
-              isRead={isRead(item.id)}
-              isFocused={index === focusedIndex}
-              cardStyle={settings.cardStyle}
-              onToggleBookmark={toggleBookmark}
-              onToggleReadingList={toggleReadingList}
-              onCategoryClick={handleCategoryClick}
-              onArticleOpen={handleArticleOpen}
-              activeCategory={activeCategory}
-            />
-          ))
+          <VirtualArticleList
+            items={filtered}
+            parentRef={listRef}
+            search={search}
+            focusedIndex={focusedIndex}
+            cardStyle={settings.cardStyle}
+            isBookmarked={isBookmarked}
+            isInReadingList={isInReadingList}
+            isRead={isRead}
+            onToggleBookmark={toggleBookmark}
+            onToggleReadingList={toggleReadingList}
+            onCategoryClick={handleCategoryClick}
+            onArticleOpen={handleArticleOpen}
+            activeCategory={activeCategory}
+          />
         )}
       </div>
     </div>

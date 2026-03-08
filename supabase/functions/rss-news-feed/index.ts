@@ -216,14 +216,44 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
   }
 }
 
+// In-memory cache (60s TTL)
+let cachedResponse: { data: string; timestamp: number } | null = null;
+const CACHE_TTL = 60_000;
+
+// Rate limiting (per IP, 30 req/min)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 30;
+const RATE_WINDOW = 60_000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limiting
+  const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (!checkRateLimit(clientIP)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded', news: [] }), {
+      status: 429,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' },
+    });
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supabase = createClient(supabaseUrl, serviceRoleKey);
+
 
   const url = new URL(req.url);
   const mode = url.searchParams.get('mode'); // 'history' to query stored articles
@@ -285,7 +315,14 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Live mode: fetch from RSS, persist, return
+  // Live mode: check cache first
+  if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_TTL) {
+    console.log('Returning cached response');
+    return new Response(cachedResponse.data, {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' },
+    });
+  }
+
   try {
     const results = await Promise.allSettled(RSS_FEEDS.map(fetchFeed));
     const allNews: NewsItem[] = [];
@@ -334,13 +371,18 @@ Deno.serve(async (req) => {
       console.log(`Persisted ${dbRows.length} articles to database`);
     }
 
-    return new Response(JSON.stringify({
+    const responseBody = JSON.stringify({
       news: deduped,
       fetchedAt: new Date().toISOString(),
       sourcesQueried: RSS_FEEDS.length,
       totalItems: deduped.length,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+    // Cache the response
+    cachedResponse = { data: responseBody, timestamp: Date.now() };
+
+    return new Response(responseBody, {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'MISS' },
     });
   } catch (err) {
     console.error('RSS feed error:', err);
