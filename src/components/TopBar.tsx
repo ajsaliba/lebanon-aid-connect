@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Radio, Shield, AlertTriangle, MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AuthDialog } from '@/components/AuthDialog';
+import { cn } from '@/lib/utils';
 
 interface TopBarProps {
   onToggleSidebar: () => void;
