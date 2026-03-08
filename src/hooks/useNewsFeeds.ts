@@ -11,68 +11,136 @@ interface NewsFeedResult {
   refetch: () => void;
   pollInterval: number;
   setPollInterval: (ms: number) => void;
+  loadMore: () => void;
+  hasMore: boolean;
+  isLoadingMore: boolean;
 }
 
+const PAGE_SIZE = 500;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+/** Fire-and-forget: trigger the edge function to ingest new RSS articles into DB */
+function triggerIngestion() {
+  const url = `${SUPABASE_URL}/functions/v1/rss-news-feed?mode=ingest`;
+  fetch(url, {
+    method: 'GET',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  }).catch(() => { /* silent – ingestion is best-effort */ });
+}
 
 export function useNewsFeeds(): NewsFeedResult {
   const [news, setNews] = useState<NewsItem[]>(mockNews);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(false);
   const [pollInterval, setPollInterval] = useState(60 * 1000);
+  const [hasMore, setHasMore] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cursorRef = useRef<string | null>(null);
 
-  const fetchNews = useCallback(async (retentionDays?: number) => {
+  /** Fetch articles from DB directly via Supabase SDK */
+  const fetchFromDB = useCallback(async (loadMore = false) => {
     try {
-      const params = new URLSearchParams();
-      if (retentionDays && retentionDays > 0) params.set('retention', String(retentionDays));
-      const url = `${SUPABASE_URL}/functions/v1/rss-news-feed${params.toString() ? '?' + params.toString() : ''}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-        },
-      });
+      if (loadMore) setIsLoadingMore(true);
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+      let query = supabase
+        .from('articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(PAGE_SIZE);
 
-      if (data?.news && data.news.length > 0) {
-        setNews(data.news);
-        setLastUpdated(new Date(data.fetchedAt));
+      if (loadMore && cursorRef.current) {
+        query = query.lt('published_at', cursorRef.current);
+      }
+
+      const { data, error: dbError } = await query;
+
+      if (dbError) throw dbError;
+
+      if (data && data.length > 0) {
+        const mapped: NewsItem[] = data.map(row => ({
+          id: row.external_id,
+          title: row.title,
+          summary: row.summary || '',
+          source: row.source,
+          url: row.url || '',
+          publishedAt: row.published_at,
+          severity: row.severity as NewsItem['severity'],
+          category: row.category as NewsItem['category'],
+          lat: row.lat ?? undefined,
+          lng: row.lng ?? undefined,
+        }));
+
+        // Update cursor to last item for pagination
+        cursorRef.current = data[data.length - 1].published_at;
+        setHasMore(data.length === PAGE_SIZE);
+
+        if (loadMore) {
+          setNews(prev => {
+            const existingIds = new Set(prev.map(n => n.id));
+            const newItems = mapped.filter(n => !existingIds.has(n.id));
+            return [...prev, ...newItems];
+          });
+        } else {
+          setNews(mapped);
+        }
+
+        setLastUpdated(new Date());
         setIsLive(true);
         setError(null);
-      } else {
+      } else if (!loadMore) {
+        // No articles in DB at all – keep mock data
         setIsLive(false);
-        setError('No live data available');
+        setError('No articles in database yet');
+        setHasMore(false);
       }
     } catch (err) {
-      console.warn('Failed to fetch live news, using mock data:', err);
-      setError('Using cached data');
-      setIsLive(false);
-      setNews(mockNews);
+      console.warn('Failed to fetch from DB:', err);
+      if (!loadMore) {
+        setError('Using cached data');
+        setIsLive(false);
+        setNews(mockNews);
+      }
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   }, []);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchNews();
-  }, [fetchNews]);
+  const refetch = useCallback(() => {
+    cursorRef.current = null;
+    setHasMore(true);
+    fetchFromDB(false);
+    triggerIngestion();
+  }, [fetchFromDB]);
 
-  // Polling fallback
+  const loadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      fetchFromDB(true);
+    }
+  }, [fetchFromDB, isLoadingMore, hasMore]);
+
+  // Initial fetch + trigger ingestion
+  useEffect(() => {
+    fetchFromDB(false);
+    triggerIngestion();
+  }, [fetchFromDB]);
+
+  // Polling: re-query DB on interval
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (pollInterval > 0) {
-      intervalRef.current = setInterval(fetchNews, pollInterval);
+      intervalRef.current = setInterval(() => {
+        // Reset cursor to get latest articles
+        cursorRef.current = null;
+        fetchFromDB(false);
+      }, pollInterval);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [fetchNews, pollInterval]);
+  }, [fetchFromDB, pollInterval]);
 
   // Realtime: listen for new articles via Supabase Realtime
   useEffect(() => {
@@ -96,7 +164,6 @@ export function useNewsFeeds(): NewsFeedResult {
             lng: row.lng ?? undefined,
           };
           setNews(prev => {
-            // Deduplicate by id
             if (prev.some(n => n.id === newItem.id)) return prev;
             const updated = [newItem, ...prev];
             updated.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
@@ -108,21 +175,20 @@ export function useNewsFeeds(): NewsFeedResult {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Background sync: refetch when tab becomes visible
+  // Background sync on tab visibility
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchNews();
+        cursorRef.current = null;
+        fetchFromDB(false);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [fetchNews]);
+  }, [fetchFromDB]);
 
-  return { news, isLoading, error, lastUpdated, isLive, refetch: fetchNews, pollInterval, setPollInterval };
+  return { news, isLoading, error, lastUpdated, isLive, refetch, pollInterval, setPollInterval, loadMore, hasMore, isLoadingMore };
 }

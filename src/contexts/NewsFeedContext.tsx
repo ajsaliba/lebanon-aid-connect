@@ -11,6 +11,9 @@ interface NewsFeedContextValue {
   refetch: () => void;
   pollInterval: number;
   setPollInterval: (ms: number) => void;
+  loadMore: () => void;
+  hasMore: boolean;
+  isLoadingMore: boolean;
 }
 
 const defaultValue: NewsFeedContextValue = {
@@ -22,6 +25,9 @@ const defaultValue: NewsFeedContextValue = {
   refetch: () => {},
   pollInterval: 60000,
   setPollInterval: () => {},
+  loadMore: () => {},
+  hasMore: false,
+  isLoadingMore: false,
 };
 
 const NewsFeedContext = createContext<NewsFeedContextValue>(defaultValue);
