@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { mockAirstrikes, lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
+import { lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff } from 'lucide-react';
@@ -62,7 +62,7 @@ function MapController() {
 }
 
 export function CrisisMap() {
-  const { news } = useNewsFeedContext();
+  const { news, lastUpdated, isLive } = useNewsFeedContext();
   const [layers, setLayers] = useState<LayerToggle>({
     airstrikes: true,
     shelters: true,
@@ -98,7 +98,10 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Split news into conflict (shown as airstrikes) and non-conflict (shown as news)
   const geoNews = news.filter(n => n.lat && n.lng);
+  const conflictEvents = geoNews.filter(n => n.category === 'conflict' || n.severity === 'high');
+  const otherNews = geoNews.filter(n => n.category !== 'conflict' && n.severity !== 'high');
 
   return (
     <div className="relative w-full h-full">
@@ -114,27 +117,27 @@ export function CrisisMap() {
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />
 
-        {layers.airstrikes && mockAirstrikes.map((strike) => (
+        {layers.airstrikes && conflictEvents.map((event) => (
           <CircleMarker
-            key={strike.id}
-            center={[strike.lat, strike.lng]}
-            radius={strike.severity === 'high' ? 12 : 8}
+            key={event.id}
+            center={[event.lat!, event.lng!]}
+            radius={event.severity === 'high' ? 12 : 8}
             pathOptions={{
-              color: strike.severity === 'high' ? '#ef4444' : '#f59e0b',
-              fillColor: strike.severity === 'high' ? '#ef4444' : '#f59e0b',
+              color: event.severity === 'high' ? '#ef4444' : '#f59e0b',
+              fillColor: event.severity === 'high' ? '#ef4444' : '#f59e0b',
               fillOpacity: 0.4,
               weight: 2,
             }}
           >
             <Popup>
               <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{strike.description}</div>
-                <div className="text-muted-foreground">Source: {strike.source}</div>
-                <div className="text-muted-foreground">{new Date(strike.date).toLocaleString()}</div>
+                <div className="font-bold text-foreground">{event.title}</div>
+                <div className="text-muted-foreground">Source: {event.source}</div>
+                <div className="text-muted-foreground">{new Date(event.publishedAt).toLocaleString()}</div>
                 <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                  strike.severity === 'high' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'
+                  event.severity === 'high' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'
                 }`}>
-                  {strike.severity}
+                  {event.severity}
                 </span>
               </div>
             </Popup>
@@ -171,12 +174,12 @@ export function CrisisMap() {
           </Marker>
         ))}
 
-        {layers.news && geoNews.map((news) => (
-          <Marker key={news.id} position={[news.lat!, news.lng!]} icon={newsIcon}>
+        {layers.news && otherNews.map((item) => (
+          <Marker key={item.id} position={[item.lat!, item.lng!]} icon={newsIcon}>
             <Popup>
               <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{news.title}</div>
-                <div className="text-muted-foreground">{news.source}</div>
+                <div className="font-bold text-foreground">{item.title}</div>
+                <div className="text-muted-foreground">{item.source}</div>
               </div>
             </Popup>
           </Marker>
@@ -195,6 +198,19 @@ export function CrisisMap() {
         ))}
       </MapContainer>
 
+      {/* Live indicator */}
+      {isLive && (
+        <div className="absolute top-3 left-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
+          <span className="text-[10px] font-bold text-danger uppercase">Live</span>
+          {lastUpdated && (
+            <span className="text-[9px] text-muted-foreground ml-1">
+              {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Layer Control Panel */}
       <div className="absolute top-3 right-3 z-[1000]">
         <Button
@@ -209,7 +225,7 @@ export function CrisisMap() {
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
             {([
-              { key: 'airstrikes' as const, label: 'Airstrikes', color: 'text-danger' },
+              { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
               { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },
               { key: 'news' as const, label: 'News', color: 'text-warning' },
@@ -230,7 +246,7 @@ export function CrisisMap() {
 
       {/* Legend */}
       <div className="absolute bottom-3 left-3 z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md p-2 text-[10px] space-y-1">
-        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-danger" />Airstrike</div>
+        <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-danger" />Conflict / Airstrike</div>
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-success" />Shelter</div>
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-info" />Housing</div>
         <div className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" />News Event</div>
