@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { mockHousing, type HousingListing } from '@/data/mockData';
+import { type HousingListing } from '@/data/mockData';
 import { Home, DollarSign, Phone, BedDouble, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
