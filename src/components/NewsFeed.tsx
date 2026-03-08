@@ -354,7 +354,7 @@ export function NewsFeed() {
                 <WifiOff className="h-2.5 w-2.5 text-warning" />
               </span>
             )}
-            <span className="text-[9px] text-muted-foreground">{filtered.length} articles</span>
+            <span className="text-[11px] text-muted-foreground">{filtered.length} articles</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
