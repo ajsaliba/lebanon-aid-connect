@@ -496,6 +496,71 @@ Deno.serve(async (req) => {
   const retentionDays = parseInt(url.searchParams.get('retention') || '0');
   const userId = url.searchParams.get('user_id');
 
+  // Ingest mode: respond immediately, ingest in background
+  if (mode === 'ingest') {
+    // Use EdgeRuntime.waitUntil if available, otherwise fire-and-forget
+    const ingestPromise = (async () => {
+      try {
+        const allFeeds = [...RSS_FEEDS];
+        if (userId) {
+          const { data: customFeeds } = await supabase
+            .from('custom_feeds')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('enabled', true);
+          if (customFeeds) {
+            for (const cf of customFeeds) {
+              allFeeds.push({ name: `custom_${cf.id.slice(0, 8)}`, url: cf.url, sourceLabel: cf.source_label });
+            }
+          }
+        }
+        const results = await Promise.allSettled(allFeeds.map(fetchFeed));
+        const allNews: NewsItem[] = [];
+        for (const result of results) {
+          if (result.status === 'fulfilled') allNews.push(...result.value);
+        }
+        const dedupMap = new Map<string, NewsItem>();
+        for (const item of allNews) {
+          const hash = await contentHash(item.title, item.summary);
+          if (!dedupMap.has(hash)) dedupMap.set(hash, item);
+        }
+        const dbRows = [];
+        for (const [hash, item] of dedupMap.entries()) {
+          dbRows.push({
+            external_id: item.id, content_hash: hash, title: item.title,
+            summary: item.summary || null, source: item.source, url: item.url || null,
+            published_at: item.publishedAt, severity: item.severity, category: item.category,
+            lat: item.lat ?? null, lng: item.lng ?? null,
+          });
+        }
+        if (dbRows.length > 0) {
+          for (let i = 0; i < dbRows.length; i += 100) {
+            const chunk = dbRows.slice(i, i + 100);
+            const { error } = await supabase.from('articles').upsert(chunk, { onConflict: 'content_hash', ignoreDuplicates: true });
+            if (error) console.warn('DB upsert error:', error.message);
+          }
+          console.log(`Ingest: persisted ${dbRows.length} articles`);
+        }
+      } catch (err) {
+        console.error('Ingest error:', err);
+      }
+    })();
+
+    // If Deno EdgeRuntime supports waitUntil, use it to keep the function alive
+    try {
+      (globalThis as any).EdgeRuntime?.waitUntil?.(ingestPromise);
+    } catch {
+      // Fallback: the promise runs but may be cut short if runtime kills it
+    }
+
+    return new Response(JSON.stringify({
+      status: 'ingesting',
+      sourcesQueried: RSS_FEEDS.length,
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   // Retention cleanup
   if (retentionDays > 0) {
     const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
