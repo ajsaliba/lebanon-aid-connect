@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      donation_links: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          link: string
+          name: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          link: string
+          name: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          link?: string
+          name?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      housing_listings: {
+        Row: {
+          address: string
+          available: boolean
+          bedrooms: number
+          contact: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          lat: number
+          lng: number
+          price: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          available?: boolean
+          bedrooms: number
+          contact: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          lat: number
+          lng: number
+          price: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          available?: boolean
+          bedrooms?: number
+          contact?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          price?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shelters: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          capacity: number
+          contact: string
+          created_at: string
+          current_occupancy: number
+          id: string
+          lat: number
+          lng: number
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          capacity: number
+          contact: string
+          created_at?: string
+          current_occupancy?: number
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          capacity?: number
+          contact?: string
+          created_at?: string
+          current_occupancy?: number
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

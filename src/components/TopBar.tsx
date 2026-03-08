@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Radio, Shield, AlertTriangle, MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AuthDialog } from '@/components/AuthDialog';
 
 interface TopBarProps {
   onToggleSidebar: () => void;
@@ -62,9 +63,12 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         ))}
       </div>
 
-      <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
-        <span className="hidden sm:inline">{utcDate}</span>
-        <span className="text-primary font-medium">{utcTime} UTC</span>
+      <div className="flex items-center gap-3">
+        <div className="text-[11px] text-muted-foreground font-mono hidden sm:flex items-center gap-3">
+          <span>{utcDate}</span>
+          <span className="text-primary font-medium">{utcTime} UTC</span>
+        </div>
+        <AuthDialog />
       </div>
     </header>
   );
