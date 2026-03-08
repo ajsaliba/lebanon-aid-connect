@@ -342,7 +342,7 @@ export function NewsFeed() {
       <div className="p-3 border-b border-border space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
+            <h2 className="text-sm font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
             {isLive ? (
               <span className="flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
@@ -354,7 +354,7 @@ export function NewsFeed() {
                 <WifiOff className="h-2.5 w-2.5 text-warning" />
               </span>
             )}
-            <span className="text-[9px] text-muted-foreground">{filtered.length} articles</span>
+            <span className="text-[11px] text-muted-foreground">{filtered.length} articles</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -410,7 +410,7 @@ export function NewsFeed() {
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             onKeyDown={(e) => { if (e.key === 'Enter') commitSearch(search); if (e.key === 'Escape') { setSearch(''); (e.target as HTMLElement).blur(); } }}
-            className="h-7 pl-7 pr-7 text-[11px] bg-muted border-border"
+            className="h-8 pl-8 pr-8 text-xs bg-muted border-border"
           />
           {search && (
             <button className="absolute right-2 top-1/2 -translate-y-1/2" onMouseDown={(e) => { e.preventDefault(); setSearch(''); }}>

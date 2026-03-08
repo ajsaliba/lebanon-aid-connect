@@ -249,7 +249,7 @@ export function ArticleCard({
 
   const MetaInfo = () => (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className={cn('uppercase font-bold text-[9px] cursor-pointer hover:underline', categoryStyles[item.category])}
+      <span className={cn('uppercase font-bold text-[10px] cursor-pointer hover:underline', categoryStyles[item.category])}
         onClick={(e) => { e.stopPropagation(); onCategoryClick(item.category); }}>
         {item.category}
       </span>
@@ -313,7 +313,7 @@ export function ArticleCard({
           'bg-warning': item.category === 'political',
           'bg-info': item.category === 'infrastructure',
         })} />
-        <span className="font-semibold text-foreground text-xs flex-1 truncate">
+        <span className="font-semibold text-foreground text-sm flex-1 truncate">
           <GlossaryText text={cleanTitle} query={search} />
         </span>
         {duplicateOf && duplicateOf.length > 0 && (
@@ -344,10 +344,10 @@ export function ArticleCard({
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground text-xs leading-tight truncate">
+            <h3 className="font-semibold text-foreground text-sm leading-tight truncate">
               <GlossaryText text={cleanTitle} query={search} />
             </h3>
-            <div className="flex items-center gap-2 mt-0.5 text-[9px] text-muted-foreground">
+            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
               <span className={cn('uppercase font-bold', categoryStyles[item.category])}>{item.category}</span>
               <span>{item.source}</span>
               <span>{timeAgo(item.publishedAt)}</span>
@@ -377,7 +377,7 @@ export function ArticleCard({
       onClick={handleClick}
     >
       <div className="flex items-start justify-between gap-1">
-        <h3 className="font-sans font-semibold text-foreground text-xs leading-tight flex-1">
+      <h3 className="font-sans font-semibold text-foreground text-sm leading-tight flex-1">
           <GlossaryText text={cleanTitle} query={search} />
         </h3>
         <ActionButtons />

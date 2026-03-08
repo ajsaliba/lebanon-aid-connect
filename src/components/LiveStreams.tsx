@@ -15,7 +15,7 @@ export function LiveStreams() {
       >
         <div className="flex items-center gap-2">
           <Video className="h-3 w-3 text-danger" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Live Streams</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Live Streams</span>
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse-danger" />
         </div>
         {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
@@ -29,7 +29,7 @@ export function LiveStreams() {
                 key={stream.id}
                 variant={activeStream.id === stream.id ? 'default' : 'ghost'}
                 size="sm"
-                className="h-5 px-1.5 text-[9px]"
+                className="h-6 px-2 text-[11px]"
                 onClick={() => setActiveStream(stream)}
               >
                 {stream.channel}
