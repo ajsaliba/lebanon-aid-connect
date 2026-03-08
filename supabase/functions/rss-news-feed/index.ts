@@ -221,7 +221,7 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
     for (const raw of rawItems) {
       const fullText = `${raw.title} ${raw.description}`;
       // ME-focused feeds include all; general feeds (aljazeera) filter for ME relevance
-      const meFocused = ['france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'google_me_war'].includes(feed.name);
+      const meFocused = ['france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'naharnet', 'dailystar', 'alarabiya', 'arabnews', 'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen'].includes(feed.name);
       if (!meFocused && !isMiddleEast(fullText)) continue;
 
       const coords = extractCoords(fullText);
