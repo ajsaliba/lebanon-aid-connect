@@ -112,6 +112,7 @@ interface ArticleCardProps {
   isFocused: boolean;
   cardStyle: CardStyle;
   duplicateOf?: string[];
+  threatClassification?: ThreatClassification;
   onToggleBookmark: (id: string) => void;
   onToggleReadingList: (id: string) => void;
   onCategoryClick: (cat: string) => void;
