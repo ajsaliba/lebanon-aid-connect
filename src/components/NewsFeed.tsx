@@ -51,7 +51,7 @@ const STOP_WORDS = new Set([
   'report','reports','according','amid',
 ]);
 
-function extractTrendingKeywords(news: Array<{ title: string; summary: string }>, max = 12): string[] {
+function extractTrendingKeywords(news: Array<{ title: string }>, max = 12): string[] {
   const freq: Record<string, number> = {};
   for (const item of news) {
     const text = sanitizeFeedText(item.title).toLowerCase();
@@ -71,13 +71,35 @@ function extractTrendingKeywords(news: Array<{ title: string; summary: string }>
     .map(([word]) => word);
 }
 
+function getSearchSuggestions(news: Array<{ title: string }>, query: string, max = 8): string[] {
+  if (!query || query.length < 2) return [];
+  const lower = query.toLowerCase();
+  const freq: Record<string, number> = {};
+  for (const item of news) {
+    const text = sanitizeFeedText(item.title).toLowerCase();
+    const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+    for (const w of words) {
+      if (w.startsWith(lower) && w !== lower) {
+        freq[w] = (freq[w] || 0) + 1;
+      }
+    }
+  }
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([word]) => word);
+}
+
 
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch } = useNewsFeedContext();
   const [search, setSearch] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeTime, setActiveTime] = useState<string>('All');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const suggestions = useMemo(() => getSearchSuggestions(news, search), [news, search]);
 
   const trending = useMemo(() => extractTrendingKeywords(news), [news]);
 
@@ -135,11 +157,26 @@ export function NewsFeed() {
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Search news..."
+            placeholder="Search headlines..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="h-7 pl-7 text-[11px] bg-muted border-border"
           />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-popover border border-border rounded shadow-lg max-h-32 overflow-y-auto">
+              {suggestions.map(s => (
+                <button
+                  key={s}
+                  className="w-full text-left px-2 py-1 text-[11px] text-foreground hover:bg-muted transition-colors"
+                  onMouseDown={(e) => { e.preventDefault(); setSearch(s); setShowSuggestions(false); }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex gap-1">
           {timeFilters.map(t => (
