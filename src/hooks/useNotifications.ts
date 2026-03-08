@@ -61,10 +61,9 @@ function playAlertSound(type: NotificationType) {
 
 const SOS_PROXIMITY_KM = 10;
 
-export function useNotifications() {
+export function useNotifications(geoPosition?: { lat: number; lng: number } | null) {
   const { news } = useNewsFeedContext();
   const { addNotification } = useNotificationCenter();
-  const { position } = useGeolocation();
   const seenNewsIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
   const shelterPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -72,7 +71,7 @@ export function useNotifications() {
   const seenShelterIds = useRef<Set<string>>(new Set());
   const seenHousingIds = useRef<Set<string>>(new Set());
   const seenSosIds = useRef<Set<string>>(new Set());
-  const posRef = useRef(position);
+  const posRef = useRef(geoPosition ?? null);
 
   useEffect(() => {
     if (initialLoad.current) {
