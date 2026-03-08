@@ -82,6 +82,7 @@ interface LayerToggle {
   news: boolean;
   hospitals: boolean;
   infrastructure: boolean;
+  sos: boolean;
 }
 
 function MapController() {
