@@ -190,19 +190,19 @@ export const mockEmergencyContacts: EmergencyContact[] = [
 
 export const liveStreams = [
   // --- News Channels ---
-  { id: 'ls1', name: 'Al Jazeera English', embedId: 'gCNeDWCI0vo', channel: 'Al Jazeera EN', category: 'news' },
-  { id: 'ls2', name: 'Al Jazeera Arabic', embedId: 'bNyUyrR0PHo', channel: 'الجزيرة', category: 'news' },
-  { id: 'ls3', name: 'Al Arabiya', embedId: '6LL9m-Xhob0', channel: 'Al Arabiya', category: 'news' },
-  { id: 'ls4', name: 'France 24 English', embedId: 'Ap-EvaCBaRA', channel: 'France 24', category: 'news' },
-  { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free', category: 'news' },
-  { id: 'ls6', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news' },
+  { id: 'ls1', name: 'Al Jazeera English', embedId: 'gCNeDWCI0vo', channel: 'Al Jazeera EN', category: 'news', live: true },
+  { id: 'ls2', name: 'Al Jazeera Arabic', embedId: 'bNyUyrR0PHo', channel: 'الجزيرة', category: 'news', live: true },
+  { id: 'ls3', name: 'Al Arabiya', embedId: '6LL9m-Xhob0', channel: 'Al Arabiya', category: 'news', live: true },
+  { id: 'ls4', name: 'France 24 English', embedId: 'Ap-EvaCBaRA', channel: 'France 24', category: 'news', live: true },
+  { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free', category: 'news', live: true },
+  { id: 'ls6', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news', live: true },
 
   // --- Lebanese TV ---
-  { id: 'ls20', name: 'LBCI Lebanon Live', embedId: 'noLGOxGMRPs', channel: 'LBCI', category: 'lebanese' },
-  { id: 'ls21', name: 'MTV Lebanon', embedId: 'XQdQWViDi4A', channel: 'MTV', category: 'lebanese' },
-  { id: 'ls22', name: 'Al Jadeed / الجديد', embedId: 'RQXY6_aFTRc', channel: 'Al Jadeed', category: 'lebanese' },
-  { id: 'ls23', name: 'OTV Lebanon', embedId: 'RL32tWyFyUs', channel: 'OTV', category: 'lebanese' },
-  { id: 'ls24', name: 'Al Manar TV', embedId: 'oumKLRA0G2w', channel: 'Al Manar', category: 'lebanese' },
+  { id: 'ls20', name: 'LBCI Lebanon Live', embedId: 'noLGOxGMRPs', channel: 'LBCI', category: 'lebanese', live: true },
+  { id: 'ls21', name: 'MTV Lebanon', embedId: 'XQdQWViDi4A', channel: 'MTV', category: 'lebanese', live: false },
+  { id: 'ls22', name: 'Al Jadeed / الجديد', embedId: 'lp_s37hYWx8', channel: 'Al Jadeed', category: 'lebanese', live: false },
+  { id: 'ls23', name: 'OTV Lebanon', embedId: 'RL32tWyFyUs', channel: 'OTV', category: 'lebanese', live: false },
+  { id: 'ls24', name: 'Al Manar TV', embedId: 'WXo0Xj4uymw', channel: 'Al Manar', category: 'lebanese', live: true },
 
   // --- Live Cameras ---
   { id: 'ls30', name: 'Middle East Multi-Cam 24/7', embedId: 'gmtlJ_m2r5A', channel: 'Source Global', category: 'camera' },
