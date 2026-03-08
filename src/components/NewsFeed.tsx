@@ -104,6 +104,74 @@ type ViewMode = 'feed' | 'bookmarks' | 'reading-list';
 
 const CATEGORIES = ['conflict', 'humanitarian', 'political', 'infrastructure'] as const;
 
+// Virtualized article list for 1000+ articles
+function VirtualArticleList({
+  items, parentRef, search, focusedIndex, cardStyle,
+  isBookmarked, isInReadingList, isRead,
+  onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
+}: {
+  items: any[];
+  parentRef: React.RefObject<HTMLDivElement>;
+  search: string;
+  focusedIndex: number;
+  cardStyle: import('@/hooks/useFeedSettings').CardStyle;
+  isBookmarked: (id: string) => boolean;
+  isInReadingList: (id: string) => boolean;
+  isRead: (id: string) => boolean;
+  onToggleBookmark: (id: string) => void;
+  onToggleReadingList: (id: string) => void;
+  onCategoryClick: (cat: string) => void;
+  onArticleOpen: (id: string) => void;
+  activeCategory: string | null;
+}) {
+  const estimateSize = cardStyle === 'headlines' ? 32 : cardStyle === 'list' ? 48 : 80;
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => estimateSize,
+    overscan: 10,
+    gap: 8,
+  });
+
+  return (
+    <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+      {virtualizer.getVirtualItems().map((virtualRow) => {
+        const item = items[virtualRow.index];
+        return (
+          <div
+            key={item.id}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+            ref={virtualizer.measureElement}
+            data-index={virtualRow.index}
+          >
+            <ArticleCard
+              item={item}
+              search={search}
+              isBookmarked={isBookmarked(item.id)}
+              isInReadingList={isInReadingList(item.id)}
+              isRead={isRead(item.id)}
+              isFocused={virtualRow.index === focusedIndex}
+              cardStyle={cardStyle}
+              onToggleBookmark={onToggleBookmark}
+              onToggleReadingList={onToggleReadingList}
+              onCategoryClick={onCategoryClick}
+              onArticleOpen={onArticleOpen}
+              activeCategory={activeCategory}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch, setPollInterval } = useNewsFeedContext();
   const {
