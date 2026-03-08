@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { ExternalLink, Clock, Search, Wifi, WifiOff } from 'lucide-react';
+import { ExternalLink, Clock, Search, Wifi, WifiOff, RefreshCw, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,12 +40,45 @@ function getTimeFilterMs(filter: string): number {
   return map[filter] || 86400000;
 }
 
+const STOP_WORDS = new Set([
+  'the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were',
+  'be','been','being','have','has','had','do','does','did','will','would','could','should','may','might',
+  'shall','can','it','its','this','that','these','those','i','you','he','she','we','they','me','him','her',
+  'us','them','my','your','his','our','their','what','which','who','whom','how','when','where','why','not',
+  'no','nor','so','if','then','than','too','very','just','about','up','out','into','over','after','before',
+  'new','says','said','also','more','as','all','any','each','most','other','some','such','news','update',
+  'report','reports','according','amid',
+]);
+
+function extractTrendingKeywords(news: Array<{ title: string; summary: string }>, max = 12): string[] {
+  const freq: Record<string, number> = {};
+  for (const item of news) {
+    const text = sanitizeFeedText(`${item.title} ${item.summary}`).toLowerCase();
+    const words = text.split(/[^a-z'-]+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+    const seen = new Set<string>();
+    for (const w of words) {
+      if (!seen.has(w)) {
+        seen.add(w);
+        freq[w] = (freq[w] || 0) + 1;
+      }
+    }
+  }
+  return Object.entries(freq)
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([word]) => word);
+}
+
 
 export function NewsFeed() {
-  const { news, isLoading, isLive } = useNewsFeedContext();
+  const { news, isLoading, isLive, refetch } = useNewsFeedContext();
   const [search, setSearch] = useState('');
   const [activeTime, setActiveTime] = useState<string>('7d');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const trending = useMemo(() => extractTrendingKeywords(news), [news]);
 
   const filtered = news.filter(n => {
     if (search && !sanitizeFeedText(n.title).toLowerCase().includes(search.toLowerCase())) return false;
@@ -54,6 +87,12 @@ export function NewsFeed() {
     if (age > getTimeFilterMs(activeTime)) return false;
     return true;
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    refetch();
+    setTimeout(() => setIsRefreshing(false), 2000);
+  };
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -66,19 +105,31 @@ export function NewsFeed() {
   return (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b border-border space-y-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
-          {isLive ? (
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-              <Wifi className="h-2.5 w-2.5 text-success" />
-            </span>
-          ) : (
-            <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-              <WifiOff className="h-2.5 w-2.5 text-warning" />
-            </span>
-          )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
+            {isLive ? (
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                <Wifi className="h-2.5 w-2.5 text-success" />
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                <WifiOff className="h-2.5 w-2.5 text-warning" />
+              </span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh feeds"
+          >
+            <RefreshCw className={cn('h-3 w-3 text-muted-foreground', isRefreshing && 'animate-spin')} />
+          </Button>
         </div>
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -118,6 +169,31 @@ export function NewsFeed() {
             </Button>
           ))}
         </div>
+
+        {trending.length > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-2.5 w-2.5 text-primary" />
+              <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Trending</span>
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {trending.map(keyword => (
+                <button
+                  key={keyword}
+                  className={cn(
+                    'px-1.5 py-0.5 rounded text-[9px] border transition-colors',
+                    search.toLowerCase() === keyword
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                  )}
+                  onClick={() => setSearch(search.toLowerCase() === keyword ? '' : keyword)}
+                >
+                  {keyword}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
