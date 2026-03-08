@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { type HousingListing } from '@/data/mockData';
 import { useGeolocation, distanceKm, getDirectionsUrl } from '@/hooks/useGeolocation';
+import { LocationPicker } from '@/components/LocationPicker';
 import { Home, DollarSign, Phone, BedDouble, Plus, RefreshCw, Pencil, Trash2, Navigation, Search, MessageCircle, Heart, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,9 @@ export function HousingPanel() {
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [isFreeForm, setIsFreeForm] = useState(false);
   const [urgencyForm, setUrgencyForm] = useState('normal');
+  const [formLat, setFormLat] = useState(0);
+  const [formLng, setFormLng] = useState(0);
+  const [formAddress, setFormAddress] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchHousing = async () => {
@@ -78,13 +82,17 @@ export function HousingPanel() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    if (formLat === 0 && formLng === 0 && !editHousing) {
+      toast({ title: 'Please select a location', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     const form = new FormData(e.currentTarget);
     const payload = {
       title: form.get('title') as string,
-      address: form.get('address') as string,
-      lat: parseFloat(form.get('lat') as string),
-      lng: parseFloat(form.get('lng') as string),
+      address: formAddress || (editHousing?.address || ''),
+      lat: formLat || (editHousing?.lat || 0),
+      lng: formLng || (editHousing?.lng || 0),
       price: isFreeForm ? 0 : parseInt(form.get('price') as string),
       currency: 'USD',
       bedrooms: parseInt(form.get('bedrooms') as string),
@@ -114,6 +122,9 @@ export function HousingPanel() {
     setEditHousing(house);
     setIsFreeForm(house.is_free);
     setUrgencyForm(house.urgency);
+    setFormLat(house.lat);
+    setFormLng(house.lng);
+    setFormAddress(house.address);
     setOpen(true);
   };
 
@@ -165,19 +176,20 @@ export function HousingPanel() {
             <RefreshCw className={cn('h-2.5 w-2.5 text-muted-foreground', isRefreshing && 'animate-spin')} />
           </Button>
           {user && (
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); } }}>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info"><Plus className="h-2.5 w-2.5" /> Add</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader><DialogTitle className="text-sm">{editHousing ? 'Edit' : 'Add Housing'}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Title *</Label><Input name="title" required className="h-7 text-xs" defaultValue={editHousing?.title || ''} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Address *</Label><Input name="address" required className="h-7 text-xs" defaultValue={editHousing?.address || ''} /></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1"><Label className="text-xs">Lat *</Label><Input name="lat" type="number" step="any" required className="h-7 text-xs" defaultValue={editHousing?.lat || ''} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Lng *</Label><Input name="lng" type="number" step="any" required className="h-7 text-xs" defaultValue={editHousing?.lng || ''} /></div>
-                  </div>
+                  <div className="space-y-1"><Label className="text-xs">Title *</Label><Input name="title" required className="h-7 text-xs" placeholder="e.g. 2BR Apartment - Hamra" defaultValue={editHousing?.title || ''} /></div>
+                  <LocationPicker
+                    defaultAddress={editHousing?.address}
+                    defaultLat={editHousing?.lat}
+                    defaultLng={editHousing?.lng}
+                    onSelect={(addr, lat, lng) => { setFormAddress(addr); setFormLat(lat); setFormLng(lng); }}
+                  />
 
                   {/* Free housing toggle */}
                   <div className="flex items-center justify-between bg-success/5 border border-success/20 rounded p-2">

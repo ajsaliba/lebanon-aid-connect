@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { type Shelter } from '@/data/mockData';
 import { useGeolocation, distanceKm, getDirectionsUrl } from '@/hooks/useGeolocation';
+import { LocationPicker } from '@/components/LocationPicker';
 import { MapPin, Users, Phone, CheckCircle, XCircle, Plus, RefreshCw, Pencil, Trash2, Navigation, Search, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +30,10 @@ export function ShelterPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'full' | 'closed'>('all');
-  const [headingTo, setHeadingTo] = useState<string | null>(null); // shelter ID user is heading to
+  const [headingTo, setHeadingTo] = useState<string | null>(null);
+  const [formLat, setFormLat] = useState(0);
+  const [formLng, setFormLng] = useState(0);
+  const [formAddress, setFormAddress] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchShelters = useCallback(async () => {
@@ -99,13 +103,18 @@ export function ShelterPanel() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    if (formLat === 0 && formLng === 0 && !editShelter) {
+      toast({ title: 'Please select a location', variant: 'destructive' });
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const form = new FormData(e.currentTarget);
     const payload = {
       name: form.get('name') as string,
-      address: form.get('address') as string,
-      lat: parseFloat(form.get('lat') as string),
-      lng: parseFloat(form.get('lng') as string),
+      address: formAddress || (editShelter?.address || ''),
+      lat: formLat || (editShelter?.lat || 0),
+      lng: formLng || (editShelter?.lng || 0),
       capacity: parseInt(form.get('capacity') as string),
       current_occupancy: parseInt(form.get('occupancy') as string) || 0,
       contact: form.get('contact') as string,
@@ -163,19 +172,20 @@ export function ShelterPanel() {
             <RefreshCw className={cn('h-2.5 w-2.5 text-muted-foreground', isRefreshing && 'animate-spin')} />
           </Button>
           {user && (
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditShelter(null); }}>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditShelter(null); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-success"><Plus className="h-2.5 w-2.5" /> Add</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader><DialogTitle className="text-sm">{editShelter ? 'Edit Shelter' : 'Add Shelter'}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Name *</Label><Input name="name" required className="h-7 text-xs" defaultValue={editShelter?.name || ''} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Address *</Label><Input name="address" required className="h-7 text-xs" defaultValue={editShelter?.address || ''} /></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1"><Label className="text-xs">Latitude *</Label><Input name="lat" type="number" step="any" required className="h-7 text-xs" defaultValue={editShelter?.lat || ''} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Longitude *</Label><Input name="lng" type="number" step="any" required className="h-7 text-xs" defaultValue={editShelter?.lng || ''} /></div>
-                  </div>
+                  <div className="space-y-1"><Label className="text-xs">Shelter Name *</Label><Input name="name" required className="h-7 text-xs" placeholder="e.g. Beirut Community Center" defaultValue={editShelter?.name || ''} /></div>
+                  <LocationPicker
+                    defaultAddress={editShelter?.address}
+                    defaultLat={editShelter?.lat}
+                    defaultLng={editShelter?.lng}
+                    onSelect={(addr, lat, lng) => { setFormAddress(addr); setFormLat(lat); setFormLng(lng); }}
+                  />
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1"><Label className="text-xs">Capacity *</Label><Input name="capacity" type="number" required className="h-7 text-xs" defaultValue={editShelter?.capacity || ''} /></div>
                     <div className="space-y-1"><Label className="text-xs">Occupancy</Label><Input name="occupancy" type="number" className="h-7 text-xs" defaultValue={editShelter?.currentOccupancy || ''} /></div>
