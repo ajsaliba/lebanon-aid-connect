@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          category: string
+          content_hash: string
+          created_at: string
+          external_id: string
+          id: string
+          lat: number | null
+          lng: number | null
+          published_at: string
+          severity: string
+          source: string
+          summary: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          category?: string
+          content_hash: string
+          created_at?: string
+          external_id: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          published_at?: string
+          severity?: string
+          source: string
+          summary?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          content_hash?: string
+          created_at?: string
+          external_id?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          published_at?: string
+          severity?: string
+          source?: string
+          summary?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       donation_links: {
         Row: {
           category: string
