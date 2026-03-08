@@ -247,6 +247,7 @@ export function CrisisMap() {
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
             {([
+              { key: 'sos' as const, label: 'SOS', color: 'text-destructive' },
               { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
               { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
               { key: 'infrastructure' as const, label: 'Infra', color: 'text-[#06b6d4]' },
