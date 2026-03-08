@@ -587,6 +587,7 @@ export function NewsFeed() {
             focusedIndex={focusedIndex}
             cardStyle={settings.cardStyle}
             duplicateMap={duplicateMap}
+            threatClassifications={threatClassifications}
             isBookmarked={isBookmarked}
             isInReadingList={isInReadingList}
             isRead={isRead}
