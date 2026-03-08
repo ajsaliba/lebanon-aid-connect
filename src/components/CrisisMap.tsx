@@ -3,15 +3,15 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 're
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { lebanonHospitals, type Shelter, type HousingListing } from '@/data/mockData';
+import { lebanonHospitals } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Layers, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
 import { EscalationPanel } from '@/components/map/EscalationTimeline';
 import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
+import { HumanitarianLayer } from '@/components/map/HumanitarianLayer';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 
 // Fix default marker icon
@@ -22,19 +22,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const shelterIcon = new L.DivIcon({
-  html: `<div style="background:#16a34a;width:12px;height:12px;border-radius:50%;border:2px solid #0a0a0a;box-shadow:0 0 8px #16a34a80;"></div>`,
-  className: '',
-  iconSize: [12, 12],
-  iconAnchor: [6, 6],
-});
-
-const housingIcon = new L.DivIcon({
-  html: `<div style="background:#0ea5e9;width:10px;height:10px;border-radius:50%;border:2px solid #0a0a0a;box-shadow:0 0 8px #0ea5e980;"></div>`,
-  className: '',
-  iconSize: [10, 10],
-  iconAnchor: [5, 5],
-});
 
 const newsIcon = new L.DivIcon({
   html: `<div style="background:#f59e0b;width:8px;height:8px;border-radius:2px;border:1px solid #0a0a0a;box-shadow:0 0 6px #f59e0b80;"></div>`,
@@ -95,6 +82,7 @@ interface LayerToggle {
   news: boolean;
   hospitals: boolean;
   infrastructure: boolean;
+  sos: boolean;
 }
 
 function MapController() {
@@ -116,32 +104,11 @@ export function CrisisMap() {
     news: true,
     hospitals: true,
     infrastructure: true,
+    sos: true,
   });
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
   const [mapTimeFilter, setMapTimeFilter] = useState('all');
-  const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
-  const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
-
-  useEffect(() => {
-    supabase.from('shelters').select('*').then(({ data }) => {
-      if (data) setDbShelters(data.map(s => ({
-        id: s.id, name: s.name, lat: s.lat, lng: s.lng,
-        capacity: s.capacity, currentOccupancy: s.current_occupancy,
-        address: s.address, contact: s.contact,
-        status: s.status as 'open' | 'full' | 'closed',
-        amenities: s.amenities || [],
-      })));
-    });
-    supabase.from('housing_listings').select('*').then(({ data }) => {
-      if (data) setDbHousing(data.map(h => ({
-        id: h.id, title: h.title, lat: h.lat, lng: h.lng,
-        price: h.price, currency: h.currency, bedrooms: h.bedrooms,
-        address: h.address, contact: h.contact,
-        available: h.available, description: h.description || '',
-      })));
-    });
-  }, []);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
@@ -211,35 +178,7 @@ export function CrisisMap() {
           </CircleMarker>
         ))}
 
-        {layers.shelters && dbShelters.map((shelter) => (
-          <Marker key={shelter.id} position={[shelter.lat, shelter.lng]} icon={shelterIcon}>
-            <Popup>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{shelter.name}</div>
-                <div className="text-muted-foreground">{shelter.address}</div>
-                <div>Capacity: {shelter.currentOccupancy}/{shelter.capacity}</div>
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                  shelter.status === 'open' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                }`}>
-                  {shelter.status}
-                </span>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {layers.housing && dbHousing.map((house) => (
-          <Marker key={house.id} position={[house.lat, house.lng]} icon={housingIcon}>
-            <Popup>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">{house.title}</div>
-                <div className="text-muted-foreground">{house.address}</div>
-                <div>${house.price}/month • {house.bedrooms}BR</div>
-                <div className="text-muted-foreground">{house.contact}</div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        <HumanitarianLayer showSos={layers.sos} showShelters={layers.shelters} showHousing={layers.housing} />
 
         {layers.news && otherNews.map((item) => (
           <Marker key={item.id} position={[item.lat!, item.lng!]} icon={newsIcon}>
@@ -311,6 +250,7 @@ export function CrisisMap() {
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
             {([
+              { key: 'sos' as const, label: 'SOS', color: 'text-destructive' },
               { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
               { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
               { key: 'infrastructure' as const, label: 'Infra', color: 'text-[#06b6d4]' },
