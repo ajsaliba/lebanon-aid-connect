@@ -151,12 +151,21 @@ export const mockNews: NewsItem[] = [
 ];
 
 export const mockDonations: DonationOrg[] = [
+  // Official Lebanese Government & Republic
+  { id: 'd-gov1', name: 'High Relief Committee (الهيئة العليا للإغاثة)', description: 'Official government body coordinating national disaster relief and aid distribution across Lebanon.', url: 'http://www.hrc-lebanon.gov.lb/', category: 'general' },
+  { id: 'd-gov2', name: 'Ministry of Social Affairs (MoSA)', description: 'Government ministry managing social development centers (SDCs) for displaced families — call center for aid inquiries.', url: 'https://www.socialaffairs.gov.lb/', category: 'general' },
+  { id: 'd-gov3', name: 'Presidency of the Council of Ministers', description: 'Official coordination of national crisis response and governmental aid programs.', url: 'https://pcm.gov.lb/', category: 'general' },
+  // International Organizations
   { id: 'd1', name: 'International Committee of the Red Cross', description: 'Providing emergency medical care, food, and shelter to displaced families in Lebanon.', url: 'https://www.icrc.org/en/donate/lebanon', category: 'general' },
   { id: 'd2', name: 'UNHCR Lebanon', description: 'Supporting refugees and internally displaced persons with shelter and essential supplies.', url: 'https://www.unhcr.org/lb/', category: 'shelter' },
   { id: 'd3', name: 'Médecins Sans Frontières', description: 'Emergency medical assistance in conflict-affected areas of Lebanon.', url: 'https://www.msf.org/lebanon', category: 'medical' },
   { id: 'd4', name: 'World Food Programme', description: 'Providing emergency food assistance to families displaced by the conflict.', url: 'https://www.wfp.org/countries/lebanon', category: 'food' },
   { id: 'd5', name: 'Lebanese Red Cross', description: 'Local emergency response, ambulance services, and first aid across Lebanon.', url: 'https://www.redcross.org.lb/', category: 'general' },
   { id: 'd6', name: 'UNICEF Lebanon', description: 'Protecting children affected by the crisis with education, health, and psychosocial support.', url: 'https://www.unicef.org/lebanon/', category: 'general' },
+  // Local NGOs
+  { id: 'd7', name: 'Offre Joie', description: 'Multi-aid services including shelter, mattresses, and food across Lebanon. Call 03 628 000.', url: 'https://www.offrejoie.org/', category: 'shelter' },
+  { id: 'd8', name: 'Anera', description: 'Distributing food, healthcare, hygiene kits, clothes, and blankets across Lebanon.', url: 'https://www.anera.org/', category: 'general' },
+  { id: 'd9', name: 'Basmeh & Zeitooneh', description: 'Non-food items, ready-to-eat meals, hygiene kits, and psychosocial support for displaced families.', url: 'https://www.basmeh-zeitooneh.org/', category: 'general' },
 ];
 
 export const mockEmergencyContacts: EmergencyContact[] = [
