@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { format } from 'date-fns';
-import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks } from 'lucide-react';
+import { Search, Wifi, WifiOff, RefreshCw, TrendingUp, X, CalendarIcon, History, BookmarkCheck, ListChecks, Settings, Keyboard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { ArticleCard } from '@/components/ArticleCard';
+import { FeedSettingsPanel } from '@/components/FeedSettingsPanel';
 import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
+import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
+import { useToast } from '@/hooks/use-toast';
 
 const categoryStyles = {
   conflict: 'text-danger',
@@ -86,7 +89,6 @@ function addToSearchHistory(term: string) {
 }
 function clearSearchHistory() { localStorage.removeItem(SEARCH_HISTORY_KEY); }
 
-// Highlight for suggestions
 function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query || query.length < 2) return <>{text}</>;
   const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
@@ -99,20 +101,40 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 
 type ViewMode = 'feed' | 'bookmarks' | 'reading-list';
 
+const CATEGORIES = ['conflict', 'humanitarian', 'political', 'infrastructure'] as const;
+
 export function NewsFeed() {
-  const { news, isLoading, isLive, refetch } = useNewsFeedContext();
+  const { news, isLoading, isLive, refetch, setPollInterval } = useNewsFeedContext();
+  const {
+    settings, updateSettings,
+    mutedKeywords, addMutedKeyword, removeMutedKeyword,
+    readHistory, markAsRead, isRead,
+    exportSettings, importSettings,
+  } = useFeedSettings();
+
   const [search, setSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeTime, setActiveTime] = useState<string>('All');
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeTime, setActiveTime] = useState<string>(settings.defaultTimeFilter);
+  const [activeCategory, setActiveCategory] = useState<string | null>(settings.defaultCategory);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [searchHistory, setSearchHistory] = useState<string[]>(getSearchHistory());
   const [viewMode, setViewMode] = useState<ViewMode>('feed');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const trendingRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
   const { readingListIds, toggleReadingList, isInReadingList } = useReadingList();
+  const { toast } = useToast();
+
+  // Sync poll interval with settings
+  useEffect(() => {
+    setPollInterval(settings.pollFrequency * 1000);
+  }, [settings.pollFrequency, setPollInterval]);
 
   const suggestions = useMemo(() => getSearchSuggestions(news, search), [news, search]);
   const trending = useMemo(() => extractTrendingKeywords(news), [news]);
@@ -128,7 +150,14 @@ export function NewsFeed() {
   const filtered = useMemo(() => {
     let items = news;
 
-    // View mode filtering
+    // Muted keywords filter
+    if (mutedKeywords.size > 0) {
+      items = items.filter(n => {
+        const text = `${sanitizeFeedText(n.title)} ${sanitizeFeedText(n.summary)}`.toLowerCase();
+        return ![...mutedKeywords].some(k => text.includes(k));
+      });
+    }
+
     if (viewMode === 'bookmarks') {
       items = items.filter(n => bookmarkedIds.has(n.id));
     } else if (viewMode === 'reading-list') {
@@ -153,7 +182,7 @@ export function NewsFeed() {
       }
       return true;
     });
-  }, [news, search, activeCategory, activeTime, dateRange, viewMode, bookmarkedIds, readingListIds]);
+  }, [news, search, activeCategory, activeTime, dateRange, viewMode, bookmarkedIds, readingListIds, mutedKeywords]);
 
   const handleRefresh = async () => { setIsRefreshing(true); refetch(); setTimeout(() => setIsRefreshing(false), 2000); };
   const hasDateFilter = dateRange.from || dateRange.to;
@@ -161,6 +190,78 @@ export function NewsFeed() {
   const handleCategoryClick = useCallback((cat: string) => {
     setActiveCategory(prev => prev === cat ? null : cat);
   }, []);
+
+  const handleArticleOpen = useCallback((id: string) => {
+    markAsRead(id);
+  }, [markAsRead]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      switch (e.key) {
+        case '/':
+          e.preventDefault();
+          searchRef.current?.focus();
+          break;
+        case 'j':
+          e.preventDefault();
+          setFocusedIndex(prev => Math.min(prev + 1, filtered.length - 1));
+          break;
+        case 'k':
+          e.preventDefault();
+          setFocusedIndex(prev => Math.max(prev - 1, 0));
+          break;
+        case 'Enter':
+          if (focusedIndex >= 0 && filtered[focusedIndex]) {
+            const item = filtered[focusedIndex];
+            markAsRead(item.id);
+            if (item.url && item.url !== '#') window.open(item.url, '_blank');
+          }
+          break;
+        case 'b':
+          if (focusedIndex >= 0 && filtered[focusedIndex]) {
+            toggleBookmark(filtered[focusedIndex].id);
+          }
+          break;
+        case 'l':
+          if (focusedIndex >= 0 && filtered[focusedIndex]) {
+            toggleReadingList(filtered[focusedIndex].id);
+          }
+          break;
+        case 'r':
+          e.preventDefault();
+          handleRefresh();
+          break;
+        case '1': handleCategoryClick('conflict'); break;
+        case '2': handleCategoryClick('humanitarian'); break;
+        case '3': handleCategoryClick('political'); break;
+        case '4': handleCategoryClick('infrastructure'); break;
+        case '0':
+          setActiveCategory(null);
+          break;
+        case '?':
+          setShowShortcuts(prev => !prev);
+          break;
+        case 'Escape':
+          setFocusedIndex(-1);
+          setShowShortcuts(false);
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [filtered, focusedIndex, toggleBookmark, toggleReadingList, handleCategoryClick, markAsRead]);
+
+  // Scroll focused item into view
+  useEffect(() => {
+    if (focusedIndex >= 0 && listRef.current) {
+      const el = listRef.current.children[focusedIndex] as HTMLElement;
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [focusedIndex]);
 
   return (
     <div className="flex flex-col h-full">
@@ -198,7 +299,15 @@ export function NewsFeed() {
             >
               <ListChecks className="h-3 w-3" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing} title="Refresh">
+            <Button variant={showSettings ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
+              onClick={() => setShowSettings(prev => !prev)} title="Settings">
+              <Settings className="h-3 w-3" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0"
+              onClick={() => setShowShortcuts(prev => !prev)} title="Keyboard shortcuts (?)">
+              <Keyboard className="h-3 w-3 text-muted-foreground" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing} title="Refresh (r)">
               <RefreshCw className={cn('h-3 w-3 text-muted-foreground', isRefreshing && 'animate-spin')} />
             </Button>
           </div>
@@ -220,12 +329,13 @@ export function NewsFeed() {
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Search titles & snippets..."
+            ref={searchRef}
+            placeholder="Search titles & snippets... ( / )"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            onKeyDown={(e) => { if (e.key === 'Enter') commitSearch(search); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') commitSearch(search); if (e.key === 'Escape') { setSearch(''); (e.target as HTMLElement).blur(); } }}
             className="h-7 pl-7 pr-7 text-[11px] bg-muted border-border"
           />
           {search && (
@@ -301,10 +411,12 @@ export function NewsFeed() {
 
         {/* Category filters */}
         <div className="flex gap-1 flex-wrap">
-          {(['conflict', 'humanitarian', 'political', 'infrastructure'] as const).map(cat => (
+          {CATEGORIES.map((cat, i) => (
             <Button key={cat} variant={activeCategory === cat ? 'default' : 'ghost'} size="sm"
               className={cn('h-5 px-1.5 text-[9px] uppercase', activeCategory !== cat && categoryStyles[cat])}
-              onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}>{cat}</Button>
+              onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}>
+              <span className="text-[8px] text-muted-foreground mr-0.5">{i+1}</span>{cat}
+            </Button>
           ))}
         </div>
 
@@ -330,7 +442,42 @@ export function NewsFeed() {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+      {/* Settings panel */}
+      <FeedSettingsPanel
+        settings={settings}
+        onUpdateSettings={updateSettings}
+        mutedKeywords={mutedKeywords}
+        onAddMuted={addMutedKeyword}
+        onRemoveMuted={removeMutedKeyword}
+        onExport={exportSettings}
+        onImport={importSettings}
+        isOpen={showSettings}
+        onToggle={() => setShowSettings(false)}
+      />
+
+      {/* Keyboard shortcuts help */}
+      {showShortcuts && (
+        <div className="border-b border-border bg-card/50 p-3 text-[10px] space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Keyboard Shortcuts</span>
+            <button onClick={() => setShowShortcuts(false)}><X className="h-3 w-3 text-muted-foreground" /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-muted-foreground">
+            <span><kbd className="px-1 rounded bg-muted text-foreground">/</kbd> Search</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">j</kbd>/<kbd className="px-1 rounded bg-muted text-foreground">k</kbd> Navigate</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">Enter</kbd> Open article</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">b</kbd> Bookmark</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">l</kbd> Reading list</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">r</kbd> Refresh</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">1-4</kbd> Categories</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">0</kbd> Clear category</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">?</kbd> This help</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">Esc</kbd> Deselect</span>
+          </div>
+        </div>
+      )}
+
+      <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-2">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="p-2 rounded border border-border space-y-1.5">
@@ -342,16 +489,20 @@ export function NewsFeed() {
             {viewMode === 'bookmarks' ? 'No bookmarked articles yet' : viewMode === 'reading-list' ? 'Reading list is empty' : 'No news found for the selected filters'}
           </div>
         ) : (
-          filtered.map((item) => (
+          filtered.map((item, index) => (
             <ArticleCard
               key={item.id}
               item={item}
               search={search}
               isBookmarked={isBookmarked(item.id)}
               isInReadingList={isInReadingList(item.id)}
+              isRead={isRead(item.id)}
+              isFocused={index === focusedIndex}
+              cardStyle={settings.cardStyle}
               onToggleBookmark={toggleBookmark}
               onToggleReadingList={toggleReadingList}
               onCategoryClick={handleCategoryClick}
+              onArticleOpen={handleArticleOpen}
               activeCategory={activeCategory}
             />
           ))
