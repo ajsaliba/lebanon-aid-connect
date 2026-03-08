@@ -68,10 +68,16 @@ export function DonationsPanel() {
   const shareLink = async (name: string, url: string) => {
     const text = `🤝 Support: ${name}\n🔗 ${url}`;
     if (navigator.share) {
-      try { await navigator.share({ title: name, text, url }); } catch { /* cancelled */ }
-    } else {
+      try { await navigator.share({ title: name, text, url }); return; } catch { /* cancelled or failed */ }
+    }
+    // Fallback: try clipboard, then WhatsApp
+    try {
       await navigator.clipboard.writeText(text);
-      toast({ title: 'Link copied!' });
+      toast({ title: 'Link copied to clipboard!' });
+    } catch {
+      // Final fallback: share via WhatsApp
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      toast({ title: 'Opening WhatsApp to share' });
     }
   };
 
