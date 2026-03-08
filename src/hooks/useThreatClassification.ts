@@ -20,16 +20,19 @@ export function useThreatClassification(news: NewsItem[]) {
   const [classifications, setClassifications] = useState<ClassificationCache>({});
   const [isClassifying, setIsClassifying] = useState(false);
   const processedRef = useRef<Set<string>>(new Set());
-  const backoffRef = useRef(10000); // start at 10s
+  const backoffRef = useRef(30000); // start at 30s
   const lastCallRef = useRef(0);
+  const rateLimitedUntilRef = useRef(0);
 
   useEffect(() => {
-    const unclassified = news.filter(n => !processedRef.current.has(n.id)).slice(0, 10);
+    const now = Date.now();
+    if (now < rateLimitedUntilRef.current) return; // global cooldown active
+
+    const unclassified = news.filter(n => !processedRef.current.has(n.id)).slice(0, 5);
     if (unclassified.length === 0) return;
 
-    const now = Date.now();
     const timeSinceLast = now - lastCallRef.current;
-    const delay = Math.max(backoffRef.current, 10000 - timeSinceLast);
+    const delay = Math.max(backoffRef.current, 30000 - timeSinceLast);
 
     const classify = async () => {
       setIsClassifying(true);
