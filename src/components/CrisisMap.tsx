@@ -269,16 +269,35 @@ export function CrisisMap() {
         </div>
       )}
 
-      {/* Layer Control Panel - bottom left (replaces old legend) */}
+      {/* Layer Control Panel + Escalation - bottom left */}
       <div className="absolute bottom-3 left-3 z-[1000]">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
-          onClick={() => setShowPanel(!showPanel)}
-        >
-          <Layers className="h-4 w-4" />
-        </Button>
+        <div className="flex items-end gap-1">
+          <div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
+              onClick={() => setShowPanel(!showPanel)}
+            >
+              <Layers className="h-4 w-4" />
+            </Button>
+          </div>
+          <div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
+              onClick={() => setShowEscalation(!showEscalation)}
+            >
+              <TrendingUp className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        {showEscalation && (
+          <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 min-w-[280px]">
+            <EscalationPanel scores={scores} historyMap={historyMap} />
+          </div>
+        )}
         {showPanel && (
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
@@ -300,23 +319,6 @@ export function CrisisMap() {
                 <span className={layers[layer.key] ? layer.color : 'text-muted-foreground'}>{layer.label}</span>
               </button>
             ))}
-          </div>
-        )}
-      </div>
-
-      {/* Escalation Panel - bottom right */}
-      <div className="absolute bottom-3 right-3 z-[1000]">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 bg-card/90 border border-border backdrop-blur-sm"
-          onClick={() => setShowEscalation(!showEscalation)}
-        >
-          <TrendingUp className="h-4 w-4" />
-        </Button>
-        {showEscalation && (
-          <div className="absolute bottom-10 right-0 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 min-w-[280px]">
-            <EscalationPanel scores={scores} historyMap={historyMap} />
           </div>
         )}
       </div>
