@@ -197,13 +197,6 @@ export const liveStreams = [
   { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free', category: 'news', live: true },
   { id: 'ls6', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news', live: true },
 
-  // --- Lebanese TV ---
-  { id: 'ls20', name: 'LBCI Lebanon Live', embedId: 'noLGOxGMRPs', channel: 'LBCI', category: 'lebanese', live: true },
-  { id: 'ls21', name: 'MTV Lebanon', embedId: 'XQdQWViDi4A', channel: 'MTV', category: 'lebanese', live: false },
-  { id: 'ls22', name: 'Al Jadeed / الجديد', embedId: 'lp_s37hYWx8', channel: 'Al Jadeed', category: 'lebanese', live: false },
-  { id: 'ls23', name: 'OTV Lebanon', embedId: 'RL32tWyFyUs', channel: 'OTV', category: 'lebanese', live: false },
-  { id: 'ls24', name: 'Al Manar TV', embedId: 'WXo0Xj4uymw', channel: 'Al Manar', category: 'lebanese', live: true },
-
   // --- Live Cameras ---
   { id: 'ls30', name: 'Middle East Multi-Cam 24/7', embedId: 'gmtlJ_m2r5A', channel: 'Source Global', category: 'camera' },
   { id: 'ls31', name: 'Iran/Israel/ME HD Cameras', embedId: 'Pdwghh0hZ3E', channel: 'NEMICO', category: 'camera' },

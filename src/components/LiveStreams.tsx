@@ -4,7 +4,7 @@ import { Video, ChevronDown, ChevronUp, Radio, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type Category = 'news' | 'lebanese' | 'camera';
+type Category = 'news' | 'camera';
 
 export function LiveStreams() {
   const [expanded, setExpanded] = useState(false);
@@ -33,7 +33,6 @@ export function LiveStreams() {
           <div className="flex gap-1 flex-wrap">
             {([
               { key: 'news' as const, label: 'News', icon: Radio },
-              { key: 'lebanese' as const, label: 'Lebanese TV', icon: Video },
               { key: 'camera' as const, label: 'Live Cameras', icon: Camera },
             ]).map(tab => (
               <Button
