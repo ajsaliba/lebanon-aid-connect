@@ -30,7 +30,10 @@ export function ShelterPanel() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'full' | 'closed'>('all');
-  const [headingTo, setHeadingTo] = useState<string | null>(null); // shelter ID user is heading to
+  const [headingTo, setHeadingTo] = useState<string | null>(null);
+  const [formLat, setFormLat] = useState(0);
+  const [formLng, setFormLng] = useState(0);
+  const [formAddress, setFormAddress] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchShelters = useCallback(async () => {
