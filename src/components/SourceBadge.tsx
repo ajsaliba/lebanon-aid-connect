@@ -8,11 +8,14 @@ interface SourceBadgeProps {
   compact?: boolean;
 }
 
+const WIRE_SOURCES = new Set(['Reuters', 'AP News', 'AFP', 'Bloomberg']);
+
 export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
   const profile = getSourceProfile(source);
   const tierCfg = TIER_CONFIG[profile.tier];
   const typeLabel = TYPE_LABELS[profile.type];
   const propaganda = getPropagandaProfile(source);
+  const isWire = WIRE_SOURCES.has(source) || profile.type === 'wire';
 
   if (compact) {
     return (
@@ -24,6 +27,7 @@ export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
                 {PROPAGANDA_RISK_CONFIG[propaganda.risk].icon}
               </span>
             )}
+            {isWire && <span className="text-warning">★</span>}
             {tierCfg.icon}
           </span>
         </TooltipTrigger>
@@ -33,6 +37,7 @@ export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
             {tierCfg.icon} {tierCfg.label} ({profile.score}/100)
           </div>
           <div className="text-muted-foreground">{typeLabel}</div>
+          {isWire && <div className="text-warning font-bold">★ Wire Service</div>}
           {propaganda && propaganda.risk !== 'none' && (
             <div className={cn('font-bold', PROPAGANDA_RISK_CONFIG[propaganda.risk].color)}>
               {PROPAGANDA_RISK_CONFIG[propaganda.risk].icon} {PROPAGANDA_RISK_CONFIG[propaganda.risk].label}: {propaganda.stateAffiliation}
@@ -53,7 +58,19 @@ export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
           {PROPAGANDA_RISK_CONFIG[propaganda.risk].icon}
         </span>
       )}
+      {isWire && <span className="text-warning">★</span>}
       {tierCfg.icon} {tierCfg.label}
+    </span>
+  );
+}
+
+/** Multi-source indicator for article cards */
+export function MultiSourceBadge({ sources, rate }: { sources: string[]; rate?: string }) {
+  if (sources.length < 2) return null;
+  return (
+    <span className="text-[9px] text-muted-foreground inline-flex items-center gap-1">
+      <span className="text-warning font-bold">{sources.length} sources</span>
+      {rate && <span className="text-warning">{rate}</span>}
     </span>
   );
 }

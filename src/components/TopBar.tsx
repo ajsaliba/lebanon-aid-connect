@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { IntelSignalsBadge } from '@/components/IntelSignalsBadge';
 import { useIntelSignals } from '@/hooks/useIntelSignals';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Sheet,
   SheetContent,
@@ -38,16 +39,59 @@ const typeLabel: Record<string, string> = {
   housing: 'New Housing',
 };
 
+const SOUND_PREF_KEY = 'cedarsalert_sound_alerts';
+
 export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBarProps) {
   const [time, setTime] = useState(new Date());
   const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
   const { news } = useNewsFeedContext();
   const signals = useIntelSignals(news);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem(SOUND_PREF_KEY) !== 'false'; } catch { return true; }
+  });
+  const prevNewsCountRef = useRef(news.length);
+  const audioRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sound alert on new high-severity news
+  useEffect(() => {
+    if (!soundEnabled) return;
+    if (news.length > prevNewsCountRef.current) {
+      const newArticles = news.slice(0, news.length - prevNewsCountRef.current);
+      const hasHighSeverity = newArticles.some(n => n.severity === 'high');
+      if (hasHighSeverity) {
+        playAlertSound();
+      }
+    }
+    prevNewsCountRef.current = news.length;
+  }, [news, soundEnabled]);
+
+  const playAlertSound = useCallback(() => {
+    try {
+      if (!audioRef.current) audioRef.current = new AudioContext();
+      const ctx = audioRef.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch {}
+  }, []);
+
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    try { localStorage.setItem(SOUND_PREF_KEY, String(next)); } catch {}
+  };
 
   const utcTime = time.toUTCString().split(' ').slice(4).join(' ').replace(' GMT', '');
   const utcDate = time.toISOString().split('T')[0];
@@ -105,6 +149,18 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
 
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />
+
+        {/* Sound toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleSound}>
+              {soundEnabled ? <Volume2 className="h-4 w-4 text-success" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px]">
+            Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
+          </TooltipContent>
+        </Tooltip>
 
         <Sheet>
           <SheetTrigger asChild>
