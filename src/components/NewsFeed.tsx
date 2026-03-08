@@ -598,6 +598,18 @@ export function NewsFeed() {
             onArticleOpen={handleArticleOpen}
             activeCategory={activeCategory}
           />
+          {hasMore && viewMode === 'feed' && (
+            <div className="flex justify-center py-3">
+              <Button variant="ghost" size="sm" className="text-[10px] h-7 px-4 text-muted-foreground"
+                onClick={loadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? (
+                  <><RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Loading...</>
+                ) : (
+                  <>Load more articles</>
+                )}
+              </Button>
+            </div>
+          )}
         )}
       </div>
     </div>
