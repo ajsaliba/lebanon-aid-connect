@@ -41,8 +41,6 @@ export function HousingPanel() {
   const [formLng, setFormLng] = useState(0);
   const [formAddress, setFormAddress] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [urgencyForm, setUrgencyForm] = useState('normal');
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchHousing = async () => {
     const { data } = await supabase.from('housing_listings').select('*').order('created_at', { ascending: false });
