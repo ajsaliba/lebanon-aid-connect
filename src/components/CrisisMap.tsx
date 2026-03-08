@@ -84,6 +84,7 @@ function inferCoords(text: string): { lat: number; lng: number } | null {
 }
 
 interface LayerToggle {
+  hotspots: boolean;
   airstrikes: boolean;
   shelters: boolean;
   housing: boolean;
