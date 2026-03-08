@@ -256,7 +256,7 @@ export function CrisisMap() {
       )}
 
       {/* Layer Control Panel */}
-      <div className="absolute top-3 right-3 z-[1000]">
+      <div className="absolute top-3 left-3 z-[1000]">
         <Button
           variant="ghost"
           size="icon"
