@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { liveStreams } from '@/data/mockData';
-import { Video, ChevronDown, ChevronUp } from 'lucide-react';
+import { Video, ChevronDown, ChevronUp, Radio, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+type Category = 'news' | 'camera';
 
 export function LiveStreams() {
   const [expanded, setExpanded] = useState(false);
   const [activeStream, setActiveStream] = useState(liveStreams[0]);
+  const [category, setCategory] = useState<Category>('news');
+
+  const filtered = liveStreams.filter(s => s.category === category);
 
   return (
     <div className="border-t border-border">
@@ -23,19 +29,42 @@ export function LiveStreams() {
 
       {expanded && (
         <div className="p-2 space-y-2">
+          {/* Category tabs */}
+          <div className="flex gap-1">
+            <Button
+              variant={category === 'news' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-6 px-2 text-[10px] gap-1"
+              onClick={() => { setCategory('news'); setActiveStream(liveStreams.find(s => s.category === 'news') || liveStreams[0]); }}
+            >
+              <Radio className="h-3 w-3" /> News Channels
+            </Button>
+            <Button
+              variant={category === 'camera' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-6 px-2 text-[10px] gap-1"
+              onClick={() => { setCategory('camera'); setActiveStream(liveStreams.find(s => s.category === 'camera') || liveStreams[0]); }}
+            >
+              <Camera className="h-3 w-3" /> Live Cameras
+            </Button>
+          </div>
+
+          {/* Stream buttons */}
           <div className="flex gap-1 flex-wrap">
-            {liveStreams.map((stream) => (
+            {filtered.map((stream) => (
               <Button
                 key={stream.id}
                 variant={activeStream.id === stream.id ? 'default' : 'ghost'}
                 size="sm"
-                className="h-6 px-2 text-[11px]"
+                className={cn('h-6 px-2 text-[10px]', activeStream.id === stream.id && 'ring-1 ring-primary')}
                 onClick={() => setActiveStream(stream)}
               >
                 {stream.channel}
               </Button>
             ))}
           </div>
+
+          {/* Video player */}
           <div className="aspect-[16/9] bg-muted rounded overflow-hidden w-full">
             <iframe
               src={`https://www.youtube.com/embed/${activeStream.embedId}?autoplay=1&mute=1`}
@@ -45,6 +74,7 @@ export function LiveStreams() {
               title={activeStream.name}
             />
           </div>
+          <p className="text-[10px] text-muted-foreground truncate">{activeStream.name}</p>
         </div>
       )}
     </div>
