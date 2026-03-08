@@ -189,17 +189,19 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />
 
-        {/* Sound toggle */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleSound}>
-              {soundEnabled ? <Volume2 className="h-4 w-4 text-success" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-[10px]">
-            Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
-          </TooltipContent>
-        </Tooltip>
+        {/* Sound toggle — hidden on small mobile */}
+        <span className="hidden sm:inline-flex">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleSound}>
+                {soundEnabled ? <Volume2 className="h-4 w-4 text-success" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-[10px]">
+              Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
+            </TooltipContent>
+          </Tooltip>
+        </span>
 
         <Sheet>
           <SheetTrigger asChild>
