@@ -1,70 +1,230 @@
-import { useState } from 'react';
-import { mockEmergencyContacts } from '@/data/mockData';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation, getDirectionsUrl } from '@/hooks/useGeolocation';
-import { Phone, Building2, Heart, Stethoscope, Shield, MapPin, Share2, Loader2, Navigation, AlertTriangle } from 'lucide-react';
+import { mockEmergencyContacts } from '@/data/mockData';
+import {
+  Phone, Share2, Loader2, MapPin, AlertTriangle, Shield, Building2, Heart, Stethoscope,
+  Navigation, Users, Clock, CheckCircle2, Radio, XCircle, MessageCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const catIcons = { emergency: Shield, embassy: Building2, ngo: Heart, medical: Stethoscope };
 const catColors = { emergency: 'text-danger', embassy: 'text-info', ngo: 'text-success', medical: 'text-warning' };
-const catFilters = ['all', 'emergency', 'medical', 'ngo', 'embassy'] as const;
+
+const NEEDS_OPTIONS = ['Medical', 'Water', 'Food', 'Shelter', 'Evacuation', 'Trapped', 'Children', 'Elderly'] as const;
+
+interface SOSSignal {
+  id: string;
+  user_id: string;
+  lat: number;
+  lng: number;
+  accuracy: number | null;
+  message: string | null;
+  status: string;
+  people_count: number;
+  needs: string[];
+  contact_phone: string | null;
+  created_at: string;
+}
 
 export function SOSPanel() {
-  const { position, loading: geoLoading, refresh: refreshGeo } = useGeolocation();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [filter, setFilter] = useState<string>('all');
-  const [sharing, setSharing] = useState(false);
+  const { position, loading: geoLoading, refresh: refreshGeo } = useGeolocation();
 
-  const filtered = filter === 'all' ? mockEmergencyContacts : mockEmergencyContacts.filter(c => c.category === filter);
+  const [activeSignals, setActiveSignals] = useState<SOSSignal[]>([]);
+  const [myActiveSignal, setMyActiveSignal] = useState<SOSSignal | null>(null);
+  const [showSOSDialog, setShowSOSDialog] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
 
-  const shareLocation = async () => {
-    if (!position) {
-      refreshGeo();
-      toast({ title: 'Getting your location...', description: 'Please allow location access.' });
+  // SOS form state
+  const [sosMessage, setSosMessage] = useState('');
+  const [sosPeople, setSosPeople] = useState('1');
+  const [sosPhone, setSosPhone] = useState('');
+  const [sosNeeds, setSosNeeds] = useState<string[]>([]);
+
+  // Fetch active SOS signals
+  const fetchSignals = useCallback(async () => {
+    const { data } = await supabase
+      .from('sos_signals')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (data) {
+      setActiveSignals(data as SOSSignal[]);
+      if (user) {
+        const mine = data.find((s: any) => s.user_id === user.id);
+        setMyActiveSignal(mine as SOSSignal || null);
+      }
+    }
+  }, [user]);
+
+  // Subscribe to realtime SOS signals
+  useEffect(() => {
+    fetchSignals();
+    const channel = supabase
+      .channel('sos-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_signals' }, () => {
+        fetchSignals();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchSignals]);
+
+  // Send SOS distress signal
+  const sendSOS = async () => {
+    if (!user) {
+      toast({ title: 'Sign in required', description: 'You must be signed in to send an SOS signal.', variant: 'destructive' });
       return;
     }
-    setSharing(true);
-    const text = `🆘 EMERGENCY — I need help!\n📍 My location: https://www.google.com/maps?q=${position.lat},${position.lng}\n⏰ ${new Date().toLocaleString()}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'SOS – Emergency', text });
-      } catch { /* user cancelled */ }
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast({ title: 'Location copied!', description: 'Paste it in WhatsApp or SMS to share.' });
+    if (!position) {
+      refreshGeo();
+      toast({ title: 'Getting location...', description: 'Please allow location access and try again.' });
+      return;
     }
-    setSharing(false);
+    setSending(true);
+    const { error } = await supabase.from('sos_signals').insert({
+      user_id: user.id,
+      lat: position.lat,
+      lng: position.lng,
+      accuracy: position.accuracy,
+      message: sosMessage || null,
+      people_count: parseInt(sosPeople) || 1,
+      needs: sosNeeds,
+      contact_phone: sosPhone || null,
+    });
+    setSending(false);
+    if (error) {
+      toast({ title: 'Error sending SOS', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: '🆘 SOS Signal Sent', description: 'Your distress signal is now visible to all responders.' });
+      setShowSOSDialog(false);
+      setSosMessage('');
+      setSosNeeds([]);
+      fetchSignals();
+    }
   };
 
-  const callNumber = (phone: string) => {
-    window.location.href = `tel:${phone}`;
+  // Cancel/resolve SOS
+  const resolveMySignal = async () => {
+    if (!myActiveSignal) return;
+    await supabase.from('sos_signals').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', myActiveSignal.id);
+    toast({ title: 'SOS resolved', description: 'Glad you are safe!' });
+    setMyActiveSignal(null);
+    fetchSignals();
+  };
+
+  // "I'm Safe" check-in
+  const checkInSafe = async () => {
+    if (!user) {
+      toast({ title: 'Sign in required', variant: 'destructive' });
+      return;
+    }
+    setCheckingIn(true);
+    await supabase.from('safety_checkins').insert({
+      user_id: user.id,
+      lat: position?.lat || null,
+      lng: position?.lng || null,
+      status: 'safe',
+      message: 'I am safe',
+    });
+    setCheckingIn(false);
+    toast({ title: '✅ Checked in as Safe', description: 'Your safety status has been recorded.' });
+  };
+
+  // Share location via WhatsApp or native share
+  const shareLocationWhatsApp = () => {
+    if (!position) { refreshGeo(); return; }
+    const text = encodeURIComponent(
+      `🆘 EMERGENCY — I need help!\n📍 https://www.google.com/maps?q=${position.lat},${position.lng}\n⏰ ${new Date().toLocaleString()}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const toggleNeed = (need: string) => {
+    setSosNeeds(prev => prev.includes(need) ? prev.filter(n => n !== need) : [...prev, need]);
+  };
+
+  const timeSince = (date: string) => {
+    const mins = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.floor(mins / 60)}h ago`;
   };
 
   return (
     <div className="space-y-3 p-3">
-      {/* SOS Button */}
-      <div className="flex flex-col items-center gap-2 py-3">
-        <button
-          onClick={() => callNumber('140')}
-          className="relative w-20 h-20 rounded-full bg-danger text-danger-foreground flex items-center justify-center shadow-lg shadow-danger/30 hover:scale-105 active:scale-95 transition-transform animate-pulse"
-          aria-label="Call Lebanese Red Cross Emergency"
-        >
-          <Phone className="h-8 w-8" />
-          <span className="absolute -bottom-1 text-[8px] font-bold uppercase tracking-widest text-danger">SOS</span>
-        </button>
-        <span className="text-[10px] text-muted-foreground text-center">Tap to call Lebanese Red Cross (140)</span>
+      {/* === BIG SOS BUTTON === */}
+      <div className="flex flex-col items-center gap-3 py-4 border border-danger/20 rounded-lg bg-danger/5">
+        {myActiveSignal ? (
+          <>
+            <div className="flex items-center gap-2 text-danger text-xs font-bold animate-pulse">
+              <Radio className="h-4 w-4" /> YOUR SOS IS ACTIVE
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center px-4">
+              Responders can see your location. Stay where you are if safe.
+            </p>
+            <Button
+              onClick={resolveMySignal}
+              variant="outline"
+              className="h-8 text-xs gap-1.5 border-success/50 text-success hover:bg-success/10"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" /> I'm Safe — Cancel SOS
+            </Button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowSOSDialog(true)}
+              className="relative w-24 h-24 rounded-full bg-danger text-danger-foreground flex flex-col items-center justify-center shadow-lg shadow-danger/40 hover:scale-105 active:scale-95 transition-transform"
+              aria-label="Send SOS Distress Signal"
+            >
+              <AlertTriangle className="h-8 w-8 mb-0.5" />
+              <span className="text-[10px] font-black uppercase tracking-widest">SOS</span>
+            </button>
+            <span className="text-[10px] text-muted-foreground text-center">
+              Tap to broadcast your location to responders
+            </span>
+          </>
+        )}
       </div>
 
-      {/* Share Location */}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-1.5">
+        <Button
+          onClick={() => window.location.href = 'tel:140'}
+          className="h-9 text-[10px] gap-1.5 bg-danger/90 hover:bg-danger text-danger-foreground"
+        >
+          <Phone className="h-3.5 w-3.5" /> Call Red Cross (140)
+        </Button>
+        <Button
+          onClick={shareLocationWhatsApp}
+          disabled={geoLoading}
+          className="h-9 text-[10px] gap-1.5 bg-success/90 hover:bg-success text-success-foreground"
+        >
+          {geoLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5" />}
+          Share via WhatsApp
+        </Button>
+      </div>
+
+      {/* I'm Safe Check-in */}
       <Button
-        onClick={shareLocation}
-        disabled={sharing || geoLoading}
-        className="w-full h-8 text-xs gap-1.5 bg-danger/90 hover:bg-danger text-danger-foreground"
+        onClick={checkInSafe}
+        disabled={checkingIn || !user}
+        variant="outline"
+        className="w-full h-8 text-xs gap-1.5 border-success/50 text-success hover:bg-success/10"
       >
-        {geoLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Share2 className="h-3 w-3" />}
-        Share My Location (SOS)
+        {checkingIn ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+        I'm Safe — Check In
       </Button>
 
       {position && (
@@ -72,6 +232,51 @@ export function SOSPanel() {
           <MapPin className="h-3 w-3 text-danger shrink-0" />
           <span>{position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
           <span className="text-muted-foreground/60">±{Math.round(position.accuracy)}m</span>
+        </div>
+      )}
+
+      {/* Active SOS Feed (for responders) */}
+      {activeSignals.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Radio className="h-3 w-3 text-danger animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-danger">
+              Active Distress Signals ({activeSignals.length})
+            </span>
+          </div>
+          {activeSignals.slice(0, 10).map(signal => (
+            <div key={signal.id} className="p-2 rounded border border-danger/30 bg-danger/5 text-[11px] space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 text-danger" />
+                  <span className="font-semibold text-foreground">
+                    {signal.people_count} {signal.people_count === 1 ? 'person' : 'people'}
+                  </span>
+                </div>
+                <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                  <Clock className="h-2 w-2" /> {timeSince(signal.created_at)}
+                </span>
+              </div>
+              {signal.message && <p className="text-muted-foreground">{signal.message}</p>}
+              {signal.needs.length > 0 && (
+                <div className="flex gap-1 flex-wrap">
+                  {signal.needs.map(n => (
+                    <Badge key={n} variant="outline" className="text-[8px] h-4 border-danger/40 text-danger">{n}</Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-1.5">
+                {signal.contact_phone && (
+                  <Button variant="outline" size="sm" className="h-5 text-[9px] gap-0.5 flex-1 border-danger/50 text-danger" onClick={() => window.location.href = `tel:${signal.contact_phone}`}>
+                    <Phone className="h-2 w-2" /> Call
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="h-5 text-[9px] gap-0.5 flex-1 border-info/50 text-info" onClick={() => window.open(getDirectionsUrl(signal.lat, signal.lng), '_blank')}>
+                  <Navigation className="h-2 w-2" /> Navigate
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -84,33 +289,16 @@ export function SOSPanel() {
           <li>Stay away from windows during shelling</li>
           <li>Keep phone charged — carry a power bank</li>
           <li>Know your nearest shelter (see Shelters tab)</li>
-          <li>Keep important documents in a waterproof bag</li>
+          <li>Keep documents in a waterproof bag</li>
+          <li>If trapped, tap on pipes to signal rescuers</li>
         </ul>
-      </div>
-
-      {/* Category Filter */}
-      <div className="flex gap-1 flex-wrap">
-        {catFilters.map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'px-2 py-0.5 rounded text-[9px] uppercase tracking-wider transition-colors border',
-              filter === f
-                ? 'bg-primary/10 border-primary/50 text-primary'
-                : 'border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground'
-            )}
-          >
-            {f}
-          </button>
-        ))}
       </div>
 
       {/* Emergency Contacts */}
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-danger flex items-center gap-2">
         <Phone className="h-3 w-3" /> Emergency Contacts
       </h2>
-      {filtered.map((contact) => {
+      {mockEmergencyContacts.map((contact) => {
         const Icon = catIcons[contact.category];
         return (
           <div key={contact.id} className="p-2 rounded border border-border bg-card/50 text-[11px] space-y-1.5">
@@ -121,30 +309,106 @@ export function SOSPanel() {
                 <div className="text-muted-foreground text-[10px]">{contact.description}</div>
               </div>
             </div>
-            <div className="flex gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 text-[10px] gap-1 flex-1 border-danger/50 text-danger hover:bg-danger/10"
-                onClick={() => callNumber(contact.phone)}
-              >
-                <Phone className="h-2.5 w-2.5" /> {contact.phone}
-              </Button>
-              {position && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 text-[10px] gap-1 text-info"
-                  onClick={() => window.open(getDirectionsUrl(33.89, 35.50), '_blank')}
-                  title="Directions"
-                >
-                  <Navigation className="h-2.5 w-2.5" />
-                </Button>
-              )}
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-6 text-[10px] gap-1 border-danger/50 text-danger hover:bg-danger/10"
+              onClick={() => window.location.href = `tel:${contact.phone}`}
+            >
+              <Phone className="h-2.5 w-2.5" /> {contact.phone}
+            </Button>
           </div>
         );
       })}
+
+      {/* SOS Detail Dialog */}
+      <Dialog open={showSOSDialog} onOpenChange={setShowSOSDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-sm text-danger flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" /> Send Distress Signal
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-[11px] text-muted-foreground">
+              Your GPS location will be broadcast to all nearby responders and volunteers.
+            </p>
+
+            <div className="space-y-1">
+              <Label className="text-xs">What do you need? *</Label>
+              <div className="flex flex-wrap gap-1">
+                {NEEDS_OPTIONS.map(need => (
+                  <button
+                    key={need}
+                    onClick={() => toggleNeed(need)}
+                    className={cn(
+                      'px-2 py-1 rounded text-[10px] border transition-colors',
+                      sosNeeds.includes(need)
+                        ? 'bg-danger/10 border-danger/50 text-danger font-semibold'
+                        : 'border-border text-muted-foreground hover:border-muted-foreground'
+                    )}
+                  >
+                    {need}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">People with you</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={sosPeople}
+                  onChange={e => setSosPeople(e.target.value)}
+                  className="h-7 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Phone (for rescuers)</Label>
+                <Input
+                  value={sosPhone}
+                  onChange={e => setSosPhone(e.target.value)}
+                  placeholder="+961..."
+                  className="h-7 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Additional details</Label>
+              <Textarea
+                value={sosMessage}
+                onChange={e => setSosMessage(e.target.value)}
+                placeholder="e.g. Building collapsed, 3rd floor, can hear us..."
+                className="text-xs min-h-[60px]"
+              />
+            </div>
+
+            {position ? (
+              <div className="flex items-center gap-1.5 text-[10px] text-success bg-success/5 rounded p-1.5 border border-success/20">
+                <MapPin className="h-3 w-3" />
+                <span>Location locked: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-[10px] text-warning bg-warning/5 rounded p-1.5 border border-warning/20">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Getting your location...</span>
+              </div>
+            )}
+
+            <Button
+              onClick={sendSOS}
+              disabled={sending || !position || sosNeeds.length === 0}
+              className="w-full h-9 text-xs gap-1.5 bg-danger hover:bg-danger/90 text-danger-foreground font-bold"
+            >
+              {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+              BROADCAST SOS SIGNAL
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
