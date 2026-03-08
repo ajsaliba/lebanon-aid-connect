@@ -8,6 +8,7 @@ import { StatusBar } from '@/components/StatusBar';
 import { useNotifications } from '@/hooks/useNotifications';
 
 const Index = () => {
+  useNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [activeRegion, setActiveRegion] = useState('lebanon');
