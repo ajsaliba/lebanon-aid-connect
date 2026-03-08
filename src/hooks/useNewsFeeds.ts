@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { mockNews, type NewsItem } from '@/data/mockData';
 
 interface NewsFeedResult {
@@ -11,7 +10,9 @@ interface NewsFeedResult {
   refetch: () => void;
 }
 
-const POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const POLL_INTERVAL = 3 * 60 * 1000;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export function useNewsFeeds(): NewsFeedResult {
   const [news, setNews] = useState<NewsItem[]>(mockNews);
@@ -23,15 +24,19 @@ export function useNewsFeeds(): NewsFeedResult {
 
   const fetchNews = useCallback(async () => {
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('rss-news-feed');
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/rss-news-feed`, {
+        method: 'GET',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+      });
 
-      if (fnError) {
-        console.warn('Edge function error, falling back to mock data:', fnError);
-        setError('Using cached data');
-        setIsLive(false);
-        setNews(mockNews);
-        return;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+
+      const data = await response.json();
 
       if (data?.news && data.news.length > 0) {
         setNews(data.news);
@@ -39,7 +44,6 @@ export function useNewsFeeds(): NewsFeedResult {
         setIsLive(true);
         setError(null);
       } else {
-        // No items returned, keep mock data
         setIsLive(false);
         setError('No live data available');
       }

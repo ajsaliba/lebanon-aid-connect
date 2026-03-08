@@ -24,45 +24,73 @@ interface NewsItem {
 
 const RSS_FEEDS: FeedSource[] = [
   { name: 'aljazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', sourceLabel: 'Al Jazeera' },
-  { name: 'france24', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
+  { name: 'france24', url: 'https://www.france24.com/en/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
-  { name: 'reliefweb', url: 'https://reliefweb.int/updates/rss.xml?country=Lebanon', sourceLabel: 'ReliefWeb' },
-  { name: 'google_lebanon', url: 'https://news.google.com/rss/search?q=Lebanon+crisis&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
+  { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', sourceLabel: 'BBC World' },
+  { name: 'reuters', url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', sourceLabel: 'Reuters' },
+  { name: 'google_crisis', url: 'https://news.google.com/rss/search?q=crisis+OR+war+OR+conflict+OR+humanitarian&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
-// Lebanon/Middle East keywords for filtering
-const REGION_KEYWORDS = [
-  'lebanon', 'lebanese', 'beirut', 'hezbollah', 'sidon', 'tyre', 'tripoli', 'baalbek',
-  'nabatieh', 'bekaa', 'mount lebanon', 'south lebanon', 'dahiyeh',
-  'middle east', 'syria', 'israel', 'gaza', 'palestine', 'iran',
-  'ceasefire', 'airstrike', 'refugee', 'displaced', 'humanitarian',
-];
+// Severity keywords
+const HIGH_KEYWORDS = ['airstrike', 'bomb', 'bombing', 'killed', 'dead', 'death', 'massacre', 'attack', 'strike', 'explosion', 'casualties', 'shelling', 'missile', 'earthquake', 'tsunami', 'genocide', 'famine'];
+const ELEVATED_KEYWORDS = ['ceasefire', 'tensions', 'escalation', 'warning', 'threat', 'sanctions', 'troops', 'military', 'evacuation', 'displacement', 'crisis', 'emergency', 'flood', 'hurricane', 'wildfire'];
 
-// Keywords for severity classification
-const HIGH_KEYWORDS = ['airstrike', 'bomb', 'bombing', 'killed', 'dead', 'death', 'massacre', 'attack', 'strike', 'explosion', 'casualties', 'shelling', 'missile'];
-const ELEVATED_KEYWORDS = ['ceasefire', 'tensions', 'escalation', 'warning', 'threat', 'sanctions', 'troops', 'military', 'evacuation', 'displacement'];
+// Category keywords
+const CONFLICT_KEYWORDS = ['airstrike', 'bomb', 'attack', 'military', 'strike', 'combat', 'war', 'missile', 'shelling', 'offensive', 'troops', 'invasion', 'insurgent'];
+const HUMANITARIAN_KEYWORDS = ['aid', 'humanitarian', 'refugee', 'displaced', 'unhcr', 'red cross', 'relief', 'unicef', 'food', 'shelter', 'evacuation', 'famine', 'drought'];
+const POLITICAL_KEYWORDS = ['ceasefire', 'negotiation', 'un', 'summit', 'diplomatic', 'sanctions', 'resolution', 'government', 'election', 'parliament', 'treaty'];
+const INFRASTRUCTURE_KEYWORDS = ['hospital', 'school', 'bridge', 'power', 'water', 'infrastructure', 'building', 'road', 'electricity', 'communication', 'dam'];
 
-// Keywords for category classification
-const CONFLICT_KEYWORDS = ['airstrike', 'bomb', 'attack', 'military', 'strike', 'combat', 'war', 'missile', 'shelling', 'offensive', 'troops'];
-const HUMANITARIAN_KEYWORDS = ['aid', 'humanitarian', 'refugee', 'displaced', 'unhcr', 'red cross', 'relief', 'unicef', 'food', 'shelter', 'evacuation'];
-const POLITICAL_KEYWORDS = ['ceasefire', 'negotiation', 'un', 'summit', 'diplomatic', 'sanctions', 'resolution', 'government', 'election', 'parliament'];
-const INFRASTRUCTURE_KEYWORDS = ['hospital', 'school', 'bridge', 'power', 'water', 'infrastructure', 'building', 'road', 'electricity', 'communication'];
-
-// Known city coordinates for geo-tagging
+// Global city coordinates for geo-tagging
 const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   'beirut': { lat: 33.8938, lng: 35.5018 },
-  'tripoli': { lat: 34.4333, lng: 35.8333 },
-  'sidon': { lat: 33.5594, lng: 35.3717 },
-  'tyre': { lat: 33.2721, lng: 35.2033 },
-  'baalbek': { lat: 34.0047, lng: 36.2110 },
-  'nabatieh': { lat: 33.3633, lng: 35.4717 },
-  'dahiyeh': { lat: 33.8547, lng: 35.4900 },
-  'jounieh': { lat: 33.9806, lng: 35.6178 },
-  'byblos': { lat: 34.1236, lng: 35.6511 },
-  'zahle': { lat: 33.8463, lng: 35.9020 },
   'damascus': { lat: 33.5138, lng: 36.2765 },
   'gaza': { lat: 31.5017, lng: 34.4668 },
   'tel aviv': { lat: 32.0853, lng: 34.7818 },
+  'jerusalem': { lat: 31.7683, lng: 35.2137 },
+  'kyiv': { lat: 50.4501, lng: 30.5234 },
+  'kharkiv': { lat: 49.9935, lng: 36.2304 },
+  'moscow': { lat: 55.7558, lng: 37.6173 },
+  'tehran': { lat: 35.6892, lng: 51.3890 },
+  'kabul': { lat: 34.5553, lng: 69.2075 },
+  'khartoum': { lat: 15.5007, lng: 32.5599 },
+  'mogadishu': { lat: 2.0469, lng: 45.3182 },
+  'baghdad': { lat: 33.3152, lng: 44.3661 },
+  'sanaa': { lat: 15.3694, lng: 44.1910 },
+  'tripoli': { lat: 32.9022, lng: 13.1800 },
+  'cairo': { lat: 30.0444, lng: 31.2357 },
+  'nairobi': { lat: -1.2921, lng: 36.8219 },
+  'new york': { lat: 40.7128, lng: -74.0060 },
+  'washington': { lat: 38.9072, lng: -77.0369 },
+  'london': { lat: 51.5074, lng: -0.1278 },
+  'paris': { lat: 48.8566, lng: 2.3522 },
+  'beijing': { lat: 39.9042, lng: 116.4074 },
+  'taipei': { lat: 25.0330, lng: 121.5654 },
+  'myanmar': { lat: 19.7633, lng: 96.0785 },
+  'ethiopia': { lat: 9.1450, lng: 40.4897 },
+  'haiti': { lat: 18.9712, lng: -72.2852 },
+  'istanbul': { lat: 41.0082, lng: 28.9784 },
+  'riyadh': { lat: 24.7136, lng: 46.6753 },
+  'islamabad': { lat: 33.6844, lng: 73.0479 },
+  'new delhi': { lat: 28.6139, lng: 77.2090 },
+  'manila': { lat: 14.5995, lng: 120.9842 },
+  'dhaka': { lat: 23.8103, lng: 90.4125 },
+  'ukraine': { lat: 48.3794, lng: 31.1656 },
+  'sudan': { lat: 12.8628, lng: 30.2176 },
+  'yemen': { lat: 15.5527, lng: 48.5164 },
+  'syria': { lat: 34.8021, lng: 38.9968 },
+  'iran': { lat: 32.4279, lng: 53.6880 },
+  'israel': { lat: 31.0461, lng: 34.8516 },
+  'lebanon': { lat: 33.8547, lng: 35.8623 },
+  'palestine': { lat: 31.9522, lng: 35.2332 },
+  'iraq': { lat: 33.2232, lng: 43.6793 },
+  'libya': { lat: 26.3351, lng: 17.2283 },
+  'somalia': { lat: 5.1521, lng: 46.1996 },
+  'afghanistan': { lat: 33.9391, lng: 67.7100 },
+  'congo': { lat: -4.0383, lng: 21.7587 },
+  'niger': { lat: 17.6078, lng: 8.0817 },
+  'mali': { lat: 17.5707, lng: -3.9962 },
+  'burkina faso': { lat: 12.3714, lng: -1.5197 },
 };
 
 function classifySeverity(text: string): 'high' | 'elevated' | 'monitoring' {
@@ -89,14 +117,9 @@ function extractCoords(text: string): { lat?: number; lng?: number } {
   return {};
 }
 
-function isRelevant(text: string): boolean {
-  const lower = text.toLowerCase();
-  return REGION_KEYWORDS.some(k => lower.includes(k));
-}
-
 function stripHtml(html: string): string {
   return html
-    .replace(/<article[^>]*>[\s\S]*?<\/article>/gi, '') // remove article blocks
+    .replace(/<article[^>]*>[\s\S]*?<\/article>/gi, '')
     .replace(/<[^>]*>/g, '')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
@@ -106,20 +129,15 @@ function stripHtml(html: string): string {
 
 function extractItems(xml: string): Array<{ title: string; description: string; link: string; pubDate: string }> {
   const items: Array<{ title: string; description: string; link: string; pubDate: string }> = [];
-
-  // Match <item> blocks
   const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
   let match;
 
   while ((match = itemRegex.exec(xml)) !== null) {
     const block = match[1];
-
     const getTag = (tag: string): string => {
-      // Handle CDATA
       const cdataRegex = new RegExp(`<${tag}[^>]*>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*<\\/${tag}>`, 'i');
       const cdataMatch = block.match(cdataRegex);
       if (cdataMatch) return cdataMatch[1].trim();
-
       const simpleRegex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
       const simpleMatch = block.match(simpleRegex);
       return simpleMatch ? simpleMatch[1].trim() : '';
@@ -134,20 +152,19 @@ function extractItems(xml: string): Array<{ title: string; description: string; 
       items.push({ title, description, link, pubDate });
     }
   }
-
   return items;
 }
 
 async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
-    console.log(`Fetching ${feed.name}: ${feed.url}`);
+    console.log(`Fetching ${feed.name}`);
     const response = await fetch(feed.url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*',
       },
     });
@@ -159,23 +176,14 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
     }
 
     const xml = await response.text();
-    console.log(`Feed ${feed.name}: got ${xml.length} bytes`);
     const rawItems = extractItems(xml);
-    console.log(`Feed ${feed.name}: parsed ${rawItems.length} items`);
+    console.log(`Feed ${feed.name}: ${rawItems.length} items`);
 
-    const items: NewsItem[] = [];
-    for (const raw of rawItems) {
+    // No regional filtering — include ALL items (global focus)
+    return rawItems.map(raw => {
       const fullText = `${raw.title} ${raw.description}`;
-
-      // For general feeds, filter for relevance; for targeted feeds, include all
-      const targeted = ['france24', 'middleeasteye', 'reliefweb', 'google_lebanon'].includes(feed.name);
-      if (!targeted && !isRelevant(fullText)) {
-        continue;
-      }
-
       const coords = extractCoords(fullText);
-
-      items.push({
+      return {
         id: `${feed.name}-${btoa(encodeURIComponent(raw.title)).slice(0, 16)}`,
         title: raw.title,
         summary: raw.description.slice(0, 300),
@@ -185,11 +193,8 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
         severity: classifySeverity(fullText),
         category: classifyCategory(fullText),
         ...coords,
-      });
-    }
-
-    console.log(`Feed ${feed.name}: returning ${items.length} relevant items`);
-    return items;
+      };
+    });
   } catch (err) {
     console.warn(`Failed to fetch ${feed.name}:`, err);
     return [];
@@ -202,7 +207,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Fetch all feeds in parallel
     const results = await Promise.allSettled(RSS_FEEDS.map(fetchFeed));
 
     const allNews: NewsItem[] = [];
@@ -212,7 +216,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Deduplicate by similar titles
+    // Deduplicate
     const seen = new Set<string>();
     const deduped = allNews.filter(item => {
       const key = item.title.toLowerCase().slice(0, 50);
@@ -221,11 +225,8 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    // Sort by date (newest first)
     deduped.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-
-    // Limit to 50 items
-    const final = deduped.slice(0, 50);
+    const final = deduped.slice(0, 80);
 
     return new Response(JSON.stringify({
       news: final,
