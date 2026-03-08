@@ -23,7 +23,7 @@ export function LiveStreams() {
 
       {expanded && (
         <div className="p-2 space-y-2">
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {liveStreams.map((stream) => (
               <Button
                 key={stream.id}
@@ -36,7 +36,7 @@ export function LiveStreams() {
               </Button>
             ))}
           </div>
-          <div className="aspect-video bg-muted rounded overflow-hidden">
+          <div className="aspect-[16/9] bg-muted rounded overflow-hidden w-full">
             <iframe
               src={`https://www.youtube.com/embed/${activeStream.embedId}?autoplay=1&mute=1`}
               className="w-full h-full"
