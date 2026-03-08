@@ -25,15 +25,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
 
 interface TopBarProps {
   onToggleSidebar: () => void;
