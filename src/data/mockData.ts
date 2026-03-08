@@ -189,18 +189,34 @@ export const mockEmergencyContacts: EmergencyContact[] = [
 ];
 
 export const liveStreams = [
-  // News channels
+  // --- News Channels ---
   { id: 'ls1', name: 'Al Jazeera English', embedId: 'gCNeDWCI0vo', channel: 'Al Jazeera EN', category: 'news' },
   { id: 'ls2', name: 'Al Jazeera Arabic', embedId: 'bNyUyrR0PHo', channel: 'الجزيرة', category: 'news' },
   { id: 'ls3', name: 'Al Arabiya', embedId: '6LL9m-Xhob0', channel: 'Al Arabiya', category: 'news' },
   { id: 'ls4', name: 'France 24 English', embedId: 'Ap-EvaCBaRA', channel: 'France 24', category: 'news' },
-  { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free TV', category: 'news' },
-  // Multi-cam & location cameras
-  { id: 'ls6', name: 'Middle East Multi-Cam 24/7', embedId: 'gmtlJ_m2r5A', channel: 'Source Global', category: 'camera' },
-  { id: 'ls7', name: 'Iran/Israel/ME HD Cameras', embedId: 'Pdwghh0hZ3E', channel: 'NEMICO', category: 'camera' },
-  { id: 'ls8', name: 'Israel & US Attack Iran – Multi-Cam', embedId: '6ccj1_fFExY', channel: 'Multi-Cam', category: 'camera' },
-  { id: 'ls9', name: 'Rafah, Gaza – Live View', embedId: 'TV5UujqIoKs', channel: 'Rafah Cam', category: 'camera' },
-  { id: 'ls10', name: 'Gaza/Israel/Beirut Multi-Cam', embedId: 'TVy8Jgw0M7M', channel: 'ME Live', category: 'camera' },
-  { id: 'ls11', name: 'Iran Realtime HD Cameras', embedId: 'DcyV79s0oWU', channel: 'Iran Cams', category: 'camera' },
-  { id: 'ls12', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news' },
+  { id: 'ls5', name: 'Agenda-Free TV – US/Israel/Iran', embedId: 'qCqAP2jWL0k', channel: 'Agenda-Free', category: 'news' },
+  { id: 'ls6', name: 'Sky News Live', embedId: '9Auq9mYxFEE', channel: 'Sky News', category: 'news' },
+
+  // --- Lebanese TV ---
+  { id: 'ls20', name: 'LBCI Lebanon Live', embedId: 'noLGOxGMRPs', channel: 'LBCI', category: 'lebanese' },
+  { id: 'ls21', name: 'MTV Lebanon', embedId: 'XQdQWViDi4A', channel: 'MTV', category: 'lebanese' },
+  { id: 'ls22', name: 'Al Jadeed / الجديد', embedId: 'RQXY6_aFTRc', channel: 'Al Jadeed', category: 'lebanese' },
+  { id: 'ls23', name: 'OTV Lebanon', embedId: 'RL32tWyFyUs', channel: 'OTV', category: 'lebanese' },
+  { id: 'ls24', name: 'Al Manar TV', embedId: 'oumKLRA0G2w', channel: 'Al Manar', category: 'lebanese' },
+
+  // --- Live Cameras ---
+  { id: 'ls30', name: 'Middle East Multi-Cam 24/7', embedId: 'gmtlJ_m2r5A', channel: 'Source Global', category: 'camera' },
+  { id: 'ls31', name: 'Iran/Israel/ME HD Cameras', embedId: 'Pdwghh0hZ3E', channel: 'NEMICO', category: 'camera' },
+  { id: 'ls32', name: 'Israel & US Attack Iran – Multi-Cam', embedId: '6ccj1_fFExY', channel: 'Multi-Cam', category: 'camera' },
+  { id: 'ls33', name: 'Iran Realtime HD Cameras', embedId: 'DcyV79s0oWU', channel: 'Iran Cams', category: 'camera' },
+  { id: 'ls34', name: 'Rafah, Gaza – Live View', embedId: 'TV5UujqIoKs', channel: 'Rafah Cam', category: 'camera' },
+  { id: 'ls35', name: 'Gaza/Israel/Beirut Multi-Cam', embedId: 'TVy8Jgw0M7M', channel: 'ME Live', category: 'camera' },
+  { id: 'ls36', name: 'Middle East Licensed Cams', embedId: 's-xhXyWcU0A', channel: 'Cyprus1Click', category: 'camera' },
+  { id: 'ls37', name: 'Israel/Gaza Multi-Cam', embedId: 'r4HVC0vzaHc', channel: 'DD Cyprus', category: 'camera' },
+  { id: 'ls38', name: 'ME HD Camera Feeds', embedId: 'NTmcWcxkA18', channel: 'ME HD Cams', category: 'camera' },
+  { id: 'ls39', name: 'Tel Aviv Skyline – AP', embedId: 'qUDZ-lve5_k', channel: 'Tel Aviv AP', category: 'camera' },
+  { id: 'ls40', name: 'Tel Aviv Skyline – AP 2', embedId: 'eerhMyVGAHw', channel: 'Tel Aviv AP2', category: 'camera' },
+  { id: 'ls41', name: 'Tel Aviv Live Cam', embedId: 'JXl8FsriOs0', channel: 'Tel Aviv Cam', category: 'camera' },
+  { id: 'ls42', name: 'Tel Aviv – CGTN', embedId: 'ymgF6Z1FBbI', channel: 'CGTN Tel Aviv', category: 'camera' },
+  { id: 'ls43', name: 'Rafah Gaza – Live Camera', embedId: 'HrbUuxtoBa4', channel: 'Rafah Cam 2', category: 'camera' },
 ];

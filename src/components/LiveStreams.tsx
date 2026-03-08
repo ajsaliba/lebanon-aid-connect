@@ -4,7 +4,7 @@ import { Video, ChevronDown, ChevronUp, Radio, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type Category = 'news' | 'camera';
+type Category = 'news' | 'lebanese' | 'camera';
 
 export function LiveStreams() {
   const [expanded, setExpanded] = useState(false);
@@ -30,23 +30,22 @@ export function LiveStreams() {
       {expanded && (
         <div className="p-2 space-y-2">
           {/* Category tabs */}
-          <div className="flex gap-1">
-            <Button
-              variant={category === 'news' ? 'default' : 'ghost'}
-              size="sm"
-              className="h-6 px-2 text-[10px] gap-1"
-              onClick={() => { setCategory('news'); setActiveStream(liveStreams.find(s => s.category === 'news') || liveStreams[0]); }}
-            >
-              <Radio className="h-3 w-3" /> News Channels
-            </Button>
-            <Button
-              variant={category === 'camera' ? 'default' : 'ghost'}
-              size="sm"
-              className="h-6 px-2 text-[10px] gap-1"
-              onClick={() => { setCategory('camera'); setActiveStream(liveStreams.find(s => s.category === 'camera') || liveStreams[0]); }}
-            >
-              <Camera className="h-3 w-3" /> Live Cameras
-            </Button>
+          <div className="flex gap-1 flex-wrap">
+            {([
+              { key: 'news' as const, label: 'News', icon: Radio },
+              { key: 'lebanese' as const, label: 'Lebanese TV', icon: Video },
+              { key: 'camera' as const, label: 'Live Cameras', icon: Camera },
+            ]).map(tab => (
+              <Button
+                key={tab.key}
+                variant={category === tab.key ? 'default' : 'ghost'}
+                size="sm"
+                className="h-6 px-2 text-[10px] gap-1"
+                onClick={() => { setCategory(tab.key); setActiveStream(liveStreams.find(s => s.category === tab.key) || liveStreams[0]); }}
+              >
+                <tab.icon className="h-3 w-3" /> {tab.label}
+              </Button>
+            ))}
           </div>
 
           {/* Stream buttons */}
