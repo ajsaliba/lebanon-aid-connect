@@ -4,11 +4,15 @@ import { LiveStreams } from './LiveStreams';
 import { WorldBriefPanel } from './WorldBriefPanel';
 import { CIIPanel } from './CIIPanel';
 import { TrendingPanel } from './TrendingPanel';
+import { StrategicRiskPanel } from './StrategicRiskPanel';
+import { FocalPointsPanel } from './FocalPointsPanel';
+import { InfrastructureCascadePanel } from './InfrastructureCascadePanel';
+import { SentimentVelocityPanel } from './SentimentVelocityPanel';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { useTrendingKeywords } from '@/hooks/useTrendingKeywords';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Newspaper, Brain, Shield, TrendingUp, Video } from 'lucide-react';
+import { Newspaper, Brain, Shield, Video } from 'lucide-react';
 
 type SidebarTab = 'feed' | 'intel' | 'streams';
 
@@ -57,7 +61,11 @@ export function LeftSidebar({ isOpen }: { isOpen: boolean }) {
             <ScrollArea className="flex-1">
               <div className="p-3 space-y-3">
                 <WorldBriefPanel />
+                <FocalPointsPanel />
+                <SentimentVelocityPanel />
+                <StrategicRiskPanel />
                 <CIIPanel />
+                <InfrastructureCascadePanel />
                 <TrendingPanel keywords={trendingKeywords} />
               </div>
             </ScrollArea>

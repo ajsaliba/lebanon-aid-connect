@@ -14,11 +14,13 @@ const TIME_RANGES = [
 
 const REGION_PRESETS = [
   { id: 'global', label: 'Global', center: [30, 45] as [number, number], zoom: 3 },
+  { id: 'americas', label: 'Americas', center: [20, -80] as [number, number], zoom: 3 },
   { id: 'mena', label: 'MENA', center: [30, 42] as [number, number], zoom: 5 },
-  { id: 'levant', label: 'Levant', center: [33.5, 35.5] as [number, number], zoom: 7 },
-  { id: 'gulf', label: 'Gulf', center: [25, 50] as [number, number], zoom: 6 },
   { id: 'europe', label: 'Europe', center: [50, 15] as [number, number], zoom: 4 },
   { id: 'asia', label: 'Asia', center: [35, 100] as [number, number], zoom: 3 },
+  { id: 'latam', label: 'Latin America', center: [-10, -60] as [number, number], zoom: 3 },
+  { id: 'africa', label: 'Africa', center: [5, 20] as [number, number], zoom: 3 },
+  { id: 'oceania', label: 'Oceania', center: [-25, 140] as [number, number], zoom: 4 },
 ] as const;
 
 interface TimeFilterBarProps {

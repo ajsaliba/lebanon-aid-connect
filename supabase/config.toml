@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.world-brief]
 verify_jwt = false
+
+[functions.sentiment-velocity]
+verify_jwt = false

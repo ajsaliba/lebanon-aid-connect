@@ -261,13 +261,22 @@ export function ArticleCard({
     </div>
   );
 
+  const isWireSource = ['Reuters', 'AP News', 'AFP', 'Bloomberg'].includes(item.source);
+
   const MetaInfo = () => (
     <div className="flex items-center gap-2 flex-wrap">
+      {item.severity === 'high' && (
+        <>
+          <span className="text-[9px] font-bold text-danger bg-danger/15 px-1 py-0.5 rounded uppercase">⚠ Alert</span>
+          <span className="text-muted-foreground">•</span>
+        </>
+      )}
       <span className={cn('uppercase font-bold text-[10px] cursor-pointer hover:underline', categoryStyles[item.category])}
         onClick={(e) => { e.stopPropagation(); onCategoryClick(item.category); }}>
         {item.category}
       </span>
       <span className="text-muted-foreground">•</span>
+      {isWireSource && <span className="text-[9px] text-warning font-bold">★ Wire</span>}
       <SourceBadge source={item.source} />
       <span className="text-muted-foreground">{item.source}</span>
       <span className="text-muted-foreground">•</span>
@@ -297,7 +306,7 @@ export function ArticleCard({
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-[10px]">
-              This story is also covered by {duplicateOf.length} other source{duplicateOf.length > 1 ? 's' : ''}
+              Also covered by {duplicateOf.length} other source{duplicateOf.length > 1 ? 's' : ''}
             </TooltipContent>
           </Tooltip>
         </>
