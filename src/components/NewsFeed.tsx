@@ -1,3 +1,4 @@
+// NewsFeed – force HMR clean remount after hook changes
 import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
