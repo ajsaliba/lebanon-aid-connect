@@ -213,20 +213,36 @@ const RSS_FEEDS: FeedSource[] = [
 
 // ME-focused feed names (skip ME keyword filter)
 const ME_FOCUSED_FEEDS = new Set([
+  // Core ME outlets
   'aljazeera_en', 'aljazeera_ar', 'france24_me', 'france24_ar', 'middleeasteye',
   'bbc_me', 'bbc_ar_me', 'bbc_ar', 'mtv', 'lbci', 'lbci_latest', 'lbci_war',
   'naharnet', 'dailystar', 'alarabiya', 'arabnews', 'the961', 'almanar',
   'newarab', 'alquds', 'guardian_me', 'skynews_ar', 'almonitor', 'dw_ar',
   'lebforces', 'asharq', 'jpost', 'anadolu',
+  // Extra ME sources
+  'haaretz', 'iran_intl', 'fars_news', 'the_national', 'bbc_persian',
+  'rudaw', 'asharq_biz', 'oman_observer',
+  // Google aggregation
   'google_me_war', 'google_lebanon', 'google_gaza', 'google_iran', 'google_syria_yemen',
-  'un_news_me', 'un_peace', 'gov_press', 'afp_me', 'reuters_me', 'ap_me',
+  // Government & official
+  'un_news_me', 'un_peace', 'gov_press', 'afp_me', 'reuters_me', 'ap_me', 'bloomberg_me',
+  'white_house', 'state_dept', 'pentagon',
+  // Social
   'reddit_lebanon', 'reddit_worldnews', 'reddit_me',
-  'brookings_me', 'carnegie_me', 'crisisgroup', 'me_monitor',
+  // Think tanks (ME-focused ones bypass filter)
+  'brookings_me', 'carnegie_me', 'crisisgroup', 'me_monitor', 'mei',
+  // Arabic aggregation
   'google_ar_lebanon', 'google_ar_gaza',
+  // YouTube
   'yt_aljazeeraeng', 'yt_bbc_news',
+  // Analysis & podcasts
   'podcast_war_on_rocks', 'war_on_rocks',
-  'msf', 'amnesty',
+  // NGOs & crisis orgs
+  'msf', 'amnesty', 'iaea', 'who', 'unhcr', 'fao_news',
+  // Independent / investigative
   'plus972', 'mondoweiss', 'electronicintifada',
+  // Nuclear & arms
+  'arms_control', 'bulletin_atomic', 'fas', 'nti',
 ]);
 
 const ME_KEYWORDS = [
