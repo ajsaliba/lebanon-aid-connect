@@ -106,15 +106,16 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
   const utcDate = time.toISOString().split('T')[0];
 
   return (
-    <header className="h-12 border-b border-border bg-card flex items-center justify-between px-3 shrink-0">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleSidebar}>
+    <header className="h-12 border-b border-border bg-card flex items-center justify-between px-2 sm:px-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hidden md:flex" onClick={onToggleSidebar}>
           <Menu className="h-4 w-4" />
         </Button>
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-primary" />
-          <h1 className="font-sans font-bold text-sm tracking-wider uppercase text-primary">
-            Lebanon Crisis Monitor
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <AlertTriangle className="h-4 w-4 text-primary shrink-0" />
+          <h1 className="font-sans font-bold text-xs sm:text-sm tracking-wider uppercase text-primary truncate">
+            <span className="sm:hidden">Cedars Alert</span>
+            <span className="hidden sm:inline">Lebanon Crisis Monitor</span>
           </h1>
         </div>
         <div className="hidden md:flex items-center gap-1 ml-4">
