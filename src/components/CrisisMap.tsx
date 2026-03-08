@@ -103,6 +103,7 @@ function MapController() {
 export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const [layers, setLayers] = useState<LayerToggle>({
+    hotspots: true,
     airstrikes: true,
     shelters: true,
     housing: true,
