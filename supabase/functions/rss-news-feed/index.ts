@@ -27,6 +27,8 @@ const RSS_FEEDS: FeedSource[] = [
   { name: 'france24_me', url: 'https://www.france24.com/en/middle-east/rss', sourceLabel: 'France 24' },
   { name: 'middleeasteye', url: 'https://www.middleeasteye.net/rss', sourceLabel: 'Middle East Eye' },
   { name: 'bbc', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', sourceLabel: 'BBC' },
+  { name: 'mtv', url: 'https://www.mtv.com.lb/RSS/AllNews', sourceLabel: 'MTV Lebanon' },
+  { name: 'lbci', url: 'https://www.lbcgroup.tv/feed/rss/news/en', sourceLabel: 'LBCI' },
   { name: 'google_me_war', url: 'https://news.google.com/rss/search?q=middle+east+war+OR+airstrike+OR+conflict+OR+Iran+OR+Lebanon+OR+Gaza+OR+Syria+OR+Yemen+OR+Iraq&hl=en&gl=US&ceid=US:en', sourceLabel: 'Google News' },
 ];
 
@@ -206,7 +208,7 @@ async function fetchFeed(feed: FeedSource): Promise<NewsItem[]> {
     for (const raw of rawItems) {
       const fullText = `${raw.title} ${raw.description}`;
       // ME-focused feeds include all; general feeds (aljazeera) filter for ME relevance
-      const meFocused = ['france24_me', 'middleeasteye', 'bbc', 'google_me_war'].includes(feed.name);
+      const meFocused = ['france24_me', 'middleeasteye', 'bbc', 'mtv', 'lbci', 'google_me_war'].includes(feed.name);
       if (!meFocused && !isMiddleEast(fullText)) continue;
 
       const coords = extractCoords(fullText);
