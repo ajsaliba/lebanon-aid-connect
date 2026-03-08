@@ -93,6 +93,7 @@ interface LayerToggle {
   housing: boolean;
   news: boolean;
   hospitals: boolean;
+  infrastructure: boolean;
 }
 
 function MapController() {
