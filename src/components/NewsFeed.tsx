@@ -451,6 +451,7 @@ export function NewsFeed() {
         onRemoveMuted={removeMutedKeyword}
         onExport={exportSettings}
         onImport={importSettings}
+        articles={filtered}
         isOpen={showSettings}
         onToggle={() => setShowSettings(false)}
       />
