@@ -4,7 +4,7 @@ import { Video, ChevronDown, ChevronUp, Radio, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type Category = 'news' | 'lebanese' | 'camera';
+type Category = 'news' | 'camera';
 
 export function LiveStreams() {
   const [expanded, setExpanded] = useState(false);
