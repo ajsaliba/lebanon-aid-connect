@@ -224,7 +224,7 @@ export function NewsFeed() {
               <h3 className="font-sans font-semibold text-foreground text-xs leading-tight">{sanitizeFeedText(item.title)}</h3>
                 <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mt-1 leading-relaxed">{sanitizeFeedText(item.summary)}</p>
+              
               <div className="flex items-center gap-2 mt-1.5">
                 <span
                   className={cn('uppercase font-bold text-[9px] cursor-pointer hover:underline', categoryStyles[item.category])}
