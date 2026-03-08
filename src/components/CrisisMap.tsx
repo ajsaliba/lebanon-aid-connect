@@ -285,6 +285,7 @@ export function CrisisMap() {
             {([
               { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
               { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
+              { key: 'infrastructure' as const, label: 'Infra', color: 'text-[#06b6d4]' },
               { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
               { key: 'housing' as const, label: 'Housing', color: 'text-info' },
               { key: 'news' as const, label: 'News', color: 'text-warning' },
