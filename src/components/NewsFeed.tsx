@@ -181,6 +181,7 @@ function VirtualArticleList({
 
 export function NewsFeed() {
   const { news, isLoading, isLive, refetch, setPollInterval } = useNewsFeedContext();
+  const { classifications: threatClassifications } = useThreatClassification(news);
   const {
     settings, updateSettings,
     mutedKeywords, addMutedKeyword, removeMutedKeyword,
