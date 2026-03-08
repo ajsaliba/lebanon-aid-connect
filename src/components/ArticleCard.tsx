@@ -60,13 +60,17 @@ function GlossaryText({ text, query }: { text: string; query: string }) {
         part.definition ? (
           <Tooltip key={i}>
             <TooltipTrigger asChild>
-              <span className="border-b border-dashed border-primary/50 cursor-help">
+              <span className="border-b-2 border-dashed border-primary/60 cursor-help text-primary font-medium">
                 <HighlightedText text={part.text} query={query} />
               </span>
             </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[250px] text-[10px] leading-relaxed">
-              <p className="font-bold text-primary mb-0.5">{part.text}</p>
-              <p>{part.definition}</p>
+            <TooltipContent
+              side="top"
+              sideOffset={8}
+              className="max-w-[300px] px-3 py-2.5 text-xs leading-relaxed bg-popover border-2 border-primary/30 shadow-lg shadow-primary/10 rounded-lg z-[9999]"
+            >
+              <p className="font-bold text-primary text-sm mb-1">{part.text}</p>
+              <p className="text-popover-foreground">{part.definition}</p>
             </TooltipContent>
           </Tooltip>
         ) : (
