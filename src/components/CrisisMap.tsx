@@ -147,8 +147,14 @@ export function CrisisMap() {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Enrich all news with inferred coordinates if missing
-  const enrichedNews = news.map(n => {
+  // Enrich all news with inferred coordinates if missing, then apply time filter
+  const timeFilterMs = getTimeFilterMs(mapTimeFilter);
+  const timeFilteredNews = news.filter(n => {
+    if (timeFilterMs === Infinity) return true;
+    return Date.now() - new Date(n.publishedAt).getTime() < timeFilterMs;
+  });
+
+  const enrichedNews = timeFilteredNews.map(n => {
     if (n.lat && n.lng) return n;
     const inferred = inferCoords(`${n.title} ${n.summary}`);
     if (inferred) return { ...n, lat: inferred.lat, lng: inferred.lng };

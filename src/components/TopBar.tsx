@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { IntelSignalsBadge } from '@/components/IntelSignalsBadge';
+import { useIntelSignals } from '@/hooks/useIntelSignals';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import {
   Sheet,
   SheetContent,
@@ -37,6 +41,8 @@ const typeLabel: Record<string, string> = {
 export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBarProps) {
   const [time, setTime] = useState(new Date());
   const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
+  const { news } = useNewsFeedContext();
+  const signals = useIntelSignals(news);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
@@ -82,11 +88,23 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         ))}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <div className="text-[11px] text-muted-foreground font-mono hidden sm:flex items-center gap-3">
           <span>{utcDate}</span>
           <span className="text-primary font-medium">{utcTime} UTC</span>
         </div>
+
+        {/* Cmd+K hint */}
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+          className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded border border-border text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <Search className="h-3 w-3" />
+          <kbd className="text-[9px]">⌘K</kbd>
+        </button>
+
+        {/* Intel Signals Badge */}
+        <IntelSignalsBadge signals={signals} />
 
         <Sheet>
           <SheetTrigger asChild>
@@ -128,6 +146,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           </SheetContent>
         </Sheet>
 
+        <ThemeToggle />
         <AuthDialog />
       </div>
     </header>
