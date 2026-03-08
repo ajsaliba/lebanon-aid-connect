@@ -5,6 +5,7 @@ import { LeftSidebar } from '@/components/LeftSidebar';
 import { CrisisMap } from '@/components/CrisisMap';
 import { RightPanel } from '@/components/RightPanel';
 import { StatusBar } from '@/components/StatusBar';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
