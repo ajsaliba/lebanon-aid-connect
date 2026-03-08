@@ -109,7 +109,7 @@ const CATEGORIES = ['conflict', 'humanitarian', 'political', 'infrastructure'] a
 
 // Virtualized article list for 1000+ articles
 function VirtualArticleList({
-  items, parentRef, search, focusedIndex, cardStyle, duplicateMap,
+  items, parentRef, search, focusedIndex, cardStyle, duplicateMap, threatClassifications,
   isBookmarked, isInReadingList, isRead,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: {
@@ -119,6 +119,7 @@ function VirtualArticleList({
   focusedIndex: number;
   cardStyle: import('@/hooks/useFeedSettings').CardStyle;
   duplicateMap: Map<string, string[]>;
+  threatClassifications: Record<string, any>;
   isBookmarked: (id: string) => boolean;
   isInReadingList: (id: string) => boolean;
   isRead: (id: string) => boolean;
