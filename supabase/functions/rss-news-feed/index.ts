@@ -118,10 +118,20 @@ function classifySeverity(text: string): 'high' | 'elevated' | 'monitoring' {
 
 function classifyCategory(text: string): 'conflict' | 'humanitarian' | 'political' | 'infrastructure' {
   const lower = text.toLowerCase();
-  if (CONFLICT_KEYWORDS.some(k => lower.includes(k))) return 'conflict';
-  if (HUMANITARIAN_KEYWORDS.some(k => lower.includes(k))) return 'humanitarian';
-  if (POLITICAL_KEYWORDS.some(k => lower.includes(k))) return 'political';
-  if (INFRASTRUCTURE_KEYWORDS.some(k => lower.includes(k))) return 'infrastructure';
+  // Check more specific categories first before falling back to conflict
+  const infraScore = INFRASTRUCTURE_KEYWORDS.filter(k => lower.includes(k)).length;
+  const humanScore = HUMANITARIAN_KEYWORDS.filter(k => lower.includes(k)).length;
+  const politicalScore = POLITICAL_KEYWORDS.filter(k => lower.includes(k)).length;
+  const conflictScore = CONFLICT_KEYWORDS.filter(k => lower.includes(k)).length;
+
+  // Use scoring: if a more specific category matches well, prefer it
+  if (infraScore >= 2 || (infraScore >= 1 && conflictScore === 0)) return 'infrastructure';
+  if (humanScore >= 2 || (humanScore >= 1 && conflictScore === 0)) return 'humanitarian';
+  if (politicalScore >= 2 || (politicalScore >= 1 && conflictScore === 0)) return 'political';
+  if (conflictScore >= 1) return 'conflict';
+  if (politicalScore >= 1) return 'political';
+  if (humanScore >= 1) return 'humanitarian';
+  if (infraScore >= 1) return 'infrastructure';
   return 'political';
 }
 
