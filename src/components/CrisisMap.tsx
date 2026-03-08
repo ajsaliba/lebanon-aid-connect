@@ -22,19 +22,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const shelterIcon = new L.DivIcon({
-  html: `<div style="background:#16a34a;width:12px;height:12px;border-radius:50%;border:2px solid #0a0a0a;box-shadow:0 0 8px #16a34a80;"></div>`,
-  className: '',
-  iconSize: [12, 12],
-  iconAnchor: [6, 6],
-});
-
-const housingIcon = new L.DivIcon({
-  html: `<div style="background:#0ea5e9;width:10px;height:10px;border-radius:50%;border:2px solid #0a0a0a;box-shadow:0 0 8px #0ea5e980;"></div>`,
-  className: '',
-  iconSize: [10, 10],
-  iconAnchor: [5, 5],
-});
 
 const newsIcon = new L.DivIcon({
   html: `<div style="background:#f59e0b;width:8px;height:8px;border-radius:2px;border:1px solid #0a0a0a;box-shadow:0 0 6px #f59e0b80;"></div>`,
