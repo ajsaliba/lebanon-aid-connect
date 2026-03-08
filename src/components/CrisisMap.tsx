@@ -119,6 +119,7 @@ export function CrisisMap() {
   });
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
+  const [mapTimeFilter, setMapTimeFilter] = useState('all');
   const [dbShelters, setDbShelters] = useState<Shelter[]>([]);
   const [dbHousing, setDbHousing] = useState<HousingListing[]>([]);
 
