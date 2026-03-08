@@ -37,6 +37,11 @@ export function HousingPanel() {
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [isFreeForm, setIsFreeForm] = useState(false);
   const [urgencyForm, setUrgencyForm] = useState('normal');
+  const [formLat, setFormLat] = useState(0);
+  const [formLng, setFormLng] = useState(0);
+  const [formAddress, setFormAddress] = useState('');
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [urgencyForm, setUrgencyForm] = useState('normal');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchHousing = async () => {
