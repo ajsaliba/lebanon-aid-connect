@@ -4,7 +4,7 @@ import { useNotificationCenter, type NotificationType } from '@/contexts/Notific
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
-import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
+import { distanceKm } from '@/hooks/useGeolocation';
 
 const TYPE_CONFIG: Record<NotificationType, { label: string; icon: string; freq: number }> = {
   conflict: { label: '🔴 AIRSTRIKE / CONFLICT', icon: '💥', freq: 800 },
@@ -61,10 +61,9 @@ function playAlertSound(type: NotificationType) {
 
 const SOS_PROXIMITY_KM = 10;
 
-export function useNotifications() {
+export function useNotifications(geoPosition?: { lat: number; lng: number } | null) {
   const { news } = useNewsFeedContext();
   const { addNotification } = useNotificationCenter();
-  const { position } = useGeolocation();
   const seenNewsIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
   const shelterPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -72,7 +71,7 @@ export function useNotifications() {
   const seenShelterIds = useRef<Set<string>>(new Set());
   const seenHousingIds = useRef<Set<string>>(new Set());
   const seenSosIds = useRef<Set<string>>(new Set());
-  const posRef = useRef(position);
+  const posRef = useRef(geoPosition ?? null);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -153,7 +152,7 @@ export function useNotifications() {
   }, [addNotification]);
 
   // Keep posRef in sync so the realtime callback always has latest position
-  useEffect(() => { posRef.current = position; }, [position]);
+  useEffect(() => { posRef.current = geoPosition ?? null; }, [geoPosition]);
 
   // SOS proximity alert via Realtime
   useEffect(() => {
