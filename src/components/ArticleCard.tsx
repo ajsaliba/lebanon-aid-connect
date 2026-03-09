@@ -447,3 +447,32 @@ export function ArticleCard({
     </article>
   );
 }
+
+function RelatedAssets({ lat, lng }: { lat?: number; lng?: number }) {
+  const nearby = useMemo(() => {
+    if (lat == null || lng == null) return [];
+    return findNearbyAssets(lat, lng);
+  }, [lat, lng]);
+
+  if (nearby.length === 0) return null;
+
+  return (
+    <div className="mt-1.5 pt-1 border-t border-border/50">
+      <p className="text-[9px] text-muted-foreground mb-0.5">
+        Related assets near ({Math.round(nearby[0].distanceKm)}km)
+      </p>
+      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+        {nearby.map(n => {
+          const cfg = getAssetTypeConfig(n.asset.type);
+          return (
+            <span key={n.asset.id} className="text-[9px] text-muted-foreground">
+              <span className="text-foreground font-medium">{cfg.label}</span>{' '}
+              {n.asset.name}{' '}
+              <span className="text-[8px]">{n.distanceKm}km</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
