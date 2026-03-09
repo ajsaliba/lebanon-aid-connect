@@ -37,6 +37,13 @@ export const MONITORED_COUNTRIES: MonitoredCountry[] = [
   { id: 'ru', name: 'Russia', code: 'RU', lat: 61.52, lng: 105.32, baselineRisk: 45, conflictFloor: 25, keywords: ['russia', 'russian', 'moscow', 'putin', 'kremlin'] },
 ];
 
+export interface CIIComponents {
+  unrest: number;
+  conflict: number;
+  security: number;
+  information: number;
+}
+
 export interface CIIScore {
   country: MonitoredCountry;
   /** 0-100 instability score */
@@ -49,6 +56,8 @@ export interface CIIScore {
   highCount: number;
   /** Change direction */
   trend: 'rising' | 'stable' | 'falling';
+  /** U:C:S:I component scores (0-100 each) */
+  components: CIIComponents;
 }
 
 export const CII_LEVEL_CONFIG: Record<CIIScore['level'], { label: string; color: string; bg: string }> = {
@@ -73,11 +82,24 @@ export function computeCII(news: NewsItem[]): CIIScore[] {
       }
     }
 
-    // Components
+    // Components (raw 0-100 values for display)
+    const unrestRaw = Math.round(Math.min(1, conflictCount / 15) * 100);
+    const conflictRaw = Math.round(Math.min(1, highCount / 8) * 100);
+    const securityRaw = Math.round(Math.min(1, highCount / 10) * 100);
+    const informationRaw = Math.round(Math.min(1, articleCount / 30) * 100);
+
+    const components: CIIComponents = {
+      unrest: unrestRaw,
+      conflict: conflictRaw,
+      security: securityRaw,
+      information: informationRaw,
+    };
+
+    // Weighted composite
     const baselineComponent = country.baselineRisk * 0.40;
-    const unrestSignal = Math.min(1, conflictCount / 15) * 100 * 0.20;
-    const securitySignal = Math.min(1, highCount / 10) * 100 * 0.20;
-    const velocitySignal = Math.min(1, articleCount / 30) * 100 * 0.20;
+    const unrestSignal = unrestRaw * 0.20;
+    const securitySignal = securityRaw * 0.20;
+    const velocitySignal = informationRaw * 0.20;
 
     const rawScore = baselineComponent + unrestSignal + securitySignal + velocitySignal;
     const score = Math.min(100, Math.max(country.conflictFloor, Math.round(rawScore)));
@@ -87,6 +109,6 @@ export function computeCII(news: NewsItem[]): CIIScore[] {
       score >= 50 ? 'elevated' :
       score >= 30 ? 'watch' : 'stable';
 
-    return { country, score, level, articleCount, highCount, trend: 'stable' as const };
+    return { country, score, level, articleCount, highCount, trend: 'stable' as const, components };
   }).sort((a, b) => b.score - a.score);
 }
