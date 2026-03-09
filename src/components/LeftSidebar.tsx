@@ -8,6 +8,8 @@ import { StrategicRiskPanel } from './StrategicRiskPanel';
 import { FocalPointsPanel } from './FocalPointsPanel';
 import { InfrastructureCascadePanel } from './InfrastructureCascadePanel';
 import { SentimentVelocityPanel } from './SentimentVelocityPanel';
+import { StrategicPosturePanel } from './StrategicPosturePanel';
+import { GDELTIntelPanel } from './GDELTIntelPanel';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { useTrendingKeywords } from '@/hooks/useTrendingKeywords';
 import { cn } from '@/lib/utils';
