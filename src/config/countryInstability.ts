@@ -37,6 +37,13 @@ export const MONITORED_COUNTRIES: MonitoredCountry[] = [
   { id: 'ru', name: 'Russia', code: 'RU', lat: 61.52, lng: 105.32, baselineRisk: 45, conflictFloor: 25, keywords: ['russia', 'russian', 'moscow', 'putin', 'kremlin'] },
 ];
 
+export interface CIIComponents {
+  unrest: number;
+  conflict: number;
+  security: number;
+  information: number;
+}
+
 export interface CIIScore {
   country: MonitoredCountry;
   /** 0-100 instability score */
@@ -49,6 +56,8 @@ export interface CIIScore {
   highCount: number;
   /** Change direction */
   trend: 'rising' | 'stable' | 'falling';
+  /** U:C:S:I component scores (0-100 each) */
+  components: CIIComponents;
 }
 
 export const CII_LEVEL_CONFIG: Record<CIIScore['level'], { label: string; color: string; bg: string }> = {
