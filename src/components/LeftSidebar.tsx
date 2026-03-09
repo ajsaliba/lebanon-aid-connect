@@ -81,6 +81,8 @@ export function LeftSidebar({ isOpen, mobileForceTab }: LeftSidebarProps) {
                 <WorldBriefPanel />
                 <FocalPointsPanel />
                 <SentimentVelocityPanel />
+                <StrategicPosturePanel />
+                <GDELTIntelPanel />
                 <StrategicRiskPanel />
                 <CIIPanel />
                 <InfrastructureCascadePanel />

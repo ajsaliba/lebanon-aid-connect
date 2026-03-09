@@ -442,6 +442,8 @@ export function ArticleCard({
       <div className="mt-1.5">
         <MetaInfo />
       </div>
+
+      <RelatedAssets lat={item.lat} lng={item.lng} />
     </article>
   );
 }
