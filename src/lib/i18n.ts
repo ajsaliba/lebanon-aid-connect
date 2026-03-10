@@ -432,8 +432,6 @@ const translations: Record<Language, Record<string, string>> = {
     'common.error': 'Error',
     'common.saving': 'Saving...',
     'common.update': 'Update',
-    'common.status': 'Status',
-    'common.all': 'All',
 
     // Live Streams
     'live.title': 'Live Streams',
