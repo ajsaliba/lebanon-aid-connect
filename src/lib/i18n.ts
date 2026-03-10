@@ -2908,7 +2908,6 @@ const translations: Record<Language, Record<string, string>> = {
     'aid.qty': 'Qté',
     'medical.bloodAvail': 'Sang dispo',
     'medical.noBlood': 'Pas de sang',
-    'refugee.people': 'personnes',
     'refugee.displaced': 'Déplacés',
     'cascade.selectPlaceholder': 'Sélectionner un nœud...',
 
