@@ -10,23 +10,23 @@ const levelColors: Record<DamageLevel, string> = {
   destroyed: 'text-danger',
   severe: 'text-warning',
   moderate: 'text-info',
-  light: 'text-success',
+  minor: 'text-success',
 };
 const levelBg: Record<DamageLevel, string> = {
   destroyed: 'bg-danger/20',
   severe: 'bg-warning/20',
   moderate: 'bg-info/20',
-  light: 'bg-success/20',
+  minor: 'bg-success/20',
 };
 const statusKeys: Record<ReconstructionStatus, string> = {
   not_started: 'damage.notStarted',
-  planning: 'damage.planning',
+  assessment: 'damage.planning',
   in_progress: 'damage.inProgress',
   completed: 'damage.completed',
 };
 const statusColor: Record<ReconstructionStatus, string> = {
   not_started: 'text-muted-foreground',
-  planning: 'text-info',
+  assessment: 'text-info',
   in_progress: 'text-warning',
   completed: 'text-success',
 };
@@ -36,7 +36,7 @@ export function DamageReportPanel() {
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<DamageLevel | 'all'>('all');
 
-  const levels: DamageLevel[] = ['destroyed', 'severe', 'moderate', 'light'];
+  const levels: DamageLevel[] = ['destroyed', 'severe', 'moderate', 'minor'];
 
   const filtered = mockDamageReports.filter(r => {
     if (levelFilter !== 'all' && r.damage_level !== levelFilter) return false;
@@ -97,7 +97,7 @@ export function DamageReportPanel() {
           {levels.map(l => (
             <button key={l} onClick={() => setLevelFilter(l)}
               className={cn('px-1.5 py-0.5 text-[9px] rounded border transition-colors capitalize',
-                levelFilter === l ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted/50')}>{t(`damage.${l}`)}</button>
+                levelFilter === l ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted/50')}>{l}</button>
           ))}
         </div>
       </div>
@@ -123,13 +123,13 @@ export function DamageReportPanel() {
                 <span className={statusColor[report.reconstruction_status]}>
                   {t(statusKeys[report.reconstruction_status])}
                 </span>
-                <span>{report.reconstruction_progress}%</span>
+                <span>{report.progress_pct}%</span>
               </div>
-              <Progress value={report.reconstruction_progress} className="h-1" />
+              <Progress value={report.progress_pct} className="h-1" />
             </div>
 
             <div className="flex justify-between text-[8px] text-muted-foreground">
-              <span>{t('damage.estCost')}: ${(report.estimated_cost / 1_000_000).toFixed(1)}M</span>
+              <span>{report.building_type}</span>
               <span>{new Date(report.reported_at).toLocaleDateString()}</span>
             </div>
           </div>

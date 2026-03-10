@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { mockCommunityChannels } from '@/data/extendedMockData';
-import { MessageSquare, Users, Hash, Megaphone, HelpCircle, Search, Radio } from 'lucide-react';
+import { MessageSquare, Users, Hash, Megaphone, Radio, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
 const channelTypeConfig: Record<string, { icon: React.ReactNode; color: string }> = {
   neighborhood: { icon: <Users className="h-3 w-3" />, color: 'text-primary' },
-  topic: { icon: <Hash className="h-3 w-3" />, color: 'text-info' },
   emergency: { icon: <Radio className="h-3 w-3" />, color: 'text-danger' },
-  mutual_aid: { icon: <HelpCircle className="h-3 w-3" />, color: 'text-success' },
   announcement: { icon: <Megaphone className="h-3 w-3" />, color: 'text-warning' },
 };
 
@@ -20,11 +18,10 @@ export function CommunityPanel() {
   const filtered = mockCommunityChannels.filter(c => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
+    return c.name.toLowerCase().includes(q) || c.location.toLowerCase().includes(q);
   });
 
-  const totalMembers = mockCommunityChannels.reduce((s, c) => s + c.member_count, 0);
-  const activeChannels = mockCommunityChannels.filter(c => c.is_active).length;
+  const totalMembers = mockCommunityChannels.reduce((s, c) => s + c.members, 0);
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
@@ -42,7 +39,7 @@ export function CommunityPanel() {
           <div className="text-[7px] text-muted-foreground">{t('community.channels')}</div>
         </div>
         <div className="bg-success/10 rounded p-1 text-center">
-          <div className="text-[10px] font-bold text-success">{activeChannels}</div>
+          <div className="text-[10px] font-bold text-success">{mockCommunityChannels.length}</div>
           <div className="text-[7px] text-muted-foreground">{t('community.active')}</div>
         </div>
         <div className="bg-muted/30 rounded p-1 text-center">
@@ -63,39 +60,31 @@ export function CommunityPanel() {
       {/* Channels */}
       <div className="p-2 space-y-1.5 max-h-[400px] overflow-y-auto">
         {filtered.map(channel => {
-          const cfg = channelTypeConfig[channel.type] || channelTypeConfig.topic;
+          const cfg = channelTypeConfig[channel.type] || channelTypeConfig.neighborhood;
           return (
             <div key={channel.id} className="border border-border rounded p-2 space-y-1 hover:bg-muted/20 transition-colors cursor-pointer">
               <div className="flex items-start justify-between gap-1">
                 <div className="flex items-center gap-1">
                   <span className={cfg.color}>{cfg.icon}</span>
                   <span className="text-xs font-medium">{channel.name}</span>
-                  {channel.is_active && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                  )}
                 </div>
-                {channel.unread_count > 0 && (
-                  <span className="text-[8px] px-1.5 py-0 rounded-full bg-primary text-primary-foreground font-bold">
-                    {channel.unread_count}
-                  </span>
-                )}
               </div>
 
-              <p className="text-[9px] text-muted-foreground">{channel.description}</p>
+              <p className="text-[9px] text-muted-foreground">{channel.location}</p>
 
               <div className="flex items-center justify-between text-[8px] text-muted-foreground">
                 <span className="flex items-center gap-0.5">
-                  <Users className="h-2.5 w-2.5" /> {channel.member_count} {t('community.members')}
+                  <Users className="h-2.5 w-2.5" /> {channel.members} {t('community.members')}
                 </span>
-                <span className={cn('capitalize px-1 py-0 rounded', 
+                <span className={cn('capitalize px-1 py-0 rounded',
                   channel.type === 'emergency' ? 'bg-danger/20 text-danger' : 'bg-muted')}>
                   {channel.type.replace('_', ' ')}
                 </span>
               </div>
 
-              {channel.last_message && (
+              {channel.pinned_message && (
                 <div className="bg-muted/30 rounded p-1">
-                  <p className="text-[8px] text-muted-foreground truncate">{channel.last_message}</p>
+                  <p className="text-[8px] text-muted-foreground truncate">📌 {channel.pinned_message}</p>
                 </div>
               )}
             </div>
