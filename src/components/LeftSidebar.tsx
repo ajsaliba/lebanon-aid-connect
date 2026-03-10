@@ -44,6 +44,9 @@ import { NeighborhoodLeadersPanel } from './NeighborhoodLeadersPanel';
 import { FieldHospitalPanel } from './FieldHospitalPanel';
 import { AidAccountabilityPanel } from './AidAccountabilityPanel';
 import { AgriculturePanel } from './AgriculturePanel';
+import { GPSJammingPanel } from './GPSJammingPanel';
+import { ProtestsPanel } from './ProtestsPanel';
+import { WeatherAlertsPanel } from './WeatherAlertsPanel';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { useTrendingKeywords } from '@/hooks/useTrendingKeywords';
 import { cn } from '@/lib/utils';
@@ -135,6 +138,9 @@ export function LeftSidebar({ isOpen, mobileForceTab }: LeftSidebarProps) {
                 <NightPowerPanel />
                 <ResourceForecastPanel />
                 <AidAccountabilityPanel />
+                <GPSJammingPanel />
+                <ProtestsPanel />
+                <WeatherAlertsPanel />
                 <TrendingPanel keywords={trendingKeywords} />
               </div>
             </ScrollArea>

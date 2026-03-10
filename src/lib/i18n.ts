@@ -432,8 +432,6 @@ const translations: Record<Language, Record<string, string>> = {
     'common.error': 'Error',
     'common.saving': 'Saving...',
     'common.update': 'Update',
-    'common.status': 'Status',
-    'common.all': 'All',
 
     // Live Streams
     'live.title': 'Live Streams',
@@ -829,11 +827,6 @@ const translations: Record<Language, Record<string, string>> = {
     'topbar.typeHousing': 'New Housing',
     'topbar.source': 'Source',
 
-    // StatusBar time
-    'time.justNow': 'just now',
-    'time.mAgo': 'm ago',
-    'time.hAgo': 'h ago',
-    'time.dAgo': 'd ago',
 
     // CrisisMap
     'map.live': 'Live',
@@ -874,7 +867,7 @@ const translations: Record<Language, Record<string, string>> = {
     'feed.bookmarks': 'Bookmarks',
     'feed.readingListTitle': 'Reading List',
     'feed.shortcutsTitle': 'Keyboard shortcuts (?)',
-    'feed.refresh': 'Refresh (r)',
+    
     'feed.recent': 'Recent',
     'feed.cat.conflict': 'Conflict',
     'feed.cat.humanitarian': 'Humanitarian',
@@ -910,7 +903,6 @@ const translations: Record<Language, Record<string, string>> = {
     'aid.qty': 'Qty',
     'medical.bloodAvail': 'Blood avail',
     'medical.noBlood': 'No blood',
-    'refugee.people': 'people',
     'refugee.displaced': 'Displaced',
     'cascade.selectPlaceholder': 'Select node...',
 
@@ -1443,8 +1435,6 @@ const translations: Record<Language, Record<string, string>> = {
     'common.error': 'خطأ',
     'common.saving': 'جارٍ الحفظ...',
     'common.update': 'تحديث',
-    'common.status': 'الحالة',
-    'common.all': 'الكل',
 
     // Live Streams
     'live.title': 'البث المباشر',
@@ -1840,11 +1830,6 @@ const translations: Record<Language, Record<string, string>> = {
     'topbar.typeHousing': 'سكن جديد',
     'topbar.source': 'المصدر',
 
-    // StatusBar time
-    'time.justNow': 'الآن',
-    'time.mAgo': ' د مضت',
-    'time.hAgo': ' س مضت',
-    'time.dAgo': ' ي مضت',
 
     // CrisisMap
     'map.live': 'مباشر',
@@ -1885,7 +1870,7 @@ const translations: Record<Language, Record<string, string>> = {
     'feed.bookmarks': 'الإشارات المرجعية',
     'feed.readingListTitle': 'قائمة القراءة',
     'feed.shortcutsTitle': 'اختصارات لوحة المفاتيح (?)',
-    'feed.refresh': 'تحديث (r)',
+    
     'feed.recent': 'الأخيرة',
     'feed.cat.conflict': 'نزاع',
     'feed.cat.humanitarian': 'إنساني',
@@ -1921,7 +1906,6 @@ const translations: Record<Language, Record<string, string>> = {
     'aid.qty': 'الكمية',
     'medical.bloodAvail': 'دم متوفر',
     'medical.noBlood': 'لا دم',
-    'refugee.people': 'أشخاص',
     'refugee.displaced': 'نازحون',
     'cascade.selectPlaceholder': 'اختر عقدة...',
 
@@ -2453,8 +2437,6 @@ const translations: Record<Language, Record<string, string>> = {
     'common.error': 'Erreur',
     'common.saving': 'Enregistrement...',
     'common.update': 'Mettre à jour',
-    'common.status': 'Statut',
-    'common.all': 'Tous',
 
     // Live Streams
     'live.title': 'Flux en direct',
@@ -2850,11 +2832,6 @@ const translations: Record<Language, Record<string, string>> = {
     'topbar.typeHousing': 'Nouveau logement',
     'topbar.source': 'Source',
 
-    // StatusBar time
-    'time.justNow': "à l'instant",
-    'time.mAgo': ' min',
-    'time.hAgo': ' h',
-    'time.dAgo': ' j',
 
     // CrisisMap
     'map.live': 'En direct',
@@ -2895,7 +2872,7 @@ const translations: Record<Language, Record<string, string>> = {
     'feed.bookmarks': 'Signets',
     'feed.readingListTitle': 'Liste de lecture',
     'feed.shortcutsTitle': 'Raccourcis clavier (?)',
-    'feed.refresh': 'Actualiser (r)',
+    
     'feed.recent': 'Récents',
     'feed.cat.conflict': 'Conflit',
     'feed.cat.humanitarian': 'Humanitaire',
@@ -2931,7 +2908,6 @@ const translations: Record<Language, Record<string, string>> = {
     'aid.qty': 'Qté',
     'medical.bloodAvail': 'Sang dispo',
     'medical.noBlood': 'Pas de sang',
-    'refugee.people': 'personnes',
     'refugee.displaced': 'Déplacés',
     'cascade.selectPlaceholder': 'Sélectionner un nœud...',
 

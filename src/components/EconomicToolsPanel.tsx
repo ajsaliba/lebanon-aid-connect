@@ -1,33 +1,36 @@
 import { useState } from 'react';
 import { mockEconomicListings, type JobType } from '@/data/extendedMockData';
-import { Briefcase, Search, Filter, MapPin, DollarSign, ArrowRightLeft, Clock } from 'lucide-react';
+import { Briefcase, Search, Filter, MapPin, DollarSign, ArrowRightLeft, Clock, Monitor } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
 const typeIcons: Record<JobType, React.ReactNode> = {
-  job: <Briefcase className="h-3 w-3" />,
-  service: <Clock className="h-3 w-3" />,
+  temporary: <Briefcase className="h-3 w-3" />,
+  remote: <Monitor className="h-3 w-3" />,
+  service_exchange: <Clock className="h-3 w-3" />,
   barter: <ArrowRightLeft className="h-3 w-3" />,
 };
 
 const typeColors: Record<JobType, string> = {
-  job: 'text-primary',
-  service: 'text-info',
-  barter: 'text-warning',
+  temporary: 'text-primary',
+  remote: 'text-info',
+  service_exchange: 'text-warning',
+  barter: 'text-success',
 };
 
-const typeKeys: Record<JobType, string> = {
-  job: 'economic.jobs',
-  service: 'economic.services',
-  barter: 'economic.barter',
+const typeLabels: Record<JobType, string> = {
+  temporary: 'Temporary',
+  remote: 'Remote',
+  service_exchange: 'Exchange',
+  barter: 'Barter',
 };
 
 export function EconomicToolsPanel() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<JobType | 'all'>('all');
-  const types: JobType[] = ['job', 'service', 'barter'];
+  const types: JobType[] = ['temporary', 'remote', 'service_exchange', 'barter'];
 
   const filtered = mockEconomicListings.filter(l => {
     if (typeFilter !== 'all' && l.type !== typeFilter) return false;
@@ -48,14 +51,14 @@ export function EconomicToolsPanel() {
       </div>
 
       {/* Type summary */}
-      <div className="p-2 grid grid-cols-3 gap-1">
+      <div className="p-2 grid grid-cols-4 gap-1">
         {types.map(tp => {
           const count = mockEconomicListings.filter(l => l.type === tp).length;
           return (
             <div key={tp} className="bg-muted/30 rounded p-1 text-center">
               <div className={cn('flex justify-center mb-0.5', typeColors[tp])}>{typeIcons[tp]}</div>
               <div className="text-[10px] font-bold">{count}</div>
-              <div className="text-[7px] text-muted-foreground">{t(typeKeys[tp])}</div>
+              <div className="text-[7px] text-muted-foreground">{typeLabels[tp]}</div>
             </div>
           );
         })}
@@ -68,7 +71,7 @@ export function EconomicToolsPanel() {
           <Input placeholder={t('economic.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)}
             className="h-7 text-xs pl-7" />
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <Filter className="h-3 w-3 text-muted-foreground" />
           <button onClick={() => setTypeFilter('all')}
             className={cn('px-1.5 py-0.5 text-[9px] rounded border transition-colors',
@@ -77,7 +80,7 @@ export function EconomicToolsPanel() {
             <button key={tp} onClick={() => setTypeFilter(tp)}
               className={cn('px-1.5 py-0.5 text-[9px] rounded border transition-colors flex items-center gap-0.5',
                 typeFilter === tp ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted/50')}>
-              {typeIcons[tp]} {t(typeKeys[tp])}
+              {typeIcons[tp]} {typeLabels[tp]}
             </button>
           ))}
         </div>
@@ -103,15 +106,11 @@ export function EconomicToolsPanel() {
               <span className="flex items-center gap-0.5 text-muted-foreground">
                 <MapPin className="h-2.5 w-2.5" /> {listing.location}
               </span>
-              <span className="text-muted-foreground">{t('economic.by')} {listing.posted_by}</span>
+              <span className="text-muted-foreground">{listing.category}</span>
             </div>
 
-            {listing.skills_needed && listing.skills_needed.length > 0 && (
-              <div className="flex gap-0.5 flex-wrap">
-                {listing.skills_needed.map(s => (
-                  <span key={s} className="text-[7px] px-1 py-0 bg-muted rounded">{s}</span>
-                ))}
-              </div>
+            {listing.urgent && (
+              <span className="text-[7px] px-1 py-0 bg-danger/20 text-danger rounded font-bold">URGENT</span>
             )}
           </div>
         ))}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { mockKnowledgeArticles } from '@/data/extendedMockData';
-import { BookOpen, Search, ChevronDown, ChevronUp, Clock, Tag } from 'lucide-react';
+import { BookOpen, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -8,28 +8,22 @@ import { useTranslation } from '@/lib/i18n';
 const categoryColors: Record<string, string> = {
   first_aid: 'text-danger',
   evacuation: 'text-warning',
-  shelter: 'text-info',
-  water_safety: 'text-blue-400',
-  communication: 'text-primary',
-  psychological: 'text-purple-400',
+  shelter_building: 'text-info',
+  preparedness: 'text-primary',
 };
 
 const categoryIcons: Record<string, string> = {
-  first_aid: '🏥',
-  evacuation: '🚨',
-  shelter: '🏠',
-  water_safety: '💧',
-  communication: '📡',
-  psychological: '🧠',
+  first_aid: '🩹',
+  evacuation: '🚪',
+  shelter_building: '🏗️',
+  preparedness: '🎒',
 };
 
-const categoryKeys: Record<string, string> = {
-  first_aid: 'knowledge.firstAid',
-  evacuation: 'knowledge.evacuation',
-  shelter: 'knowledge.shelter',
-  water_safety: 'knowledge.waterSafety',
-  communication: 'knowledge.communication',
-  psychological: 'knowledge.mentalHealth',
+const categoryLabels: Record<string, string> = {
+  first_aid: 'First Aid',
+  evacuation: 'Evacuation',
+  shelter_building: 'Shelter',
+  preparedness: 'Preparedness',
 };
 
 export function CrisisKnowledgePanel() {
@@ -40,8 +34,7 @@ export function CrisisKnowledgePanel() {
   const filtered = mockKnowledgeArticles.filter(a => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return a.title.toLowerCase().includes(q) || a.category.toLowerCase().includes(q)
-      || a.tags.some(t => t.toLowerCase().includes(q));
+    return a.title.toLowerCase().includes(q) || a.category.toLowerCase().includes(q);
   });
 
   return (
@@ -55,12 +48,12 @@ export function CrisisKnowledgePanel() {
 
       {/* Category chips */}
       <div className="p-2 flex flex-wrap gap-1">
-        {Object.entries(categoryKeys).map(([key, tKey]) => {
+        {Object.entries(categoryLabels).map(([key, label]) => {
           const count = mockKnowledgeArticles.filter(a => a.category === key).length;
           return (
             <button key={key} onClick={() => setSearch(key)}
               className="px-1.5 py-0.5 text-[9px] rounded border border-border hover:bg-muted/50 transition-colors flex items-center gap-0.5">
-              {categoryIcons[key]} {t(tKey)} <span className="text-muted-foreground">({count})</span>
+              {categoryIcons[key]} {label} <span className="text-muted-foreground">({count})</span>
             </button>
           );
         })}
@@ -84,15 +77,10 @@ export function CrisisKnowledgePanel() {
               <div className="space-y-0.5 flex-1">
                 <div className="flex items-center gap-1">
                   <span className={cn('text-[8px]', categoryColors[article.category])}>
-                    {categoryIcons[article.category]} {t(categoryKeys[article.category])}
+                    {categoryIcons[article.category]} {categoryLabels[article.category]}
                   </span>
                 </div>
                 <div className="text-xs font-medium">{article.title}</div>
-                <div className="flex items-center gap-2 text-[8px] text-muted-foreground">
-                  <span className="flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" /> {article.reading_time}
-                  </span>
-                </div>
               </div>
               {expanded === article.id
                 ? <ChevronUp className="h-3 w-3 text-muted-foreground mt-1" />
@@ -113,13 +101,6 @@ export function CrisisKnowledgePanel() {
                     </ol>
                   </div>
                 )}
-
-                <div className="flex items-center gap-1 flex-wrap">
-                  <Tag className="h-2.5 w-2.5 text-muted-foreground" />
-                  {article.tags.map(tag => (
-                    <span key={tag} className="text-[7px] px-1 py-0 bg-muted rounded">{tag}</span>
-                  ))}
-                </div>
               </div>
             )}
           </div>
