@@ -2437,8 +2437,6 @@ const translations: Record<Language, Record<string, string>> = {
     'common.error': 'Erreur',
     'common.saving': 'Enregistrement...',
     'common.update': 'Mettre à jour',
-    'common.status': 'Statut',
-    'common.all': 'Tous',
 
     // Live Streams
     'live.title': 'Flux en direct',
