@@ -1906,7 +1906,6 @@ const translations: Record<Language, Record<string, string>> = {
     'aid.qty': 'الكمية',
     'medical.bloodAvail': 'دم متوفر',
     'medical.noBlood': 'لا دم',
-    'refugee.people': 'أشخاص',
     'refugee.displaced': 'نازحون',
     'cascade.selectPlaceholder': 'اختر عقدة...',
 
