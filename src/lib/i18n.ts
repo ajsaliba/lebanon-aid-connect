@@ -827,11 +827,6 @@ const translations: Record<Language, Record<string, string>> = {
     'topbar.typeHousing': 'New Housing',
     'topbar.source': 'Source',
 
-    // StatusBar time
-    'time.justNow': 'just now',
-    'time.mAgo': 'm ago',
-    'time.hAgo': 'h ago',
-    'time.dAgo': 'd ago',
 
     // CrisisMap
     'map.live': 'Live',
