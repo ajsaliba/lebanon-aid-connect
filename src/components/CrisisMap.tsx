@@ -16,6 +16,7 @@ import { DayNightOverlay } from '@/components/map/DayNightOverlay';
 import { MarkerClusterLayer } from '@/components/map/MarkerClusterGroup';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 
 // Fix default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -123,6 +124,7 @@ export function CrisisMap() {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const { scores, historyMap } = useEscalationHistory(news);
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   // Restore map state from URL
   const initialCenter: [number, number] = [
@@ -215,7 +217,7 @@ export function CrisisMap() {
             <Popup>
               <div className="text-xs space-y-1">
                 <div className="font-bold text-foreground">{event.title}</div>
-                <div className="text-muted-foreground">Source: {event.source}</div>
+                <div className="text-muted-foreground">{t('topbar.source')}: {event.source}</div>
                 <div className="text-muted-foreground">{new Date(event.publishedAt).toLocaleString()}</div>
                 <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                   event.severity === 'high' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'
@@ -254,7 +256,7 @@ export function CrisisMap() {
       {isLive && (
         <div className="absolute top-3 left-[55px] z-[1000] bg-card/90 border border-border backdrop-blur-sm rounded-md px-2 py-1 flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
-          <span className="text-[10px] font-bold text-danger uppercase">Live</span>
+          <span className="text-[10px] font-bold text-danger uppercase">{t('map.live')}</span>
           {lastUpdated && (
             <span className="text-[9px] text-muted-foreground ml-1">
               {lastUpdated.toLocaleTimeString()}
@@ -294,17 +296,17 @@ export function CrisisMap() {
         )}
         {showPanel && (
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">Layers</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">{t('map.layers')}</span>
             {([
-              { key: 'sos' as const, label: 'SOS', color: 'text-destructive' },
-              { key: 'hotspots' as const, label: 'Hotspots', color: 'text-[#a855f7]' },
-              { key: 'airstrikes' as const, label: 'Conflicts', color: 'text-danger' },
-              { key: 'infrastructure' as const, label: 'Infra', color: 'text-[#06b6d4]' },
-              { key: 'shelters' as const, label: 'Shelters', color: 'text-success' },
-              { key: 'housing' as const, label: 'Housing', color: 'text-info' },
-              { key: 'news' as const, label: 'News', color: 'text-warning' },
-              { key: 'hospitals' as const, label: 'Hospitals', color: 'text-[#ef4444]' },
-              { key: 'daynight' as const, label: 'Day/Night', color: 'text-[#fbbf24]' },
+              { key: 'sos' as const, labelKey: 'map.sos', color: 'text-destructive' },
+              { key: 'hotspots' as const, labelKey: 'map.hotspots', color: 'text-[#a855f7]' },
+              { key: 'airstrikes' as const, labelKey: 'map.conflicts', color: 'text-danger' },
+              { key: 'infrastructure' as const, labelKey: 'map.infra', color: 'text-[#06b6d4]' },
+              { key: 'shelters' as const, labelKey: 'map.shelters', color: 'text-success' },
+              { key: 'housing' as const, labelKey: 'map.housing', color: 'text-info' },
+              { key: 'news' as const, labelKey: 'map.news', color: 'text-warning' },
+              { key: 'hospitals' as const, labelKey: 'map.hospitals', color: 'text-[#ef4444]' },
+              { key: 'daynight' as const, labelKey: 'map.dayNight', color: 'text-[#fbbf24]' },
             ]).map(layer => (
               <button
                 key={layer.key}
@@ -312,7 +314,7 @@ export function CrisisMap() {
                 className="flex items-center gap-2 w-full px-1 py-0.5 rounded hover:bg-muted text-[11px]"
               >
                 {layers[layer.key] ? <Eye className={`h-3 w-3 ${layer.color}`} /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
-                <span className={layers[layer.key] ? layer.color : 'text-muted-foreground'}>{layer.label}</span>
+                <span className={layers[layer.key] ? layer.color : 'text-muted-foreground'}>{t(layer.labelKey)}</span>
               </button>
             ))}
           </div>

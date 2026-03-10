@@ -3,6 +3,7 @@ import { Zap } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { type IntelSignal } from '@/hooks/useIntelSignals';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
 const severityColors = {
   critical: 'text-danger',
@@ -11,6 +12,7 @@ const severityColors = {
 };
 
 export function IntelSignalsBadge({ signals }: { signals: IntelSignal[] }) {
+  const { t } = useTranslation();
   if (signals.length === 0) return null;
 
   const criticalCount = signals.filter(s => s.severity === 'critical').length;
@@ -29,8 +31,8 @@ export function IntelSignalsBadge({ signals }: { signals: IntelSignal[] }) {
         <div className="px-3 py-2 border-b border-border">
           <div className="flex items-center gap-2">
             <Zap className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Intelligence Findings</span>
-            <span className="text-[9px] text-muted-foreground ml-auto">{signals.length} signals</span>
+            <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">{t('intel.findings')}</span>
+            <span className="text-[9px] text-muted-foreground ml-auto">{signals.length} {t('intel.signalsCount')}</span>
           </div>
         </div>
         <div className="max-h-[400px] overflow-y-auto divide-y divide-border">
@@ -47,7 +49,7 @@ export function IntelSignalsBadge({ signals }: { signals: IntelSignal[] }) {
                   <div className="text-[11px] font-semibold text-foreground">{signal.title}</div>
                   <div className="text-[10px] text-muted-foreground mt-0.5">{signal.description}</div>
                   <div className="flex items-center gap-2 mt-1 text-[9px] text-muted-foreground">
-                    <span>Confidence: {Math.round(signal.confidence * 100)}%</span>
+                    <span>{t('intel.confidence')}: {Math.round(signal.confidence * 100)}%</span>
                     <span className={cn('uppercase font-bold', severityColors[signal.severity])}>{signal.severity}</span>
                   </div>
                 </div>

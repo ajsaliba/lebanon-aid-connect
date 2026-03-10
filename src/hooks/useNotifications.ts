@@ -38,7 +38,12 @@ function isMiddleEastWarRelated(text: string, source: string, category: string):
   return hasME && hasWar;
 }
 
+function isSoundEnabled(): boolean {
+  try { return localStorage.getItem('cedarsalert_sound_alerts') !== 'false'; } catch { return true; }
+}
+
 function playAlertSound(type: NotificationType) {
+  if (!isSoundEnabled()) return;
   try {
     const ctx = new AudioContext();
     const config = TYPE_CONFIG[type];

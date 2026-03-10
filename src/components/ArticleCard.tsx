@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { estimateReadTime, shareArticle } from '@/hooks/useArticleActions';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 import { type CardStyle } from '@/hooks/useFeedSettings';
 import { findGlossaryTerms } from '@/lib/glossary';
 import { fleschKincaidGrade, readingLevelLabel } from '@/lib/readingLevel';
@@ -126,6 +127,7 @@ export function ArticleCard({
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: ArticleCardProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
   const [translatedSummary, setTranslatedSummary] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -144,9 +146,9 @@ export function ArticleCard({
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return 'Just now';
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    if (hours < 1) return t('time.justNow');
+    if (hours < 24) return `${hours}${t('time.hAgo')}`;
+    return `${Math.floor(hours / 24)}${t('time.dAgo')}`;
   };
 
   const handleClick = () => {
@@ -188,7 +190,7 @@ export function ArticleCard({
       setTranslatedSummary(tSummary || null);
       setCurrentLang(targetLang);
     } catch {
-      toast({ title: 'Translation failed', variant: 'destructive' });
+      toast({ title: t('article.translationFailed'), variant: 'destructive' });
     } finally {
       setIsTranslating(false);
     }
@@ -196,48 +198,48 @@ export function ArticleCard({
 
   const handleShare = (platform: 'copy' | 'twitter' | 'whatsapp' | 'telegram') => {
     shareArticle(item, platform);
-    if (platform === 'copy') toast({ title: 'Link copied to clipboard' });
+    if (platform === 'copy') toast({ title: t('article.linkCopied') });
   };
 
   const ActionButtons = () => (
     <div className="flex items-center gap-0.5 shrink-0">
       <button className="p-0.5 rounded hover:bg-muted" onClick={(e) => { e.stopPropagation(); onToggleBookmark(item.id); }}
-        title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+        title={isBookmarked ? t('article.removeBookmark') : t('article.bookmark')}>
         {isBookmarked
           ? <BookmarkCheck className="h-3 w-3 text-primary" />
           : <Bookmark className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />}
       </button>
       <button className="p-0.5 rounded hover:bg-muted" onClick={(e) => { e.stopPropagation(); onToggleReadingList(item.id); }}
-        title={isInReadingList ? 'Remove from reading list' : 'Read later'}>
+        title={isInReadingList ? t('article.removeReading') : t('article.readLater')}>
         {isInReadingList
           ? <ListChecks className="h-3 w-3 text-success" />
           : <ListPlus className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />}
       </button>
       <Popover>
         <PopoverTrigger asChild>
-          <button className="p-0.5 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} title="Share">
+          <button className="p-0.5 rounded hover:bg-muted" onClick={(e) => e.stopPropagation()} title={t('article.share')}>
             <Share2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-36 p-1" align="end" onClick={(e) => e.stopPropagation()}>
           <button className="w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded hover:bg-muted" onClick={() => handleShare('copy')}>
-            <Copy className="h-3 w-3" /> Copy link
+            <Copy className="h-3 w-3" /> {t('article.copyLink')}
           </button>
           <button className="w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded hover:bg-muted" onClick={() => handleShare('twitter')}>
-            𝕏 Twitter / X
+            𝕏 {t('article.twitterX')}
           </button>
           <button className="w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded hover:bg-muted" onClick={() => handleShare('whatsapp')}>
-            📱 WhatsApp
+            📱 {t('housing.whatsapp')}
           </button>
           <button className="w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded hover:bg-muted" onClick={() => handleShare('telegram')}>
-            ✈️ Telegram
+            ✈️ {t('article.telegram')}
           </button>
         </PopoverContent>
       </Popover>
       <Popover>
         <PopoverTrigger asChild>
           <button className={cn('p-0.5 rounded hover:bg-muted', isTranslating && 'animate-pulse')}
-            onClick={(e) => e.stopPropagation()} title="Translate">
+            onClick={(e) => e.stopPropagation()} title={t('article.translate')}>
             <Languages className={cn('h-3 w-3', currentLang ? 'text-primary' : 'text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity')} />
           </button>
         </PopoverTrigger>
@@ -253,7 +255,7 @@ export function ArticleCard({
           {currentLang && (
             <button className="w-full text-left px-2 py-1 text-[10px] rounded hover:bg-muted text-muted-foreground"
               onClick={() => { setTranslatedTitle(null); setTranslatedSummary(null); setCurrentLang(null); }}>
-              ↩ Original
+              ↩ {t('article.original')}
             </button>
           )}
         </PopoverContent>
@@ -268,7 +270,7 @@ export function ArticleCard({
     <div className="flex items-center gap-2 flex-wrap">
       {item.severity === 'high' && (
         <>
-          <span className="text-[9px] font-bold text-danger bg-danger/15 px-1 py-0.5 rounded uppercase">⚠ Alert</span>
+          <span className="text-[9px] font-bold text-danger bg-danger/15 px-1 py-0.5 rounded uppercase">⚠ {t('article.alert')}</span>
           <span className="text-muted-foreground">•</span>
         </>
       )}
@@ -277,7 +279,7 @@ export function ArticleCard({
         {item.category}
       </span>
       <span className="text-muted-foreground">•</span>
-      {isWireSource && <span className="text-[9px] text-warning font-bold">★ Wire</span>}
+      {isWireSource && <span className="text-[9px] text-warning font-bold">★ {t('article.wire')}</span>}
       <SourceBadge source={item.source} />
       <span className="text-muted-foreground">{item.source}</span>
       <span className="text-muted-foreground">•</span>
@@ -285,7 +287,7 @@ export function ArticleCard({
         <Clock className="h-2.5 w-2.5" />{timeAgo(item.publishedAt)}
       </span>
       <span className="text-muted-foreground">•</span>
-      <span className="text-muted-foreground">{readTime} min read</span>
+      <span className="text-muted-foreground">{readTime} {t('article.minRead')}</span>
       <span className="text-muted-foreground">•</span>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -294,7 +296,7 @@ export function ArticleCard({
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-[10px]">
-          Flesch-Kincaid Grade: {readingLevel.grade}
+          Flesch-Kincaid {t('article.grade')}: {readingLevel.grade}
         </TooltipContent>
       </Tooltip>
       {duplicateOf && duplicateOf.length > 0 && (
@@ -303,11 +305,11 @@ export function ArticleCard({
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="flex items-center gap-0.5 text-warning cursor-help">
-                <Layers className="h-2.5 w-2.5" />{duplicateOf.length + 1} sources
+                <Layers className="h-2.5 w-2.5" />{duplicateOf.length + 1} {t('article.sources')}
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-[10px]">
-              Also covered by {duplicateOf.length} other source{duplicateOf.length > 1 ? 's' : ''}
+              {t('article.coveredBy')} {duplicateOf.length} {t('article.otherSources')}
             </TooltipContent>
           </Tooltip>
         </>
@@ -328,9 +330,9 @@ export function ArticleCard({
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-[10px] space-y-0.5 max-w-[200px]">
-              <div className="font-bold">AI Threat Analysis</div>
+              <div className="font-bold">{t('article.aiThreat')}</div>
               <div className={cn('font-bold', THREAT_LEVEL_CONFIG[threatClassification.threat_level]?.color)}>
-                Level: {threatClassification.threat_level} ({Math.round(threatClassification.confidence * 100)}%)
+                {t('article.level')}: {threatClassification.threat_level} ({Math.round(threatClassification.confidence * 100)}%)
               </div>
               {threatClassification.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
@@ -371,7 +373,7 @@ export function ArticleCard({
             <TooltipTrigger asChild>
               <span className="text-warning shrink-0"><Layers className="h-2.5 w-2.5" /></span>
             </TooltipTrigger>
-            <TooltipContent side="top" className="text-[10px]">{duplicateOf.length + 1} sources</TooltipContent>
+            <TooltipContent side="top" className="text-[10px]">{duplicateOf.length + 1} {t('article.sources')}</TooltipContent>
           </Tooltip>
         )}
         <span className="text-[9px] text-muted-foreground shrink-0">{timeAgo(item.publishedAt)}</span>
@@ -449,6 +451,7 @@ export function ArticleCard({
 }
 
 function RelatedAssets({ lat, lng }: { lat?: number; lng?: number }) {
+  const { t } = useTranslation();
   const nearby = useMemo(() => {
     if (lat == null || lng == null) return [];
     return findNearbyAssets(lat, lng);
@@ -459,7 +462,7 @@ function RelatedAssets({ lat, lng }: { lat?: number; lng?: number }) {
   return (
     <div className="mt-1.5 pt-1 border-t border-border/50">
       <p className="text-[9px] text-muted-foreground mb-0.5">
-        Related assets near ({Math.round(nearby[0].distanceKm)}km)
+        {t('article.relatedAssets')} ({Math.round(nearby[0].distanceKm)}km)
       </p>
       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
         {nearby.map(n => {

@@ -6,29 +6,32 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NewsFeedProvider } from "@/contexts/NewsFeedContext";
 import { NotificationCenterProvider } from "@/contexts/NotificationCenterContext";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <NewsFeedProvider>
-        <NotificationCenterProvider>
-          <Toaster />
-          <Sonner />
-          <CommandPalette />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </NotificationCenterProvider>
-      </NewsFeedProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <NewsFeedProvider>
+          <NotificationCenterProvider>
+            <Toaster />
+            <Sonner />
+            <CommandPalette />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </NotificationCenterProvider>
+        </NewsFeedProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -59,7 +59,7 @@ export function shareArticle(item: NewsItem, platform: 'copy' | 'twitter' | 'wha
 
   switch (platform) {
     case 'copy':
-      navigator.clipboard.writeText(`${text}\n${url}`);
+      navigator.clipboard.writeText(`${text}\n${url}`).catch(() => {});
       return true;
     case 'twitter':
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');

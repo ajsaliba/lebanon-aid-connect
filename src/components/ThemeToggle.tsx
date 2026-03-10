@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 
 export function ThemeToggle() {
+  const { t } = useTranslation();
   const [isDark, setIsDark] = useState(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('cedarsalert_theme') !== 'light';
@@ -27,7 +29,7 @@ export function ThemeToggle() {
       size="icon"
       className="h-8 w-8"
       onClick={() => setIsDark(!isDark)}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? t('theme.lightMode') : t('theme.darkMode')}
     >
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>

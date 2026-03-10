@@ -2,6 +2,7 @@ import { getSourceProfile, TIER_CONFIG, TYPE_LABELS, type ReliabilityTier } from
 import { getPropagandaProfile, PROPAGANDA_RISK_CONFIG } from '@/config/propagandaRisk';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
 interface SourceBadgeProps {
   source: string;
@@ -11,6 +12,7 @@ interface SourceBadgeProps {
 const WIRE_SOURCES = new Set(['Reuters', 'AP News', 'AFP', 'Bloomberg']);
 
 export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
+  const { t } = useTranslation();
   const profile = getSourceProfile(source);
   const tierCfg = TIER_CONFIG[profile.tier];
   const typeLabel = TYPE_LABELS[profile.type];
@@ -37,7 +39,7 @@ export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
             {tierCfg.icon} {tierCfg.label} ({profile.score}/100)
           </div>
           <div className="text-muted-foreground">{typeLabel}</div>
-          {isWire && <div className="text-warning font-bold">★ Wire Service</div>}
+          {isWire && <div className="text-warning font-bold">★ {t('sourceBadge.wireService')}</div>}
           {propaganda && propaganda.risk !== 'none' && (
             <div className={cn('font-bold', PROPAGANDA_RISK_CONFIG[propaganda.risk].color)}>
               {PROPAGANDA_RISK_CONFIG[propaganda.risk].icon} {PROPAGANDA_RISK_CONFIG[propaganda.risk].label}: {propaganda.stateAffiliation}
@@ -66,10 +68,11 @@ export function SourceBadge({ source, compact = true }: SourceBadgeProps) {
 
 /** Multi-source indicator for article cards */
 export function MultiSourceBadge({ sources, rate }: { sources: string[]; rate?: string }) {
+  const { t } = useTranslation();
   if (sources.length < 2) return null;
   return (
     <span className="text-[9px] text-muted-foreground inline-flex items-center gap-1">
-      <span className="text-warning font-bold">{sources.length} sources</span>
+      <span className="text-warning font-bold">{sources.length} {t('sourceBadge.sources')}</span>
       {rate && <span className="text-warning">{rate}</span>}
     </span>
   );

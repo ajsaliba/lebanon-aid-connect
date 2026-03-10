@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { type FeedSettings, type CardStyle, type PollFrequency, type RetentionDays } from '@/hooks/useFeedSettings';
 import { type NewsItem } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 
 interface FeedSettingsPanelProps {
@@ -21,34 +22,32 @@ interface FeedSettingsPanelProps {
   onToggle: () => void;
 }
 
-const pollOptions: { value: PollFrequency; label: string }[] = [
-  { value: 15, label: '15s' },
-  { value: 30, label: '30s' },
-  { value: 60, label: '60s' },
-  { value: 0, label: 'Manual' },
+const pollOptions: { value: PollFrequency; labelKey: string }[] = [
+  { value: 15, labelKey: '15s' },
+  { value: 30, labelKey: '30s' },
+  { value: 60, labelKey: '60s' },
+  { value: 0, labelKey: 'settings.manual' },
 ];
 
-const cardOptions: { value: CardStyle; label: string }[] = [
-  { value: 'standard', label: 'Standard' },
-  { value: 'headlines', label: 'Headlines' },
-  { value: 'list', label: 'List' },
+const cardOptions: { value: CardStyle; labelKey: string }[] = [
+  { value: 'standard', labelKey: 'settings.standard' },
+  { value: 'headlines', labelKey: 'settings.headlines' },
+  { value: 'list', labelKey: 'settings.list' },
 ];
 
 const categoryOptions = [
-  { value: null as string | null, label: 'All' },
-  { value: 'conflict', label: 'Conflict' },
-  { value: 'humanitarian', label: 'Humanitarian' },
-  { value: 'political', label: 'Political' },
-  { value: 'infrastructure', label: 'Infrastructure' },
+  { value: null as string | null, labelKey: 'common.all' },
+  { value: 'conflict', labelKey: 'settings.conflict' },
+  { value: 'humanitarian', labelKey: 'settings.humanitarian' },
+  { value: 'political', labelKey: 'settings.political' },
+  { value: 'infrastructure', labelKey: 'settings.infrastructure' },
 ];
 
-const timeOptions = ['1h', '6h', '24h', '48h', '7d', 'All'];
-
-const retentionOptions: { value: RetentionDays; label: string }[] = [
-  { value: 0, label: 'Forever' },
-  { value: 7, label: '7 days' },
-  { value: 30, label: '30 days' },
-  { value: 90, label: '90 days' },
+const retentionOptions: { value: RetentionDays; labelKey: string }[] = [
+  { value: 0, labelKey: 'settings.forever' },
+  { value: 7, labelKey: 'settings.7days' },
+  { value: 30, labelKey: 'settings.30days' },
+  { value: 90, labelKey: 'settings.90days' },
 ];
 
 function downloadFile(content: string, filename: string, type: string) {
@@ -94,6 +93,7 @@ export function FeedSettingsPanel({
   onExport, onImport, articles, isOpen, onToggle,
 }: FeedSettingsPanelProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [muteInput, setMuteInput] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +103,7 @@ export function FeedSettingsPanel({
     const reader = new FileReader();
     reader.onload = () => {
       const ok = onImport(reader.result as string);
-      toast({ title: ok ? 'Settings imported' : 'Import failed', variant: ok ? 'default' : 'destructive' });
+      toast({ title: ok ? t('settings.imported') : t('settings.importFailed'), variant: ok ? 'default' : 'destructive' });
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -115,55 +115,55 @@ export function FeedSettingsPanel({
     <div className="border-b border-border bg-card/50 p-3 space-y-3 text-[11px]">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
-          <Settings className="h-3 w-3" /> Feed Settings
+          <Settings className="h-3 w-3" /> {t('settings.title')}
         </span>
         <button onClick={onToggle}><X className="h-3 w-3 text-muted-foreground" /></button>
       </div>
 
       {/* Poll frequency */}
       <div className="space-y-1">
-        <span className="text-[9px] font-bold uppercase text-muted-foreground">Refresh Interval</span>
+        <span className="text-[9px] font-bold uppercase text-muted-foreground">{t('settings.refreshInterval')}</span>
         <div className="flex gap-1">
           {pollOptions.map(o => (
             <Button key={o.value} variant={settings.pollFrequency === o.value ? 'default' : 'ghost'}
               size="sm" className="h-5 px-2 text-[9px]"
-              onClick={() => onUpdateSettings({ pollFrequency: o.value })}>{o.label}</Button>
+              onClick={() => onUpdateSettings({ pollFrequency: o.value })}>{t(o.labelKey)}</Button>
           ))}
         </div>
       </div>
 
       {/* Default category */}
       <div className="space-y-1">
-        <span className="text-[9px] font-bold uppercase text-muted-foreground">Startup Category</span>
+        <span className="text-[9px] font-bold uppercase text-muted-foreground">{t('settings.startupCategory')}</span>
         <div className="flex gap-1 flex-wrap">
           {categoryOptions.map(o => (
-            <Button key={o.label} variant={settings.defaultCategory === o.value ? 'default' : 'ghost'}
+            <Button key={o.labelKey} variant={settings.defaultCategory === o.value ? 'default' : 'ghost'}
               size="sm" className="h-5 px-2 text-[9px]"
-              onClick={() => onUpdateSettings({ defaultCategory: o.value })}>{o.label}</Button>
+              onClick={() => onUpdateSettings({ defaultCategory: o.value })}>{t(o.labelKey)}</Button>
           ))}
         </div>
       </div>
 
       {/* Default time filter */}
       <div className="space-y-1">
-        <span className="text-[9px] font-bold uppercase text-muted-foreground">Startup Time</span>
+        <span className="text-[9px] font-bold uppercase text-muted-foreground">{t('settings.startupTime')}</span>
         <div className="flex gap-1">
-          {timeOptions.map(t => (
-            <Button key={t} variant={settings.defaultTimeFilter === t ? 'default' : 'ghost'}
+          {['1h', '6h', '24h', '48h', '7d', 'All'].map(tp => (
+            <Button key={tp} variant={settings.defaultTimeFilter === tp ? 'default' : 'ghost'}
               size="sm" className="h-5 px-1.5 text-[9px]"
-              onClick={() => onUpdateSettings({ defaultTimeFilter: t })}>{t}</Button>
+              onClick={() => onUpdateSettings({ defaultTimeFilter: tp })}>{tp}</Button>
           ))}
         </div>
       </div>
 
       {/* Card style */}
       <div className="space-y-1">
-        <span className="text-[9px] font-bold uppercase text-muted-foreground">Card Layout</span>
+        <span className="text-[9px] font-bold uppercase text-muted-foreground">{t('settings.cardLayout')}</span>
         <div className="flex gap-1">
           {cardOptions.map(o => (
             <Button key={o.value} variant={settings.cardStyle === o.value ? 'default' : 'ghost'}
               size="sm" className="h-5 px-2 text-[9px]"
-              onClick={() => onUpdateSettings({ cardStyle: o.value })}>{o.label}</Button>
+              onClick={() => onUpdateSettings({ cardStyle: o.value })}>{t(o.labelKey)}</Button>
           ))}
         </div>
       </div>
@@ -171,13 +171,13 @@ export function FeedSettingsPanel({
       {/* Data retention */}
       <div className="space-y-1">
         <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-          <Timer className="h-2.5 w-2.5" /> Data Retention
+          <Timer className="h-2.5 w-2.5" /> {t('settings.dataRetention')}
         </span>
         <div className="flex gap-1">
           {retentionOptions.map(o => (
             <Button key={o.value} variant={settings.retentionDays === o.value ? 'default' : 'ghost'}
               size="sm" className="h-5 px-2 text-[9px]"
-              onClick={() => onUpdateSettings({ retentionDays: o.value })}>{o.label}</Button>
+              onClick={() => onUpdateSettings({ retentionDays: o.value })}>{t(o.labelKey)}</Button>
           ))}
         </div>
       </div>
@@ -185,12 +185,12 @@ export function FeedSettingsPanel({
       {/* Muted keywords */}
       <div className="space-y-1">
         <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-          <VolumeX className="h-2.5 w-2.5" /> Muted Keywords
+          <VolumeX className="h-2.5 w-2.5" /> {t('settings.mutedKeywords')}
         </span>
         <div className="flex gap-1">
           <Input value={muteInput} onChange={e => setMuteInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && muteInput.trim()) { onAddMuted(muteInput); setMuteInput(''); } }}
-            placeholder="Add keyword to mute..." className="h-6 text-[10px] flex-1" />
+            placeholder={t('settings.addKeyword')} className="h-6 text-[10px] flex-1" />
           <Button size="sm" className="h-6 px-2 text-[9px]" onClick={() => { if (muteInput.trim()) { onAddMuted(muteInput); setMuteInput(''); } }}>
             <VolumeX className="h-3 w-3" />
           </Button>
@@ -210,15 +210,15 @@ export function FeedSettingsPanel({
       {/* Export articles */}
       <div className="space-y-1">
         <span className="text-[9px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-          <FileDown className="h-2.5 w-2.5" /> Export Articles ({articles.length})
+          <FileDown className="h-2.5 w-2.5" /> {t('settings.exportArticles')} ({articles.length})
         </span>
         <div className="flex gap-2">
           <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1"
-            onClick={() => { exportAsJSON(articles); toast({ title: 'Exported as JSON' }); }}>
+            onClick={() => { exportAsJSON(articles); toast({ title: t('settings.exportedJSON') }); }}>
             📄 JSON
           </Button>
           <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1"
-            onClick={() => { exportAsCSV(articles); toast({ title: 'Exported as CSV' }); }}>
+            onClick={() => { exportAsCSV(articles); toast({ title: t('settings.exportedCSV') }); }}>
             📊 CSV
           </Button>
         </div>
@@ -227,10 +227,10 @@ export function FeedSettingsPanel({
       {/* Import / Export settings */}
       <div className="flex gap-2">
         <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={onExport}>
-          <Download className="h-3 w-3" /> Export Settings
+          <Download className="h-3 w-3" /> {t('settings.exportSettings')}
         </Button>
         <Button variant="ghost" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={() => fileRef.current?.click()}>
-          <Upload className="h-3 w-3" /> Import Settings
+          <Upload className="h-3 w-3" /> {t('settings.importSettings')}
         </Button>
         <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
       </div>

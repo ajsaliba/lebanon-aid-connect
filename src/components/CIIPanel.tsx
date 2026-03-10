@@ -3,8 +3,10 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { computeCII, CII_LEVEL_CONFIG, type CIIScore } from '@/config/countryInstability';
 import { Shield, TrendingUp, Minus, TrendingDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useTranslation } from '@/lib/i18n';
 
 export function CIIPanel() {
+  const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const scores = useMemo(() => computeCII(news), [news]);
 
@@ -12,18 +14,18 @@ export function CIIPanel() {
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
         <Shield className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Country Instability Index</span>
+        <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">{t('cii.title')}</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-[9px] text-muted-foreground cursor-help ml-auto">?</span>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[240px] text-[10px] space-y-1">
-            <p className="font-bold">Methodology</p>
-            <p>• <b>U</b>nrest: civil disorder & protests</p>
-            <p>• <b>C</b>onflict: armed conflict intensity</p>
-            <p>• <b>S</b>ecurity: military activity</p>
-            <p>• <b>I</b>nformation: news velocity</p>
-            <p className="text-muted-foreground italic">U:C:S:I values show component scores.</p>
+            <p className="font-bold">{t('cii.methodology')}</p>
+            <p>• <b>U</b>: {t('cii.unrest')}</p>
+            <p>• <b>C</b>: {t('cii.conflict')}</p>
+            <p>• <b>S</b>: {t('cii.security')}</p>
+            <p>• <b>I</b>: {t('cii.information')}</p>
+            <p className="text-muted-foreground italic">{t('cii.ucsiNote')}</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -38,6 +40,7 @@ export function CIIPanel() {
 }
 
 function CIIRow({ score }: { score: CIIScore }) {
+  const { t } = useTranslation();
   const cfg = CII_LEVEL_CONFIG[score.level];
   const { components } = score;
 
@@ -65,7 +68,7 @@ function CIIRow({ score }: { score: CIIScore }) {
           U:{components.unrest} C:{components.conflict} S:{components.security} I:{components.information}
         </div>
       </div>
-      <span className="text-[9px] text-muted-foreground shrink-0">{score.articleCount} articles</span>
+      <span className="text-[9px] text-muted-foreground shrink-0">{score.articleCount} {t('cii.articles')}</span>
     </div>
   );
 }

@@ -54,6 +54,29 @@ export default defineConfig(() => ({
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/.*tile\.openstreetmap\.org/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-tiles',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 86400, // 1 day
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*supabase\.co\/rest/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 600, // 10 min
+              },
+              networkTimeoutSeconds: 8,
+            },
+          },
         ],
       },
       manifest: {

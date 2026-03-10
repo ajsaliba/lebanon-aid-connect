@@ -1,5 +1,6 @@
 import { mockEmergencyContacts } from '@/data/mockData';
 import { Phone, Building2, Heart, Stethoscope, Shield } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 const catIcons = {
   emergency: Shield,
@@ -16,10 +17,11 @@ const catColors = {
 };
 
 export function EmergencyContacts() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2 p-3">
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-danger flex items-center gap-2">
-        <Phone className="h-3 w-3" /> Emergency Contacts
+        <Phone className="h-3 w-3" /> {t('emergency.contacts')}
       </h2>
       {mockEmergencyContacts.map((contact) => {
         const Icon = catIcons[contact.category];

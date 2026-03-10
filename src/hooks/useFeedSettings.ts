@@ -81,12 +81,13 @@ export function useFeedSettings() {
   const isRead = useCallback((id: string) => readHistory.has(id), [readHistory]);
 
   const exportSettings = useCallback(() => {
+    const safeParse = (key: string) => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
     const data = {
       settings,
       mutedKeywords: [...mutedKeywords],
-      bookmarks: JSON.parse(localStorage.getItem('cedarsalert_bookmarks') || '[]'),
-      readingList: JSON.parse(localStorage.getItem('cedarsalert_reading_list') || '[]'),
-      searchHistory: JSON.parse(localStorage.getItem('cedarsalert_search_history') || '[]'),
+      bookmarks: safeParse('cedarsalert_bookmarks'),
+      readingList: safeParse('cedarsalert_reading_list'),
+      searchHistory: safeParse('cedarsalert_search_history'),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

@@ -10,6 +10,7 @@ import { Activity, TrendingUp, BarChart3, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/lib/i18n';
 
 interface VelocityStory {
   keyword: string;
@@ -24,14 +25,15 @@ interface SentimentResult {
   breakdown: string;
 }
 
-const SENTIMENT_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  negative: { label: 'Negative', color: 'text-danger', icon: '🔴' },
-  mixed: { label: 'Mixed', color: 'text-warning', icon: '🟡' },
-  neutral: { label: 'Neutral', color: 'text-muted-foreground', icon: '⚪' },
-  positive: { label: 'Positive', color: 'text-success', icon: '🟢' },
+const SENTIMENT_CONFIG: Record<string, { labelKey: string; color: string; icon: string }> = {
+  negative: { labelKey: 'sentiment.negative', color: 'text-danger', icon: '🔴' },
+  mixed: { labelKey: 'sentiment.mixed', color: 'text-warning', icon: '🟡' },
+  neutral: { labelKey: 'sentiment.neutral', color: 'text-muted-foreground', icon: '⚪' },
+  positive: { labelKey: 'sentiment.positive', color: 'text-success', icon: '🟢' },
 };
 
 export function SentimentVelocityPanel() {
+  const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -112,22 +114,22 @@ export function SentimentVelocityPanel() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <Activity className="h-4 w-4 text-primary" />
-        <h3 className="text-xs font-bold uppercase tracking-wider">AI Insights</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider">{t('sentiment.title')}</h3>
       </div>
 
       {/* Sentiment section */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">📊 Sentiment</span>
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">📊 {t('sentiment.label')}</span>
           <Button variant="ghost" size="sm" className="h-5 text-[9px] px-2" onClick={handleAnalyzeSentiment} disabled={isAnalyzing}>
-            {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Analyze'}
+            {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : t('sentiment.analyze')}
           </Button>
         </div>
         {sentiment ? (
           <div className="rounded bg-muted/30 p-2 space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-sm">{sentimentCfg?.icon}</span>
-              <span className={cn('text-xs font-bold', sentimentCfg?.color)}>{sentimentCfg?.label}</span>
+              <span className={cn('text-xs font-bold', sentimentCfg?.color)}>{sentimentCfg ? t(sentimentCfg.labelKey) : ''}</span>
               <span className="text-[9px] text-muted-foreground">({(sentiment.score * 100).toFixed(0)}%)</span>
             </div>
             <p className="text-[10px] text-muted-foreground">{sentiment.breakdown}</p>
@@ -136,15 +138,15 @@ export function SentimentVelocityPanel() {
           <div className="flex gap-2 text-[10px]">
             <div className="flex-1 rounded bg-danger/10 p-1.5 text-center">
               <div className="font-bold text-danger">{quickSentiment.neg}%</div>
-              <div className="text-[8px] text-muted-foreground">Negative</div>
+              <div className="text-[8px] text-muted-foreground">{t('sentiment.negative')}</div>
             </div>
             <div className="flex-1 rounded bg-muted/30 p-1.5 text-center">
               <div className="font-bold text-muted-foreground">{quickSentiment.neutral}%</div>
-              <div className="text-[8px] text-muted-foreground">Neutral</div>
+              <div className="text-[8px] text-muted-foreground">{t('sentiment.neutral')}</div>
             </div>
             <div className="flex-1 rounded bg-success/10 p-1.5 text-center">
               <div className="font-bold text-success">{quickSentiment.pos}%</div>
-              <div className="text-[8px] text-muted-foreground">Positive</div>
+              <div className="text-[8px] text-muted-foreground">{t('sentiment.positive')}</div>
             </div>
           </div>
         )}
@@ -154,7 +156,7 @@ export function SentimentVelocityPanel() {
       <div className="space-y-1.5">
         <div className="flex items-center gap-1">
           <TrendingUp className="h-3 w-3 text-warning" />
-          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">⚡ Fast-Moving Stories</span>
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">⚡ {t('sentiment.fastMoving')}</span>
           <span className="text-[9px] text-warning font-bold ml-auto">{velocityStories.length}</span>
         </div>
         {velocityStories.length > 0 ? (
@@ -163,14 +165,14 @@ export function SentimentVelocityPanel() {
               <div key={story.keyword} className="flex items-center justify-between text-[10px] rounded bg-muted/30 px-2 py-1">
                 <span className="font-medium text-foreground">{story.keyword}</span>
                 <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
-                  <span>{story.sources} sources</span>
+                  <span>{story.sources} {t('sentiment.sources')}</span>
                   <span className="text-warning font-bold">{story.rate}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-[10px] text-muted-foreground text-center py-2">No velocity spikes detected</div>
+          <div className="text-[10px] text-muted-foreground text-center py-2">{t('sentiment.noSpikes')}</div>
         )}
       </div>
     </div>

@@ -5,11 +5,12 @@ import { Radio, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
+import { useTranslation, t as translate } from '@/lib/i18n';
 
 type IntelCategory = 'military' | 'cyber' | 'nuclear' | 'sanctions' | 'intelligence' | 'maritime';
 
 interface IntelCategoryConfig {
-  label: string;
+  labelKey: string;
   icon: string;
   keywords: string[];
   color: string;
@@ -17,37 +18,37 @@ interface IntelCategoryConfig {
 
 const INTEL_CATEGORIES: Record<IntelCategory, IntelCategoryConfig> = {
   military: {
-    label: 'Military Activity',
+    labelKey: 'intel.military',
     icon: '⚔️',
     keywords: ['military', 'airstrike', 'strike', 'bombing', 'troops', 'deploy', 'fighter', 'missile', 'artillery', 'offensive', 'idf', 'armed forces', 'soldiers', 'battalion', 'operation', 'raid', 'war', 'combat'],
     color: 'text-danger',
   },
   cyber: {
-    label: 'Cyber Threats',
+    labelKey: 'intel.cyber',
     icon: '🔓',
     keywords: ['cyber', 'hack', 'ransomware', 'malware', 'data breach', 'phishing', 'ddos', 'cybersecurity', 'zero-day', 'vulnerability', 'exploit'],
     color: 'text-[hsl(var(--primary))]',
   },
   nuclear: {
-    label: 'Nuclear',
+    labelKey: 'intel.nuclear',
     icon: '☢️',
     keywords: ['nuclear', 'uranium', 'enrichment', 'iaea', 'warhead', 'atomic', 'centrifuge', 'plutonium', 'nonproliferation', 'reactor'],
     color: 'text-danger',
   },
   sanctions: {
-    label: 'Sanctions',
+    labelKey: 'intel.sanctions',
     icon: '🚫',
     keywords: ['sanction', 'embargo', 'tariff', 'trade war', 'export controls', 'blacklist', 'treasury department', 'ofac', 'asset freeze'],
     color: 'text-warning',
   },
   intelligence: {
-    label: 'Intelligence',
+    labelKey: 'intel.intelligence',
     icon: '🕵️',
     keywords: ['intelligence', 'espionage', 'spy', 'cia', 'mossad', 'mi6', 'covert', 'surveillance', 'reconnaissance', 'osint', 'sigint', 'classified'],
     color: 'text-muted-foreground',
   },
   maritime: {
-    label: 'Maritime Security',
+    labelKey: 'intel.maritime',
     icon: '🚢',
     keywords: ['naval', 'navy', 'carrier', 'destroyer', 'submarine', 'strait', 'maritime', 'piracy', 'shipping lane', 'blockade', 'port', 'vessel', 'fleet'],
     color: 'text-info',
@@ -65,6 +66,7 @@ function categorizeArticle(article: NewsItem): IntelCategory | null {
 }
 
 export function GDELTIntelPanel() {
+  const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const [activeCategory, setActiveCategory] = useState<IntelCategory>('military');
 
@@ -90,17 +92,17 @@ export function GDELTIntelPanel() {
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
         <Radio className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">Live Intelligence</span>
+        <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">{t('intel.title')}</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-[9px] text-muted-foreground cursor-help ml-auto">?</span>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[220px] text-[10px] space-y-1">
-            <p className="font-bold">GDELT Intelligence</p>
-            <p>Real-time global news monitoring:</p>
-            <p>• Curated topic categories</p>
-            <p>• Articles from 100+ languages</p>
-            <p>• Updates every 15 minutes</p>
+            <p className="font-bold">{t('intel.gdeltTitle')}</p>
+            <p>{t('intel.gdeltDesc')}</p>
+            <p>• {t('intel.gdeltTopics')}</p>
+            <p>• {t('intel.gdeltLanguages')}</p>
+            <p>• {t('intel.gdeltUpdates')}</p>
           </TooltipContent>
         </Tooltip>
         <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 rounded">{totalCount}</span>
@@ -119,7 +121,7 @@ export function GDELTIntelPanel() {
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
             )}
           >
-            {cfg.icon}{cfg.label}
+            {cfg.icon}{t(cfg.labelKey)}
           </button>
         ))}
       </div>
@@ -127,7 +129,7 @@ export function GDELTIntelPanel() {
       {/* Articles */}
       <div className="space-y-0.5 px-1">
         {activeArticles.length === 0 && (
-          <p className="text-[10px] text-muted-foreground italic py-2">No articles in this category</p>
+          <p className="text-[10px] text-muted-foreground italic py-2">{t('intel.noArticles')}</p>
         )}
         {activeArticles.map(article => (
           <a
@@ -150,7 +152,7 @@ export function GDELTIntelPanel() {
                   {article.severity === 'high' && (
                     <>
                       <span>•</span>
-                      <span className="text-danger font-bold">ALERT</span>
+                      <span className="text-danger font-bold">{t('alert.label')}</span>
                     </>
                   )}
                 </div>
@@ -167,7 +169,7 @@ export function GDELTIntelPanel() {
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const hours = Math.floor(diff / 3600000);
-  if (hours < 1) return 'just now';
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 1) return translate('time.justNow');
+  if (hours < 24) return `${hours}${translate('time.hAgo')}`;
+  return `${Math.floor(hours / 24)}${translate('time.dAgo')}`;
 }

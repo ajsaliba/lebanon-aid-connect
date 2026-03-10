@@ -7,6 +7,7 @@ import { MONITORED_COUNTRIES } from '@/config/countryInstability';
 import { Search, Newspaper, MapPin, Radio, Globe, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
+import { useTranslation } from '@/lib/i18n';
 
 interface CommandResult {
   id: string;
@@ -22,6 +23,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { news } = useNewsFeedContext();
+  const { t } = useTranslation();
 
   // Cmd+K / Ctrl+K to open
   useEffect(() => {
@@ -53,7 +55,7 @@ export function CommandPalette() {
         label: sanitizeFeedText(n.title).slice(0, 80),
         sublabel: `${n.source} • ${n.category}`,
         icon: <Newspaper className="h-3.5 w-3.5 text-primary" />,
-        category: 'News',
+        category: t('cmd.news'),
         action: () => { if (n.url && n.url !== '#') window.open(n.url, '_blank'); setOpen(false); },
       });
     }
@@ -64,9 +66,9 @@ export function CommandPalette() {
         items.push({
           id: `hotspot-${hs.id}`,
           label: hs.name,
-          sublabel: `Hotspot zone`,
+          sublabel: t('cmd.hotspotZone'),
           icon: <MapPin className="h-3.5 w-3.5 text-danger" />,
-          category: 'Hotspots',
+          category: t('cmd.hotspots'),
           action: () => setOpen(false),
         });
       }
@@ -80,7 +82,7 @@ export function CommandPalette() {
           label: node.name,
           sublabel: `${node.type} • ${node.region}`,
           icon: <Zap className="h-3.5 w-3.5 text-info" />,
-          category: 'Infrastructure',
+          category: t('cmd.infrastructure'),
           action: () => setOpen(false),
         });
       }
@@ -92,9 +94,9 @@ export function CommandPalette() {
         items.push({
           id: `country-${c.id}`,
           label: c.name,
-          sublabel: `CII Country • ${c.code}`,
+          sublabel: `${t('cmd.ciiCountry')} • ${c.code}`,
           icon: <Globe className="h-3.5 w-3.5 text-warning" />,
-          category: 'Countries',
+          category: t('cmd.countries'),
           action: () => setOpen(false),
         });
       }
@@ -126,7 +128,7 @@ export function CommandPalette() {
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search news, hotspots, infrastructure, countries..."
+            placeholder={t('cmd.searchPlaceholder')}
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           <kbd className="hidden sm:inline text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">ESC</kbd>
@@ -134,11 +136,11 @@ export function CommandPalette() {
 
         <div className="max-h-[360px] overflow-y-auto">
           {results.length === 0 && query.length >= 2 && (
-            <div className="p-6 text-center text-sm text-muted-foreground">No results found</div>
+            <div className="p-6 text-center text-sm text-muted-foreground">{t('cmd.noResults')}</div>
           )}
           {results.length === 0 && query.length < 2 && (
             <div className="p-6 text-center text-xs text-muted-foreground">
-              Type to search across news, hotspots, infrastructure, and countries
+              {t('cmd.typeToSearch')}
             </div>
           )}
           {results.length > 0 && (
@@ -165,9 +167,9 @@ export function CommandPalette() {
         </div>
 
         <div className="flex items-center gap-3 px-3 py-1.5 border-t border-border text-[9px] text-muted-foreground">
-          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">↑↓</kbd> Navigate</span>
-          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">↵</kbd> Open</span>
-          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">esc</kbd> Close</span>
+          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">↑↓</kbd> {t('feed.navigate')}</span>
+          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">↵</kbd> {t('cmd.open')}</span>
+          <span><kbd className="px-1 py-0.5 rounded bg-muted border border-border">esc</kbd> {t('cmd.close')}</span>
         </div>
       </DialogContent>
     </Dialog>

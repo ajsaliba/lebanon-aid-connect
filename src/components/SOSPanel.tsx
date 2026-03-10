@@ -15,11 +15,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from '@/lib/i18n';
 
 const catIcons = { emergency: Shield, embassy: Building2, ngo: Heart, medical: Stethoscope };
 const catColors = { emergency: 'text-danger', embassy: 'text-info', ngo: 'text-success', medical: 'text-warning' };
 
 const NEEDS_OPTIONS = ['Medical', 'Water', 'Food', 'Shelter', 'Evacuation', 'Trapped', 'Children', 'Elderly'] as const;
+const NEEDS_KEYS: Record<string, string> = {
+  Medical: 'sos.needMedical', Water: 'sos.needWater', Food: 'sos.needFood',
+  Shelter: 'sos.needShelter', Evacuation: 'sos.needEvacuation', Trapped: 'sos.needTrapped',
+  Children: 'sos.needChildren', Elderly: 'sos.needElderly',
+};
 
 interface SOSSignal {
   id: string;
@@ -36,6 +42,7 @@ interface SOSSignal {
 }
 
 export function SOSPanel() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const { position, loading: geoLoading, refresh: refreshGeo } = useGeolocation();
@@ -83,12 +90,12 @@ export function SOSPanel() {
   // Send SOS distress signal
   const sendSOS = async () => {
     if (!user) {
-      toast({ title: 'Sign in required', description: 'You must be signed in to send an SOS signal.', variant: 'destructive' });
+      toast({ title: t('sos.signInRequired'), description: t('sos.signInDesc'), variant: 'destructive' });
       return;
     }
     if (!position) {
       refreshGeo();
-      toast({ title: 'Getting location...', description: 'Please allow location access and try again.' });
+      toast({ title: t('sos.gettingLocation'), description: t('sos.allowLocation') });
       return;
     }
     setSending(true);
@@ -104,9 +111,9 @@ export function SOSPanel() {
     });
     setSending(false);
     if (error) {
-      toast({ title: 'Error sending SOS', description: error.message, variant: 'destructive' });
+      toast({ title: t('sos.errorSending'), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: '🆘 SOS Signal Sent', description: 'Your distress signal is now visible to all responders.' });
+      toast({ title: t('sos.sosSent'), description: t('sos.sosSentDesc') });
       setShowSOSDialog(false);
       setSosMessage('');
       setSosNeeds([]);
@@ -118,7 +125,7 @@ export function SOSPanel() {
   const resolveMySignal = async () => {
     if (!myActiveSignal) return;
     await supabase.from('sos_signals').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', myActiveSignal.id);
-    toast({ title: 'SOS resolved', description: 'Glad you are safe!' });
+    toast({ title: t('sos.resolved'), description: t('sos.resolvedDesc') });
     setMyActiveSignal(null);
     fetchSignals();
   };
@@ -126,7 +133,7 @@ export function SOSPanel() {
   // "I'm Safe" check-in
   const checkInSafe = async () => {
     if (!user) {
-      toast({ title: 'Sign in required', variant: 'destructive' });
+      toast({ title: t('sos.signInRequired'), variant: 'destructive' });
       return;
     }
     setCheckingIn(true);
@@ -138,12 +145,12 @@ export function SOSPanel() {
       message: 'I am safe',
     });
     setCheckingIn(false);
-    toast({ title: '✅ Checked in as Safe', description: 'Your safety status has been recorded.' });
+    toast({ title: t('sos.checkedInSafe'), description: t('sos.checkedInDesc') });
   };
 
   // Share location via WhatsApp or native share
   const shareLocationWhatsApp = () => {
-    if (!position) { refreshGeo(); toast({ title: 'Getting location...', description: 'Please allow location access and try again.' }); return; }
+    if (!position) { refreshGeo(); toast({ title: t('sos.gettingLocation'), description: t('sos.allowLocation') }); return; }
     const text = encodeURIComponent(
       `🆘 EMERGENCY — I need help!\n📍 https://www.google.com/maps?q=${position.lat},${position.lng}\n⏰ ${new Date().toLocaleString()}`
     );
@@ -157,9 +164,9 @@ export function SOSPanel() {
 
   const timeSince = (date: string) => {
     const mins = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    return `${Math.floor(mins / 60)}h ago`;
+    if (mins < 1) return t('time.justNow');
+    if (mins < 60) return `${mins}${t('time.mAgo')}`;
+    return `${Math.floor(mins / 60)}${t('time.hAgo')}`;
   };
 
   return (
@@ -169,17 +176,17 @@ export function SOSPanel() {
         {myActiveSignal ? (
           <>
             <div className="flex items-center gap-2 text-danger text-xs font-bold animate-pulse">
-              <Radio className="h-4 w-4" /> YOUR SOS IS ACTIVE
+              <Radio className="h-4 w-4" /> {t('sos.sosActive')}
             </div>
             <p className="text-[10px] text-muted-foreground text-center px-4">
-              Responders can see your location. Stay where you are if safe.
+              {t('sos.respondersCanSee')}
             </p>
             <Button
               onClick={resolveMySignal}
               variant="outline"
               className="h-8 text-xs gap-1.5 border-success/50 text-success hover:bg-success/10"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" /> I'm Safe — Cancel SOS
+              <CheckCircle2 className="h-3.5 w-3.5" /> {t('sos.imSafeCancelSOS')}
             </Button>
           </>
         ) : (
@@ -190,10 +197,10 @@ export function SOSPanel() {
               aria-label="Send SOS Distress Signal"
             >
               <AlertTriangle className="h-8 w-8 mb-0.5" />
-              <span className="text-[10px] font-black uppercase tracking-widest">SOS</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">{t('tab.sos')}</span>
             </button>
             <span className="text-[10px] text-muted-foreground text-center">
-              Tap to broadcast your location to responders
+              {t('sos.tapToBroadcast')}
             </span>
           </>
         )}
@@ -205,7 +212,7 @@ export function SOSPanel() {
           onClick={() => window.location.href = 'tel:140'}
           className="h-9 text-[10px] gap-1.5 bg-danger/90 hover:bg-danger text-danger-foreground"
         >
-          <Phone className="h-3.5 w-3.5" /> Call Red Cross (140)
+          <Phone className="h-3.5 w-3.5" /> {t('sos.callRedCross')}
         </Button>
         <Button
           onClick={shareLocationWhatsApp}
@@ -213,7 +220,7 @@ export function SOSPanel() {
           className="h-9 text-[10px] gap-1.5 bg-success/90 hover:bg-success text-success-foreground"
         >
           {geoLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5" />}
-          Share via WhatsApp
+          {t('sos.shareWhatsApp')}
         </Button>
       </div>
 
@@ -225,7 +232,7 @@ export function SOSPanel() {
         className="w-full h-8 text-xs gap-1.5 border-success/50 text-success hover:bg-success/10"
       >
         {checkingIn ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-        I'm Safe — Check In
+        {t('sos.imSafeCheckIn')}
       </Button>
 
       {position && (
@@ -242,7 +249,7 @@ export function SOSPanel() {
           <div className="flex items-center gap-1.5">
             <Radio className="h-3 w-3 text-danger animate-pulse" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-danger">
-              Active Distress Signals ({activeSignals.length})
+              {t('sos.activeDistress')} ({activeSignals.length})
             </span>
           </div>
           {activeSignals.slice(0, 10).map(signal => (
@@ -251,7 +258,7 @@ export function SOSPanel() {
                 <div className="flex items-center gap-1.5">
                   <AlertTriangle className="h-3 w-3 text-danger" />
                   <span className="font-semibold text-foreground">
-                    {signal.people_count} {signal.people_count === 1 ? 'person' : 'people'}
+                    {signal.people_count} {signal.people_count === 1 ? t('sos.person') : t('sos.people')}
                   </span>
                 </div>
                 <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
@@ -269,11 +276,11 @@ export function SOSPanel() {
               <div className="flex gap-1.5">
                 {signal.contact_phone && (
                   <Button variant="outline" size="sm" className="h-5 text-[9px] gap-0.5 flex-1 border-danger/50 text-danger" onClick={() => window.location.href = `tel:${signal.contact_phone}`}>
-                    <Phone className="h-2 w-2" /> Call
+                    <Phone className="h-2 w-2" /> {t('sos.call')}
                   </Button>
                 )}
                 <Button variant="outline" size="sm" className="h-5 text-[9px] gap-0.5 flex-1 border-info/50 text-info" onClick={() => window.open(getDirectionsUrl(signal.lat, signal.lng), '_blank')}>
-                  <Navigation className="h-2 w-2" /> Navigate
+                  <Navigation className="h-2 w-2" /> {t('sos.navigate')}
                 </Button>
               </div>
             </div>
@@ -284,20 +291,20 @@ export function SOSPanel() {
       {/* Safety Tips */}
       <div className="p-2 rounded border border-warning/30 bg-warning/5 text-[10px] space-y-1">
         <div className="flex items-center gap-1 text-warning font-bold text-xs">
-          <AlertTriangle className="h-3 w-3" /> Safety Tips
+          <AlertTriangle className="h-3 w-3" /> {t('sos.safetyTips')}
         </div>
         <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
-          <li>Stay away from windows during shelling</li>
-          <li>Keep phone charged — carry a power bank</li>
-          <li>Know your nearest shelter (see Shelters tab)</li>
-          <li>Keep documents in a waterproof bag</li>
-          <li>If trapped, tap on pipes to signal rescuers</li>
+          <li>{t('sos.tip1')}</li>
+          <li>{t('sos.tip2')}</li>
+          <li>{t('sos.tip3')}</li>
+          <li>{t('sos.tip4')}</li>
+          <li>{t('sos.tip5')}</li>
         </ul>
       </div>
 
       {/* Emergency Contacts */}
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-danger flex items-center gap-2">
-        <Phone className="h-3 w-3" /> Emergency Contacts
+        <Phone className="h-3 w-3" /> {t('emergency.contacts')}
       </h2>
       {mockEmergencyContacts.map((contact) => {
         const Icon = catIcons[contact.category];
@@ -327,16 +334,16 @@ export function SOSPanel() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="text-sm text-danger flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" /> Send Distress Signal
+              <AlertTriangle className="h-4 w-4" /> {t('sos.sendDistress')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-[11px] text-muted-foreground">
-              Your GPS location will be broadcast to all nearby responders and volunteers.
+              {t('sos.gpsBroadcast')}
             </p>
 
             <div className="space-y-1">
-              <Label className="text-xs">What do you need? *</Label>
+              <Label className="text-xs">{t('sos.whatDoYouNeed')}</Label>
               <div className="flex flex-wrap gap-1">
                 {NEEDS_OPTIONS.map(need => (
                   <button
@@ -349,7 +356,7 @@ export function SOSPanel() {
                         : 'border-border text-muted-foreground hover:border-muted-foreground'
                     )}
                   >
-                    {need}
+                    {t(NEEDS_KEYS[need])}
                   </button>
                 ))}
               </div>
@@ -357,7 +364,7 @@ export function SOSPanel() {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">People with you</Label>
+                <Label className="text-xs">{t('sos.peopleWithYou')}</Label>
                 <Input
                   type="number"
                   min="1"
@@ -367,7 +374,7 @@ export function SOSPanel() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Phone (for rescuers)</Label>
+                <Label className="text-xs">{t('sos.phoneForRescuers')}</Label>
                 <Input
                   value={sosPhone}
                   onChange={e => setSosPhone(e.target.value)}
@@ -378,11 +385,11 @@ export function SOSPanel() {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Additional details</Label>
+              <Label className="text-xs">{t('sos.additionalDetails')}</Label>
               <Textarea
                 value={sosMessage}
                 onChange={e => setSosMessage(e.target.value)}
-                placeholder="e.g. Building collapsed, 3rd floor, can hear us..."
+                placeholder={t('sos.detailsPlaceholder')}
                 className="text-xs min-h-[60px]"
               />
             </div>
@@ -390,12 +397,12 @@ export function SOSPanel() {
             {position ? (
               <div className="flex items-center gap-1.5 text-[10px] text-success bg-success/5 rounded p-1.5 border border-success/20">
                 <MapPin className="h-3 w-3" />
-                <span>Location locked: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
+                <span>{t('sos.locationLocked')}: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5 text-[10px] text-warning bg-warning/5 rounded p-1.5 border border-warning/20">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                <span>Getting your location...</span>
+                <span>{t('sos.gettingYourLocation')}</span>
               </div>
             )}
 
@@ -405,7 +412,7 @@ export function SOSPanel() {
               className="w-full h-9 text-xs gap-1.5 bg-danger hover:bg-danger/90 text-danger-foreground font-bold"
             >
               {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-              BROADCAST SOS SIGNAL
+              {t('sos.broadcastSignal')}
             </Button>
           </div>
         </DialogContent>

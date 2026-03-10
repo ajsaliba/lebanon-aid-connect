@@ -5,8 +5,10 @@ import { Network, Zap, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useTranslation } from '@/lib/i18n';
 
 export function InfrastructureCascadePanel() {
+  const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<CascadeNodeType>('cable');
   const [selectedNodeId, setSelectedNodeId] = useState<string>('');
   const [impact, setImpact] = useState<CascadeImpact | null>(null);
@@ -33,21 +35,21 @@ export function InfrastructureCascadePanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Network className="h-4 w-4 text-primary" />
-          <h3 className="text-xs font-bold uppercase tracking-wider">Infrastructure Cascade</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider">{t('cascade.title')}</h3>
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-[9px] text-muted-foreground cursor-help">?</span>
           </TooltipTrigger>
           <TooltipContent side="left" className="text-[10px] max-w-[220px]">
-            <p className="font-bold mb-1">Cascade Analysis</p>
-            <p>Models infrastructure dependencies. Select an asset to simulate failure and view affected countries and capacity loss.</p>
+            <p className="font-bold mb-1">{t('cascade.analysisTitle')}</p>
+            <p>{t('cascade.analysisDesc')}</p>
           </TooltipContent>
         </Tooltip>
       </div>
 
       {/* Stats bar */}
-      <div className="text-[9px] font-mono text-muted-foreground">{stats.total} nodes</div>
+      <div className="text-[9px] font-mono text-muted-foreground">{stats.total} {t('cascade.nodes')}</div>
       <div className="flex flex-wrap gap-1.5 text-[9px]">
         {(Object.entries(CASCADE_TYPE_CONFIG) as Array<[CascadeNodeType, typeof CASCADE_TYPE_CONFIG[CascadeNodeType]]>).map(([type, cfg]) => (
           <button
@@ -61,7 +63,7 @@ export function InfrastructureCascadePanel() {
             {cfg.icon} {stats[type as CascadeNodeType]}
           </button>
         ))}
-        <span className="text-muted-foreground">📊 {stats.links} links</span>
+        <span className="text-muted-foreground">📊 {stats.links} {t('cascade.links')}</span>
       </div>
 
       {/* Type tabs */}
@@ -83,7 +85,7 @@ export function InfrastructureCascadePanel() {
       {/* Node selector */}
       <Select value={selectedNodeId} onValueChange={setSelectedNodeId}>
         <SelectTrigger className="h-7 text-[10px]">
-          <SelectValue placeholder={`Select ${CASCADE_TYPE_CONFIG[selectedType].label.toLowerCase()}...`} />
+          <SelectValue placeholder={t('cascade.selectPlaceholder')} />
         </SelectTrigger>
         <SelectContent>
           {nodesOfType.map(n => (
@@ -93,7 +95,7 @@ export function InfrastructureCascadePanel() {
       </Select>
 
       <Button onClick={handleAnalyze} size="sm" className="w-full h-7 text-[10px]" disabled={!selectedNodeId}>
-        Analyze Impact
+        {t('cascade.analyzeImpact')}
       </Button>
 
       {/* Impact results */}
@@ -101,40 +103,40 @@ export function InfrastructureCascadePanel() {
         <div className="space-y-2 rounded bg-muted/30 p-2">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-            <span className="text-xs font-bold">{impact.node.name} Failure</span>
+            <span className="text-xs font-bold">{impact.node.name} {t('cascade.failure')}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div>
-              <div className="text-muted-foreground">Affected Countries</div>
+              <div className="text-muted-foreground">{t('cascade.affectedCountries')}</div>
               <div className="font-bold text-foreground">{impact.affectedCountries.length}</div>
             </div>
             <div>
-              <div className="text-muted-foreground">Capacity Loss</div>
+              <div className="text-muted-foreground">{t('cascade.capacityLoss')}</div>
               <div className={cn('font-bold', impact.capacityLoss > 50 ? 'text-danger' : 'text-warning')}>{impact.capacityLoss}%</div>
             </div>
             <div>
-              <div className="text-muted-foreground">Cascade Depth</div>
+              <div className="text-muted-foreground">{t('cascade.cascadeDepth')}</div>
               <div className="font-bold text-foreground">{impact.cascadeDepth}</div>
             </div>
             <div>
-              <div className="text-muted-foreground">Redundant Routes</div>
+              <div className="text-muted-foreground">{t('cascade.redundantRoutes')}</div>
               <div className="font-bold text-success">{impact.redundantRoutes}</div>
             </div>
           </div>
           {impact.affectedNodes.length > 0 && (
             <div className="text-[9px] text-muted-foreground">
-              <span className="font-bold">Affected:</span>{' '}
+              <span className="font-bold">{t('cascade.affected')}:</span>{' '}
               {impact.affectedNodes.map(n => n.name).join(', ')}
             </div>
           )}
           <div className="text-[9px] text-muted-foreground">
-            <span className="font-bold">Countries:</span>{' '}
+            <span className="font-bold">{t('cascade.countries')}:</span>{' '}
             {impact.affectedCountries.join(', ')}
           </div>
         </div>
       ) : (
         <div className="text-[10px] text-muted-foreground text-center py-2">
-          Select infrastructure to analyze cascade impact
+          {t('cascade.selectInfra')}
         </div>
       )}
     </div>

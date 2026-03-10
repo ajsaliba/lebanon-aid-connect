@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 
 interface DbHousing extends HousingListing {
   user_id: string;
@@ -25,6 +26,7 @@ interface DbHousing extends HousingListing {
 export function HousingPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { position } = useGeolocation();
   const [dbHousing, setDbHousing] = useState<DbHousing[]>([]);
   const [open, setOpen] = useState(false);
@@ -77,8 +79,8 @@ export function HousingPanel() {
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('housing_listings').delete().eq('id', id);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: 'Listing deleted' }); fetchHousing(); }
+    if (error) toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    else { toast({ title: t('housing.deleted') }); fetchHousing(); }
   };
 
   const toggleAvailability = async (house: DbHousing) => {
@@ -90,7 +92,7 @@ export function HousingPanel() {
     e.preventDefault();
     if (!user) return;
     if (formLat === 0 && formLng === 0 && !editHousing) {
-      toast({ title: 'Please select a location', variant: 'destructive' });
+      toast({ title: t('shelter.selectLocation'), variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -115,8 +117,8 @@ export function HousingPanel() {
       ({ error } = await supabase.from('housing_listings').insert({ ...payload, user_id: user.id }));
     }
     setLoading(false);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: editHousing ? 'Updated' : 'Added' }); setOpen(false); setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); fetchHousing(); }
+    if (error) toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    else { toast({ title: editHousing ? t('housing.updated') : t('housing.added') }); setOpen(false); setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); fetchHousing(); }
   };
 
   const openWhatsApp = (contact: string, title: string) => {
@@ -163,20 +165,20 @@ export function HousingPanel() {
     <div className="space-y-2 p-3">
       {/* Summary */}
       <div className="flex items-center gap-2 text-[9px] bg-muted/50 rounded p-1.5">
-        <span className="text-info font-bold">{availableCount} available</span>
+        <span className="text-info font-bold">{availableCount} {t('housing.available')}</span>
         {freeCount > 0 && (
           <>
             <span className="text-muted-foreground">•</span>
-            <span className="text-success font-bold flex items-center gap-0.5"><Heart className="h-2 w-2" /> {freeCount} free</span>
+            <span className="text-success font-bold flex items-center gap-0.5"><Heart className="h-2 w-2" /> {freeCount} {t('housing.free')}</span>
           </>
         )}
         <span className="text-muted-foreground">•</span>
-        <span className="text-muted-foreground">{dbHousing.length} total</span>
+        <span className="text-muted-foreground">{dbHousing.length} {t('housing.total')}</span>
       </div>
 
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-info flex items-center gap-2">
-          <Home className="h-3 w-3" /> Housing
+          <Home className="h-3 w-3" /> {t('housing.title')}
         </h2>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing}>
@@ -185,12 +187,12 @@ export function HousingPanel() {
           {user && (
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditHousing(null); setIsFreeForm(false); setUrgencyForm('normal'); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info"><Plus className="h-2.5 w-2.5" /> Add</Button>
+                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-info"><Plus className="h-2.5 w-2.5" /> {t('common.add')}</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader><DialogTitle className="text-sm">{editHousing ? 'Edit' : 'Add Housing'}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle className="text-sm">{editHousing ? t('housing.editTitle') : t('housing.addTitle')}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Title *</Label><Input name="title" required className="h-7 text-xs" placeholder="e.g. 2BR Apartment - Hamra" defaultValue={editHousing?.title || ''} /></div>
+                  <div className="space-y-1"><Label className="text-xs">{t('housing.labelTitle')} *</Label><Input name="title" required className="h-7 text-xs" placeholder={t('housing.titlePlaceholder')} defaultValue={editHousing?.title || ''} /></div>
                   <LocationPicker
                     defaultAddress={editHousing?.address}
                     defaultLat={editHousing?.lat}
@@ -201,33 +203,33 @@ export function HousingPanel() {
                   {/* Free housing toggle */}
                   <div className="flex items-center justify-between bg-success/5 border border-success/20 rounded p-2">
                     <div>
-                      <Label className="text-xs font-semibold text-success">Free for Displaced Families</Label>
-                      <p className="text-[9px] text-muted-foreground">Offering this housing at no cost</p>
+                      <Label className="text-xs font-semibold text-success">{t('housing.freeForDisplaced')}</Label>
+                      <p className="text-[9px] text-muted-foreground">{t('housing.freeDesc')}</p>
                     </div>
                     <Switch checked={isFreeForm} onCheckedChange={setIsFreeForm} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     {!isFreeForm && (
-                      <div className="space-y-1"><Label className="text-xs">Price ($/mo) *</Label><Input name="price" type="number" required={!isFreeForm} className="h-7 text-xs" defaultValue={editHousing?.price || ''} /></div>
+                      <div className="space-y-1"><Label className="text-xs">{t('housing.price')} *</Label><Input name="price" type="number" required={!isFreeForm} className="h-7 text-xs" defaultValue={editHousing?.price || ''} /></div>
                     )}
-                    <div className="space-y-1"><Label className="text-xs">Bedrooms *</Label><Input name="bedrooms" type="number" required className="h-7 text-xs" defaultValue={editHousing?.bedrooms || ''} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('housing.bedrooms')} *</Label><Input name="bedrooms" type="number" required className="h-7 text-xs" defaultValue={editHousing?.bedrooms || ''} /></div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Urgency</Label>
+                    <Label className="text-xs">{t('housing.urgency')}</Label>
                     <Select value={urgencyForm} onValueChange={setUrgencyForm}>
                       <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="urgent">Urgent — Immediate Move-in</SelectItem>
+                        <SelectItem value="normal">{t('housing.normal')}</SelectItem>
+                        <SelectItem value="urgent">{t('housing.urgentOption')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="space-y-1"><Label className="text-xs">Contact (Phone) *</Label><Input name="contact" required className="h-7 text-xs" defaultValue={editHousing?.contact || ''} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Description</Label><Textarea name="description" className="text-xs min-h-[50px]" defaultValue={editHousing?.description || ''} /></div>
-                  <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>{loading ? 'Saving...' : (editHousing ? 'Update' : 'Add Listing')}</Button>
+                  <div className="space-y-1"><Label className="text-xs">{t('housing.contact')} *</Label><Input name="contact" required className="h-7 text-xs" defaultValue={editHousing?.contact || ''} /></div>
+                  <div className="space-y-1"><Label className="text-xs">{t('housing.description')}</Label><Textarea name="description" className="text-xs min-h-[50px]" defaultValue={editHousing?.description || ''} /></div>
+                  <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>{loading ? t('common.saving') : (editHousing ? t('common.update') : t('housing.addListing'))}</Button>
                 </form>
               </DialogContent>
             </Dialog>
@@ -239,10 +241,10 @@ export function HousingPanel() {
       <div className="flex gap-1.5 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 text-muted-foreground" />
-          <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="h-6 text-[10px] pl-5" />
+          <Input placeholder={t('housing.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)} className="h-6 text-[10px] pl-5" />
         </div>
-        <Input type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="h-6 text-[10px] w-14" />
-        <Input type="number" placeholder="BR" value={minBeds} onChange={e => setMinBeds(e.target.value)} className="h-6 text-[10px] w-10" />
+        <Input type="number" placeholder={t('housing.maxPrice')} value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="h-6 text-[10px] w-14" />
+        <Input type="number" placeholder={t('housing.br')} value={minBeds} onChange={e => setMinBeds(e.target.value)} className="h-6 text-[10px] w-10" />
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -252,12 +254,12 @@ export function HousingPanel() {
             showFreeOnly ? 'bg-success/10 border-success/50 text-success' : 'border-border text-muted-foreground'
           )}
         >
-          <Heart className="h-2 w-2" /> Free Only
+          <Heart className="h-2 w-2" /> {t('housing.freeOnly')}
         </button>
       </div>
 
       {listings.length === 0 && (
-        <p className="text-[10px] text-muted-foreground text-center py-4">No housing found. Add a listing to help displaced families!</p>
+        <p className="text-[10px] text-muted-foreground text-center py-4">{t('housing.noListings')}</p>
       )}
 
       {listings.map((house) => {
@@ -275,12 +277,12 @@ export function HousingPanel() {
                   <span className="font-sans font-semibold text-foreground text-xs">{house.title}</span>
                   {house.urgency === 'urgent' && (
                     <Badge className="text-[8px] h-3.5 bg-warning/10 text-warning border-warning/30 gap-0.5">
-                      <AlertTriangle className="h-2 w-2" /> Urgent
+                      <AlertTriangle className="h-2 w-2" /> {t('housing.urgent')}
                     </Badge>
                   )}
                   {house.is_free && (
                     <Badge className="text-[8px] h-3.5 bg-success/10 text-success border-success/30 gap-0.5">
-                      <Heart className="h-2 w-2" /> Free
+                      <Heart className="h-2 w-2" /> {t('housing.free')}
                     </Badge>
                   )}
                 </div>
@@ -297,7 +299,7 @@ export function HousingPanel() {
                   </>
                 )}
                 <Badge variant="outline" className={cn('text-[9px] h-4', house.available ? 'border-info/50 text-info' : 'border-muted-foreground/50 text-muted-foreground')}>
-                  {house.available ? 'Available' : 'Taken'}
+                  {house.available ? t('housing.available') : t('housing.taken')}
                 </Badge>
               </div>
             </div>
@@ -305,18 +307,18 @@ export function HousingPanel() {
             {house.description && <p className="text-muted-foreground">{house.description}</p>}
             <div className="flex items-center gap-3">
               {house.is_free ? (
-                <span className="flex items-center gap-1 text-success font-semibold"><Heart className="h-2.5 w-2.5" /> Free</span>
+                <span className="flex items-center gap-1 text-success font-semibold"><Heart className="h-2.5 w-2.5" /> {t('housing.free')}</span>
               ) : (
-                <span className="flex items-center gap-1 text-info font-semibold"><DollarSign className="h-2.5 w-2.5" />{house.price}/mo</span>
+                <span className="flex items-center gap-1 text-info font-semibold"><DollarSign className="h-2.5 w-2.5" />{house.price}/{t('housing.perMonth')}</span>
               )}
-              <span className="flex items-center gap-1"><BedDouble className="h-2.5 w-2.5" />{house.bedrooms} BR</span>
+              <span className="flex items-center gap-1"><BedDouble className="h-2.5 w-2.5" />{house.bedrooms} {t('housing.br')}</span>
             </div>
             <div className="flex gap-1.5">
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 flex-1 border-info/50 text-info hover:bg-info/10" onClick={() => window.location.href = `tel:${house.contact}`}>
-                <Phone className="h-2.5 w-2.5" /> Call
+                <Phone className="h-2.5 w-2.5" /> {t('shelter.call')}
               </Button>
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 border-success/50 text-success hover:bg-success/10" onClick={() => openWhatsApp(house.contact, house.title)}>
-                <MessageCircle className="h-2.5 w-2.5" /> WhatsApp
+                <MessageCircle className="h-2.5 w-2.5" /> {t('housing.whatsapp')}
               </Button>
               <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 border-muted-foreground/50 text-muted-foreground hover:bg-muted/50" onClick={() => window.open(getDirectionsUrl(house.lat, house.lng), '_blank')}>
                 <Navigation className="h-2.5 w-2.5" />

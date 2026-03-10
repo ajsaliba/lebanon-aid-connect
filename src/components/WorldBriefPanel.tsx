@@ -5,8 +5,10 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/lib/i18n';
 
 export function WorldBriefPanel() {
+  const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const [brief, setBrief] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,9 +74,9 @@ export function WorldBriefPanel() {
         }
       }
 
-      if (!fullText) setBrief('No brief generated. Try again.');
+      if (!fullText) setBrief(t('brief.noGenerated'));
     } catch (err: any) {
-      setError(err.message || 'Failed to generate brief');
+      setError(err.message || t('brief.generateFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +90,7 @@ export function WorldBriefPanel() {
       >
         <div className="flex items-center gap-2">
           <Brain className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">AI World Brief</span>
+          <span className="text-xs font-sans font-bold uppercase tracking-wider text-primary">{t('brief.title')}</span>
         </div>
         {expanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
       </button>
@@ -103,7 +105,7 @@ export function WorldBriefPanel() {
             disabled={isLoading || news.length === 0}
           >
             <RefreshCw className={cn('h-3 w-3', isLoading && 'animate-spin')} />
-            {isLoading ? 'Analyzing...' : brief ? 'Regenerate Brief' : 'Generate Brief'}
+            {isLoading ? t('brief.analyzing') : brief ? t('brief.regenerate') : t('brief.generate')}
           </Button>
 
           {error && <p className="text-[10px] text-danger">{error}</p>}
@@ -116,7 +118,7 @@ export function WorldBriefPanel() {
 
           {!brief && !isLoading && !error && (
             <p className="text-[10px] text-muted-foreground text-center">
-              AI-synthesized summary of current situation based on latest {news.length} articles
+              {t('brief.description')}
             </p>
           )}
         </div>

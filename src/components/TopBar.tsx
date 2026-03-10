@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download, Globe, Link2, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -10,6 +10,7 @@ import { useIntelSignals } from '@/hooks/useIntelSignals';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { exportNewsAsCSV, exportNewsAsJSON } from '@/lib/dataExport';
+import { useTranslation } from '@/lib/i18n';
 import {
   Sheet,
   SheetContent,
@@ -33,18 +34,18 @@ interface TopBarProps {
 }
 
 const regions = [
-  { id: 'lebanon', label: 'Lebanon', icon: MapPin },
-  { id: 'middle-east', label: 'Middle East', icon: Shield },
-  { id: 'global', label: 'Global', icon: Radio },
+  { id: 'lebanon', labelKey: 'topbar.regionLebanon', icon: MapPin },
+  { id: 'middle-east', labelKey: 'topbar.regionMiddleEast', icon: Shield },
+  { id: 'global', labelKey: 'topbar.regionGlobal', icon: Radio },
 ];
 
-const typeLabel: Record<string, string> = {
-  conflict: 'Airstrike / Conflict',
-  news: 'War Update',
-  humanitarian: 'Humanitarian',
-  infrastructure: 'Infrastructure',
-  shelter: 'New Shelter',
-  housing: 'New Housing',
+const typeLabelKeys: Record<string, string> = {
+  conflict: 'topbar.typeConflict',
+  news: 'topbar.typeNews',
+  humanitarian: 'topbar.typeHumanitarian',
+  infrastructure: 'topbar.typeInfra',
+  shelter: 'topbar.typeShelter',
+  housing: 'topbar.typeHousing',
 };
 
 const SOUND_PREF_KEY = 'cedarsalert_sound_alerts';
@@ -55,11 +56,19 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
   const { news } = useNewsFeedContext();
   const signals = useIntelSignals(news);
   const sourceFilters = useSourceFilters();
+  const { t, lang, changeLanguage } = useTranslation();
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem(SOUND_PREF_KEY) !== 'false'; } catch { return true; }
   });
   const prevNewsCountRef = useRef(news.length);
   const audioRef = useRef<AudioContext | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
@@ -100,6 +109,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
     const next = !soundEnabled;
     setSoundEnabled(next);
     try { localStorage.setItem(SOUND_PREF_KEY, String(next)); } catch {}
+    if (next) playAlertSound();
   };
 
   const utcTime = time.toUTCString().split(' ').slice(4).join(' ').replace(' GMT', '');
@@ -114,13 +124,13 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <AlertTriangle className="h-4 w-4 text-primary shrink-0" />
           <h1 className="font-sans font-bold text-xs sm:text-sm tracking-wider uppercase text-primary truncate">
-            <span className="sm:hidden">Cedars Alert</span>
-            <span className="hidden sm:inline">Lebanon Crisis Monitor</span>
+            <span className="sm:hidden">{t('app.shortTitle')}</span>
+            <span className="hidden sm:inline">{t('app.title')}</span>
           </h1>
         </div>
         <div className="hidden md:flex items-center gap-1 ml-4">
           <span className="h-2 w-2 rounded-full bg-danger animate-pulse-danger" />
-          <span className="text-[10px] text-danger font-medium uppercase tracking-wider">Live</span>
+          <span className="text-[10px] text-danger font-medium uppercase tracking-wider">{t('app.live')}</span>
         </div>
       </div>
 
@@ -160,10 +170,10 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => exportNewsAsCSV(news)} className="text-xs">
-                Export as CSV
+                {t('topbar.exportCSV')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportNewsAsJSON(news)} className="text-xs">
-                Export as JSON
+                {t('topbar.exportJSON')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -171,6 +181,38 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
 
         {/* Intel Signals Badge */}
         <IntelSignalsBadge signals={signals} />
+
+        {/* Copy link */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+              navigator.clipboard.writeText(window.location.href).catch(() => {});
+            }}>
+              <Link2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px]">
+            {t('topbar.copyLink')}
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Fullscreen toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+              } else {
+                document.documentElement.requestFullscreen().catch(() => {});
+              }
+            }}>
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px]">
+            {isFullscreen ? t('topbar.exitFullscreen') : t('topbar.fullscreen')}
+          </TooltipContent>
+        </Tooltip>
 
         {/* Sound toggle — hidden on small mobile */}
         <span className="hidden sm:inline-flex">
@@ -181,7 +223,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-[10px]">
-              Sound alerts: {soundEnabled ? 'ON' : 'OFF'}
+              {soundEnabled ? t('topbar.soundOn') : t('topbar.soundOff')}
             </TooltipContent>
           </Tooltip>
         </span>
@@ -199,26 +241,26 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
           </SheetTrigger>
           <SheetContent side="right" className="w-[360px] sm:max-w-[420px] p-4">
             <SheetHeader>
-              <SheetTitle className="text-base">War Notifications</SheetTitle>
-              <SheetDescription>Middle East war-related alerts and updates.</SheetDescription>
+              <SheetTitle className="text-base">{t('topbar.notifications')}</SheetTitle>
+              <SheetDescription>{t('topbar.notificationsDesc')}</SheetDescription>
             </SheetHeader>
             <div className="mt-4 flex justify-end">
               <Button variant="outline" size="sm" className="h-7 text-xs" onClick={markAllAsRead}>
-                Mark all as read
+                {t('topbar.markAllRead')}
               </Button>
             </div>
             <div className="mt-3 space-y-2 max-h-[75vh] overflow-y-auto pr-1">
               {notifications.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No notifications yet.</p>
+                <p className="text-xs text-muted-foreground">{t('topbar.noNotifications')}</p>
               ) : (
                 notifications.map((n) => (
                   <article key={n.id} className={cn('rounded-md border border-border p-2 text-xs', !n.read && 'bg-muted/40')}>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-foreground">{typeLabel[n.type] ?? n.type}</span>
+                      <span className="font-semibold text-foreground">{typeLabelKeys[n.type] ? t(typeLabelKeys[n.type]) : n.type}</span>
                       <span className="text-[10px] text-muted-foreground">{new Date(n.createdAt).toLocaleTimeString()}</span>
                     </div>
                     <p className="mt-1 text-foreground">{n.title}</p>
-                    {n.source && <p className="mt-1 text-[11px] text-muted-foreground">Source: {n.source}</p>}
+                    {n.source && <p className="mt-1 text-[11px] text-muted-foreground">{t('topbar.source')}: {n.source}</p>}
                   </article>
                 ))
               )}
@@ -227,6 +269,27 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
         </Sheet>
 
         <ThemeToggle />
+
+        {/* Language Switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Globe className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => changeLanguage('en')} className={cn('text-xs', lang === 'en' && 'font-bold text-primary')}>
+              🇬🇧 English
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLanguage('ar')} className={cn('text-xs', lang === 'ar' && 'font-bold text-primary')}>
+              🇱🇧 العربية
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLanguage('fr')} className={cn('text-xs', lang === 'fr' && 'font-bold text-primary')}>
+              🇫🇷 Français
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <AuthDialog />
       </div>
     </header>

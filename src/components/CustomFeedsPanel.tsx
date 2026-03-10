@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/i18n';
 
 interface CustomFeed {
   id: string;
@@ -17,6 +18,7 @@ interface CustomFeed {
 export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [feeds, setFeeds] = useState<CustomFeed[]>([]);
   const [newName, setNewName] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -47,9 +49,9 @@ export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onTogg
       source_label: newName.trim(),
     });
     if (error) {
-      toast({ title: 'Failed to add feed', description: error.message, variant: 'destructive' });
+      toast({ title: t('customFeed.addFailed'), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Feed added' });
+      toast({ title: t('customFeed.added') });
       setNewName(''); setNewUrl('');
       loadFeeds();
     }
@@ -72,24 +74,24 @@ export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onTogg
     <div className="border-b border-border bg-card/50 p-3 space-y-3 text-[11px]">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
-          <Rss className="h-3 w-3" /> Custom Feeds
+          <Rss className="h-3 w-3" /> {t('customFeed.title')}
         </span>
         <button onClick={onToggle}><X className="h-3 w-3 text-muted-foreground" /></button>
       </div>
 
       {!user ? (
-        <p className="text-[10px] text-muted-foreground">Sign in to add custom RSS feeds.</p>
+        <p className="text-[10px] text-muted-foreground">{t('customFeed.signIn')}</p>
       ) : (
         <>
           <div className="space-y-1">
             <Input value={newName} onChange={e => setNewName(e.target.value)}
-              placeholder="Feed name (e.g. My Blog)" className="h-7 text-[11px]" />
+              placeholder={t('customFeed.namePlaceholder')} className="h-7 text-[11px]" />
             <div className="flex gap-1">
               <Input value={newUrl} onChange={e => setNewUrl(e.target.value)}
-                placeholder="RSS URL (https://...)" className="h-7 text-[11px] flex-1"
+                placeholder={t('customFeed.urlPlaceholder')} className="h-7 text-[11px] flex-1"
                 onKeyDown={e => { if (e.key === 'Enter') addFeed(); }} />
               <Button size="sm" className="h-7 px-2 text-[10px]" onClick={addFeed} disabled={loading || !newUrl.trim() || !newName.trim()}>
-                <Plus className="h-3 w-3 mr-1" /> Add
+                <Plus className="h-3 w-3 mr-1" /> {t('customFeed.add')}
               </Button>
             </div>
           </div>
@@ -117,7 +119,7 @@ export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onTogg
           )}
 
           {feeds.length === 0 && (
-            <p className="text-[10px] text-muted-foreground">No custom feeds yet. Add an RSS URL above.</p>
+            <p className="text-[10px] text-muted-foreground">{t('customFeed.empty')}</p>
           )}
         </>
       )}

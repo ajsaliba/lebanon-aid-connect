@@ -2,8 +2,10 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { useFocalPoints, FOCAL_LEVEL_CONFIG } from '@/hooks/useFocalPoints';
 import { cn } from '@/lib/utils';
 import { Crosshair } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export function FocalPointsPanel() {
+  const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const focalPoints = useFocalPoints(news);
 
@@ -11,11 +13,11 @@ export function FocalPointsPanel() {
     <div className="rounded-lg border border-border bg-card/50 p-3 space-y-2">
       <div className="flex items-center gap-2">
         <Crosshair className="h-4 w-4 text-primary" />
-        <h3 className="text-xs font-bold uppercase tracking-wider">🎯 Focal Points</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider">🎯 {t('focal.title')}</h3>
       </div>
 
       {focalPoints.length === 0 ? (
-        <div className="text-[10px] text-muted-foreground text-center py-3">No focal points detected</div>
+        <div className="text-[10px] text-muted-foreground text-center py-3">{t('focal.noPoints')}</div>
       ) : (
         <div className="space-y-1.5">
           {focalPoints.map(fp => {
@@ -29,9 +31,9 @@ export function FocalPointsPanel() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
-                  <span>{fp.newsCount} news</span>
+                  <span>{fp.newsCount} {t('focal.news')}</span>
                   <span>•</span>
-                  <span>{fp.signalCount} signals</span>
+                  <span>{fp.signalCount} {t('focal.signals')}</span>
                 </div>
                 {fp.topHeadline && (
                   <a

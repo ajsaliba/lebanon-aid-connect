@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 
 interface DbShelter extends Shelter {
   user_id: string;
@@ -20,6 +21,7 @@ interface DbShelter extends Shelter {
 }
 
 export function ShelterPanel() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const { position } = useGeolocation();
@@ -71,8 +73,8 @@ export function ShelterPanel() {
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('shelters').delete().eq('id', id);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: 'Shelter deleted' }); fetchShelters(); }
+    if (error) toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    else { toast({ title: t('shelter.deleted') }); fetchShelters(); }
   };
 
   // "I'm heading here" — increments heading_count and opens directions
@@ -81,7 +83,7 @@ export function ShelterPanel() {
     // Use security definer function so any authenticated user can increment
     await supabase.rpc('increment_heading_count', { shelter_id: shelter.id });
     window.open(getDirectionsUrl(shelter.lat, shelter.lng), '_blank');
-    toast({ title: `Navigating to ${shelter.name}`, description: 'Follow directions in Google Maps.' });
+    toast({ title: `${t('shelter.navigatingTo')} ${shelter.name}`, description: t('shelter.followDirections') });
     fetchShelters();
   };
 
@@ -100,7 +102,7 @@ export function ShelterPanel() {
     e.preventDefault();
     if (!user) return;
     if (formLat === 0 && formLng === 0 && !editShelter) {
-      toast({ title: 'Please select a location', variant: 'destructive' });
+      toast({ title: t('shelter.selectLocation'), variant: 'destructive' });
       setLoading(false);
       return;
     }
@@ -124,8 +126,8 @@ export function ShelterPanel() {
       ({ error } = await supabase.from('shelters').insert({ ...payload, user_id: user.id }));
     }
     setLoading(false);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: editShelter ? 'Updated' : 'Shelter added' }); setOpen(false); setEditShelter(null); fetchShelters(); }
+    if (error) toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+    else { toast({ title: editShelter ? t('shelter.updated') : t('shelter.added') }); setOpen(false); setEditShelter(null); fetchShelters(); }
   };
 
   const shelters = useMemo(() => {
@@ -151,17 +153,17 @@ export function ShelterPanel() {
     <div className="space-y-2 p-3">
       {/* Summary bar */}
       <div className="flex items-center gap-2 text-[9px] bg-muted/50 rounded p-1.5">
-        <span className="text-success font-bold">{openCount} open</span>
+        <span className="text-success font-bold">{openCount} {t('shelter.open')}</span>
         <span className="text-muted-foreground">•</span>
-        <span className="text-muted-foreground">{totalOccupancy}/{totalCapacity} capacity</span>
+        <span className="text-muted-foreground">{totalOccupancy}/{totalCapacity} {t('shelter.capacity')}</span>
         <span className="text-muted-foreground">•</span>
-        <span className="text-muted-foreground">{dbShelters.length} total</span>
+        <span className="text-muted-foreground">{dbShelters.length} {t('shelter.total')}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-success flex items-center gap-2">
-          <MapPin className="h-3 w-3" /> Shelters
+          <MapPin className="h-3 w-3" /> {t('tab.shelters')}
         </h2>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing}>
@@ -170,12 +172,12 @@ export function ShelterPanel() {
           {user && (
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditShelter(null); setFormLat(0); setFormLng(0); setFormAddress(''); } }}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-success"><Plus className="h-2.5 w-2.5" /> Add</Button>
+                <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] gap-0.5 text-success"><Plus className="h-2.5 w-2.5" /> {t('common.add')}</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader><DialogTitle className="text-sm">{editShelter ? 'Edit Shelter' : 'Add Shelter'}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle className="text-sm">{editShelter ? t('shelter.editShelter') : t('shelter.addShelter')}</DialogTitle></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-2.5">
-                  <div className="space-y-1"><Label className="text-xs">Shelter Name *</Label><Input name="name" required className="h-7 text-xs" placeholder="e.g. Beirut Community Center" defaultValue={editShelter?.name || ''} /></div>
+                  <div className="space-y-1"><Label className="text-xs">{t('shelter.shelterName')}</Label><Input name="name" required className="h-7 text-xs" placeholder={t('shelter.namePlaceholder')} defaultValue={editShelter?.name || ''} /></div>
                   <LocationPicker
                     defaultAddress={editShelter?.address}
                     defaultLat={editShelter?.lat}
@@ -183,23 +185,23 @@ export function ShelterPanel() {
                     onSelect={(addr, lat, lng) => { setFormAddress(addr); setFormLat(lat); setFormLng(lng); }}
                   />
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1"><Label className="text-xs">Capacity *</Label><Input name="capacity" type="number" required className="h-7 text-xs" defaultValue={editShelter?.capacity || ''} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Occupancy</Label><Input name="occupancy" type="number" className="h-7 text-xs" defaultValue={editShelter?.currentOccupancy || ''} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('shelter.capacityLabel')}</Label><Input name="capacity" type="number" required className="h-7 text-xs" defaultValue={editShelter?.capacity || ''} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('shelter.occupancy')}</Label><Input name="occupancy" type="number" className="h-7 text-xs" defaultValue={editShelter?.currentOccupancy || ''} /></div>
                   </div>
-                  <div className="space-y-1"><Label className="text-xs">Contact *</Label><Input name="contact" required className="h-7 text-xs" defaultValue={editShelter?.contact || ''} /></div>
+                  <div className="space-y-1"><Label className="text-xs">{t('shelter.contactLabel')}</Label><Input name="contact" required className="h-7 text-xs" defaultValue={editShelter?.contact || ''} /></div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Status</Label>
+                    <Label className="text-xs">{t('common.status')}</Label>
                     <Select name="status" defaultValue={editShelter?.status || 'open'}>
                       <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="full">Full</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="open">{t('shelter.statusOpen')}</SelectItem>
+                        <SelectItem value="full">{t('shelter.statusFull')}</SelectItem>
+                        <SelectItem value="closed">{t('shelter.statusClosed')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1"><Label className="text-xs">Amenities (comma-separated)</Label><Input name="amenities" className="h-7 text-xs" defaultValue={editShelter?.amenities.join(', ') || ''} /></div>
-                  <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>{loading ? 'Saving...' : (editShelter ? 'Update' : 'Add Shelter')}</Button>
+                  <div className="space-y-1"><Label className="text-xs">{t('shelter.amenities')}</Label><Input name="amenities" className="h-7 text-xs" defaultValue={editShelter?.amenities.join(', ') || ''} /></div>
+                  <Button type="submit" className="w-full h-7 text-xs" disabled={loading}>{loading ? t('common.saving') : (editShelter ? t('common.update') : t('shelter.addShelter'))}</Button>
                 </form>
               </DialogContent>
             </Dialog>
@@ -211,21 +213,21 @@ export function ShelterPanel() {
       <div className="flex gap-1.5">
         <div className="relative flex-1">
           <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 text-muted-foreground" />
-          <Input placeholder="Search name, address, amenity..." value={search} onChange={e => setSearch(e.target.value)} className="h-6 text-[10px] pl-5" />
+          <Input placeholder={t('shelter.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)} className="h-6 text-[10px] pl-5" />
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
           <SelectTrigger className="h-6 text-[10px] w-20"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="full">Full</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
+            <SelectItem value="all">{t('common.all')}</SelectItem>
+            <SelectItem value="open">{t('shelter.statusOpen')}</SelectItem>
+            <SelectItem value="full">{t('shelter.statusFull')}</SelectItem>
+            <SelectItem value="closed">{t('shelter.statusClosed')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {shelters.length === 0 && (
-        <p className="text-[10px] text-muted-foreground text-center py-4">No shelters found. Be the first to report one!</p>
+        <p className="text-[10px] text-muted-foreground text-center py-4">{t('shelter.noShelters')}</p>
       )}
 
       {/* Shelter Cards */}
@@ -280,14 +282,14 @@ export function ShelterPanel() {
               </div>
               <span className="text-[9px] font-medium">
                 <span className={spotsLeft <= 5 ? 'text-danger' : 'text-success'}>{spotsLeft}</span>
-                <span className="text-muted-foreground"> spots left</span>
+                <span className="text-muted-foreground"> {t('shelter.spotsLeft')}</span>
               </span>
             </div>
 
             {/* Owner quick occupancy controls */}
             {isOwner && (
               <div className="flex items-center gap-1 text-[9px]">
-                <span className="text-muted-foreground">Update count:</span>
+                <span className="text-muted-foreground">{t('shelter.updateCount')}:</span>
                 <Button variant="outline" size="sm" className="h-4 w-6 p-0 text-[9px]" onClick={() => handleUpdateOccupancy(shelter, -5)}>-5</Button>
                 <Button variant="outline" size="sm" className="h-4 w-6 p-0 text-[9px]" onClick={() => handleUpdateOccupancy(shelter, -1)}>-1</Button>
                 <span className="font-semibold text-foreground">{shelter.currentOccupancy}</span>
@@ -299,7 +301,7 @@ export function ShelterPanel() {
             {/* Heading count */}
             {shelter.heading_count > 0 && (
               <div className="text-[9px] text-info flex items-center gap-1">
-                <ArrowRight className="h-2 w-2" /> {shelter.heading_count} people heading here
+                <ArrowRight className="h-2 w-2" /> {shelter.heading_count} {t('shelter.peopleHeading')}
               </div>
             )}
 
@@ -317,7 +319,7 @@ export function ShelterPanel() {
                 className="h-6 text-[10px] gap-1 flex-1 border-success/50 text-success hover:bg-success/10"
                 onClick={() => window.location.href = `tel:${shelter.contact}`}
               >
-                <Phone className="h-2.5 w-2.5" /> Call
+                <Phone className="h-2.5 w-2.5" /> {t('sos.call')}
               </Button>
               {shelter.status === 'open' && (
                 <Button
@@ -329,7 +331,7 @@ export function ShelterPanel() {
                   onClick={() => handleHeadingHere(shelter)}
                 >
                   <Navigation className="h-2.5 w-2.5" />
-                  {isHeadingHere ? 'Navigating...' : "I'm Heading Here"}
+                  {isHeadingHere ? t('shelter.navigating') : t('shelter.headingHere')}
                 </Button>
               )}
             </div>

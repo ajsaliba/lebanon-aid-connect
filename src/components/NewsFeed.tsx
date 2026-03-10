@@ -17,6 +17,7 @@ import { CustomFeedsPanel } from '@/components/CustomFeedsPanel';
 import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n';
 import { findDuplicates } from '@/lib/duplicateDetection';
 import { useThreatClassification } from '@/hooks/useThreatClassification';
 
@@ -209,6 +210,7 @@ export function NewsFeed() {
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
   const { readingListIds, toggleReadingList, isInReadingList } = useReadingList();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Sync poll interval with settings
   useEffect(() => {
@@ -349,7 +351,7 @@ export function NewsFeed() {
       <div className="p-3 border-b border-border space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-sans font-bold uppercase tracking-wider text-primary">Live Feed</h2>
+            <h2 className="text-sm font-sans font-bold uppercase tracking-wider text-primary">{t('feed.liveFeed')}</h2>
             {isLive ? (
               <span className="flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
@@ -361,14 +363,14 @@ export function NewsFeed() {
                 <WifiOff className="h-2.5 w-2.5 text-warning" />
               </span>
             )}
-            <span className="text-[11px] text-muted-foreground">{filtered.length} articles</span>
+            <span className="text-[11px] text-muted-foreground">{filtered.length} {t('feed.articles')}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
               variant={viewMode === 'bookmarks' ? 'default' : 'ghost'}
               size="sm" className="h-5 w-5 p-0"
               onClick={() => setViewMode(viewMode === 'bookmarks' ? 'feed' : 'bookmarks')}
-              title={`Bookmarks (${bookmarkedIds.size})`}
+              title={`${t('feed.bookmarks')} (${bookmarkedIds.size})`}
             >
               <BookmarkCheck className="h-3 w-3" />
             </Button>
@@ -376,23 +378,23 @@ export function NewsFeed() {
               variant={viewMode === 'reading-list' ? 'default' : 'ghost'}
               size="sm" className="h-5 w-5 p-0"
               onClick={() => setViewMode(viewMode === 'reading-list' ? 'feed' : 'reading-list')}
-              title={`Reading List (${readingListIds.size})`}
+              title={`${t('feed.readingListTitle')} (${readingListIds.size})`}
             >
               <ListChecks className="h-3 w-3" />
             </Button>
             <Button variant={showSettings ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
-              onClick={() => { setShowSettings(prev => !prev); setShowCustomFeeds(false); }} title="Settings">
+              onClick={() => { setShowSettings(prev => !prev); setShowCustomFeeds(false); }} title={t('settings.title')}>
               <Settings className="h-3 w-3" />
             </Button>
             <Button variant={showCustomFeeds ? 'default' : 'ghost'} size="sm" className="h-5 w-5 p-0"
-              onClick={() => { setShowCustomFeeds(prev => !prev); setShowSettings(false); }} title="Custom Feeds">
+              onClick={() => { setShowCustomFeeds(prev => !prev); setShowSettings(false); }} title={t('customFeed.title')}>
               <Rss className="h-3 w-3" />
             </Button>
             <Button variant="ghost" size="sm" className="h-5 w-5 p-0"
-              onClick={() => setShowShortcuts(prev => !prev)} title="Keyboard shortcuts (?)">
+              onClick={() => setShowShortcuts(prev => !prev)} title={t('feed.shortcutsTitle')}>
               <Keyboard className="h-3 w-3 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing} title="Refresh (r)">
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleRefresh} disabled={isRefreshing} title={t('feed.refresh')}>
               <RefreshCw className={cn('h-3 w-3 text-muted-foreground', isRefreshing && 'animate-spin')} />
             </Button>
           </div>
@@ -402,10 +404,10 @@ export function NewsFeed() {
         {viewMode !== 'feed' && (
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-              {viewMode === 'bookmarks' ? '⭐ Saved Bookmarks' : '📖 Reading List'}
+              {viewMode === 'bookmarks' ? `⭐ ${t('feed.savedBookmarks')}` : `📖 ${t('feed.readingList')}`}
             </span>
             <button className="text-[9px] text-muted-foreground hover:text-foreground" onClick={() => setViewMode('feed')}>
-              ← Back to feed
+              ← {t('feed.backToFeed')}
             </button>
           </div>
         )}
@@ -415,7 +417,7 @@ export function NewsFeed() {
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
             ref={searchRef}
-            placeholder="Search titles & snippets... ( / )"
+            placeholder={t('feed.searchPlaceholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
             onFocus={() => setShowSuggestions(true)}
@@ -434,9 +436,9 @@ export function NewsFeed() {
                 <>
                   <div className="flex items-center justify-between px-2 py-1 border-b border-border">
                     <span className="text-[9px] uppercase text-muted-foreground font-bold flex items-center gap-1">
-                      <History className="h-2.5 w-2.5" /> Recent
+                      <History className="h-2.5 w-2.5" /> {t('feed.recent')}
                     </span>
-                    <button className="text-[9px] text-muted-foreground hover:text-foreground" onMouseDown={(e) => { e.preventDefault(); handleClearHistory(); }}>Clear</button>
+                    <button className="text-[9px] text-muted-foreground hover:text-foreground" onMouseDown={(e) => { e.preventDefault(); handleClearHistory(); }}>{t('feed.clear')}</button>
                   </div>
                   {searchHistory.map(h => (
                     <button key={h} className="w-full text-left px-2 py-1 text-[11px] text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
@@ -478,7 +480,7 @@ export function NewsFeed() {
                 <CalendarIcon className="h-2.5 w-2.5" />
                 {hasDateFilter
                   ? dateRange.from && dateRange.to ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d')}` : dateRange.from ? format(dateRange.from, 'MMM d') : ''
-                  : 'Date'}
+                  : t('feed.date')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -487,7 +489,7 @@ export function NewsFeed() {
                   onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
                   className="p-3 pointer-events-auto" disabled={(date) => date > new Date()} />
                 {hasDateFilter && (
-                  <Button variant="ghost" size="sm" className="w-full h-6 text-[10px]" onClick={() => setDateRange({})}>Clear date filter</Button>
+                  <Button variant="ghost" size="sm" className="w-full h-6 text-[10px]" onClick={() => setDateRange({})}>{t('feed.clearDateFilter')}</Button>
                 )}
               </div>
             </PopoverContent>
@@ -500,7 +502,7 @@ export function NewsFeed() {
             <Button key={cat} variant={activeCategory === cat ? 'default' : 'ghost'} size="sm"
               className={cn('h-5 px-1.5 text-[9px] uppercase', activeCategory !== cat && categoryStyles[cat])}
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}>
-              <span className="text-[8px] text-muted-foreground mr-0.5">{i+1}</span>{cat}
+              <span className="text-[8px] text-muted-foreground mr-0.5">{i+1}</span>{t(`feed.cat.${cat}`)}
             </Button>
           ))}
         </div>
@@ -510,7 +512,7 @@ export function NewsFeed() {
           <div className="space-y-1">
             <div className="flex items-center gap-1">
               <TrendingUp className="h-2.5 w-2.5 text-primary" />
-              <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Trending Now</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-primary">{t('feed.trendingNow')}</span>
             </div>
             <div ref={trendingRef} className="flex gap-1 flex-wrap pb-0.5">
               {trending.map(keyword => (
@@ -551,20 +553,20 @@ export function NewsFeed() {
       {showShortcuts && (
         <div className="border-b border-border bg-card/50 p-3 text-[10px] space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Keyboard Shortcuts</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">{t('feed.keyboardShortcuts')}</span>
             <button onClick={() => setShowShortcuts(false)}><X className="h-3 w-3 text-muted-foreground" /></button>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-muted-foreground">
-            <span><kbd className="px-1 rounded bg-muted text-foreground">/</kbd> Search</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">j</kbd>/<kbd className="px-1 rounded bg-muted text-foreground">k</kbd> Navigate</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">Enter</kbd> Open article</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">b</kbd> Bookmark</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">l</kbd> Reading list</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">r</kbd> Refresh</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">1-4</kbd> Categories</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">0</kbd> Clear category</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">?</kbd> This help</span>
-            <span><kbd className="px-1 rounded bg-muted text-foreground">Esc</kbd> Deselect</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">/</kbd> {t('feed.search')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">j</kbd>/<kbd className="px-1 rounded bg-muted text-foreground">k</kbd> {t('feed.navigate')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">Enter</kbd> {t('feed.openArticle')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">b</kbd> {t('feed.bookmark')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">l</kbd> {t('feed.readingListShort')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">r</kbd> {t('feed.refresh')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">1-4</kbd> {t('feed.categories')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">0</kbd> {t('feed.clearCategory')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">?</kbd> {t('feed.thisHelp')}</span>
+            <span><kbd className="px-1 rounded bg-muted text-foreground">Esc</kbd> {t('feed.deselect')}</span>
           </div>
         </div>
       )}
@@ -578,7 +580,7 @@ export function NewsFeed() {
           ))
         ) : filtered.length === 0 ? (
           <div className="text-center text-muted-foreground text-xs py-8">
-            {viewMode === 'bookmarks' ? 'No bookmarked articles yet' : viewMode === 'reading-list' ? 'Reading list is empty' : 'No news found for the selected filters'}
+            {viewMode === 'bookmarks' ? t('feed.noBookmarks') : viewMode === 'reading-list' ? t('feed.emptyReadingList') : t('feed.noNewsFound')}
           </div>
         ) : (
           <>
@@ -604,9 +606,9 @@ export function NewsFeed() {
                 <Button variant="ghost" size="sm" className="text-[10px] h-7 px-4 text-muted-foreground"
                   onClick={loadMore} disabled={isLoadingMore}>
                   {isLoadingMore ? (
-                    <><RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Loading...</>
+                    <><RefreshCw className="h-3 w-3 mr-1 animate-spin" /> {t('feed.loading')}</>
                   ) : (
-                    <>Load more articles</>
+                    <>{t('feed.loadMore')}</>
                   )}
                 </Button>
               </div>

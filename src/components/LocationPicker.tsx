@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { MapPin, Loader2, Crosshair } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
 interface LocationPickerProps {
   defaultAddress?: string;
@@ -15,6 +16,7 @@ interface LocationPickerProps {
 }
 
 export function LocationPicker({ defaultAddress, defaultLat, defaultLng, onSelect }: LocationPickerProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(defaultAddress || '');
   const [selectedAddress, setSelectedAddress] = useState(defaultAddress || '');
   const [selectedLat, setSelectedLat] = useState(defaultLat || 0);
@@ -47,7 +49,7 @@ export function LocationPicker({ defaultAddress, defaultLat, defaultLng, onSelec
 
   const useMyLocation = () => {
     if (position) {
-      const addr = `My Location (${position.lat.toFixed(4)}, ${position.lng.toFixed(4)})`;
+      const addr = `${t('location.myLocation')} (${position.lat.toFixed(4)}, ${position.lng.toFixed(4)})`;
       setQuery(addr);
       setSelectedAddress(addr);
       setSelectedLat(position.lat);
@@ -60,14 +62,14 @@ export function LocationPicker({ defaultAddress, defaultLat, defaultLng, onSelec
 
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">Location *</Label>
+      <Label className="text-xs">{t('location.label')} *</Label>
       <div className="relative">
         <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
         <Input
           value={query}
           onChange={e => handleInputChange(e.target.value)}
           onFocus={() => results.length > 0 && setShowResults(true)}
-          placeholder="Type a city, street, or landmark..."
+          placeholder={t('location.placeholder')}
           className="h-8 text-xs pl-7 pr-8"
           required
         />
@@ -84,7 +86,7 @@ export function LocationPicker({ defaultAddress, defaultLat, defaultLng, onSelec
         disabled={geoLoading}
       >
         {geoLoading ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Crosshair className="h-2.5 w-2.5" />}
-        Use My Current Location
+        {t('location.useCurrent')}
       </Button>
 
       {/* Search results dropdown */}

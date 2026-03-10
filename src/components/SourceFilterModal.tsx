@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { getSourceProfile } from '@/config/sourceReliability';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+import { useTranslation } from '@/lib/i18n';
 
 const STORAGE_KEY = 'cedarsalert_source_filters';
 
@@ -80,6 +81,7 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
   const sources = useUniqueSources();
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
 
   const filtered = useMemo(() => {
     if (!search) return sources;
@@ -94,7 +96,7 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] gap-1 uppercase tracking-wider">
           <Radio className="h-3 w-3" />
-          Sources
+          {t('sourceFilter.sources')}
           <span className="text-muted-foreground">{enabledCount}/{sources.length}</span>
         </Button>
       </DialogTrigger>
@@ -102,8 +104,8 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
         <DialogHeader>
           <DialogTitle className="text-sm uppercase tracking-wider flex items-center gap-2">
             <Radio className="h-4 w-4 text-primary" />
-            Source Management
-            <span className="text-xs font-normal text-muted-foreground ml-auto">{enabledCount}/{sources.length} enabled</span>
+            {t('sourceFilter.management')}
+            <span className="text-xs font-normal text-muted-foreground ml-auto">{enabledCount}/{sources.length} {t('sourceFilter.enabled')}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -112,7 +114,7 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Filter sources…"
+              placeholder={t('sourceFilter.filter')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-8 h-8 text-xs"
@@ -122,10 +124,10 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
           {/* Bulk actions */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1" onClick={enableAll}>
-              <Check className="h-3 w-3 mr-1" /> Select All
+              <Check className="h-3 w-3 mr-1" /> {t('sourceFilter.selectAll')}
             </Button>
             <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1" onClick={() => disableAll(sources)}>
-              <X className="h-3 w-3 mr-1" /> Select None
+              <X className="h-3 w-3 mr-1" /> {t('sourceFilter.selectNone')}
             </Button>
           </div>
 
@@ -156,7 +158,7 @@ export function SourceFilterModal({ disabledSources, toggleSource, enableAll, di
                 );
               })}
               {filtered.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">No sources matching "{search}"</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t('sourceFilter.noMatch')} "{search}"</p>
               )}
             </div>
           </ScrollArea>
