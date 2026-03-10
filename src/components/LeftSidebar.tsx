@@ -138,6 +138,9 @@ export function LeftSidebar({ isOpen, mobileForceTab }: LeftSidebarProps) {
                 <NightPowerPanel />
                 <ResourceForecastPanel />
                 <AidAccountabilityPanel />
+                <GPSJammingPanel />
+                <ProtestsPanel />
+                <WeatherAlertsPanel />
                 <TrendingPanel keywords={trendingKeywords} />
               </div>
             </ScrollArea>
