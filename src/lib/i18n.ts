@@ -1830,11 +1830,6 @@ const translations: Record<Language, Record<string, string>> = {
     'topbar.typeHousing': 'سكن جديد',
     'topbar.source': 'المصدر',
 
-    // StatusBar time
-    'time.justNow': 'الآن',
-    'time.mAgo': ' د مضت',
-    'time.hAgo': ' س مضت',
-    'time.dAgo': ' ي مضت',
 
     // CrisisMap
     'map.live': 'مباشر',
