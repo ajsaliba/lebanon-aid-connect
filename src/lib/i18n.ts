@@ -2872,7 +2872,7 @@ const translations: Record<Language, Record<string, string>> = {
     'feed.bookmarks': 'Signets',
     'feed.readingListTitle': 'Liste de lecture',
     'feed.shortcutsTitle': 'Raccourcis clavier (?)',
-    'feed.refresh': 'Actualiser (r)',
+    
     'feed.recent': 'Récents',
     'feed.cat.conflict': 'Conflit',
     'feed.cat.humanitarian': 'Humanitaire',
