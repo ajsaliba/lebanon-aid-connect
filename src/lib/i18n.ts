@@ -1870,7 +1870,7 @@ const translations: Record<Language, Record<string, string>> = {
     'feed.bookmarks': 'الإشارات المرجعية',
     'feed.readingListTitle': 'قائمة القراءة',
     'feed.shortcutsTitle': 'اختصارات لوحة المفاتيح (?)',
-    'feed.refresh': 'تحديث (r)',
+    
     'feed.recent': 'الأخيرة',
     'feed.cat.conflict': 'نزاع',
     'feed.cat.humanitarian': 'إنساني',
