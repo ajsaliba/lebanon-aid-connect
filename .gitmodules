@@ -1,0 +1,8 @@
+[submodule "Alternate Lebanon Aid Connect"]
+	path = Alternate Lebanon Aid Connect
+	url = https://github.com/ajsaliba/lebanon-aid-connect-8328acaa.git
+	branch = main
+[submodule "World Monitor"]
+	path = World Monitor
+	url = https://github.com/koala73/worldmonitor.git
+	branch = main
