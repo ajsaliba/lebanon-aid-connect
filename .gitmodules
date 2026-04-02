@@ -6,3 +6,7 @@
 	path = World Monitor
 	url = https://github.com/koala73/worldmonitor.git
 	branch = main
+[submodule "Lebanon Aid Connect Reimagined"]
+	path = Lebanon Aid Connect Reimagined
+	url = https://github.com/ajsaliba/aidconnect-reimagined.git
+	branch = main
