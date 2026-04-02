@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/lib/i18n';
+import { useMlIntel } from '@/hooks/useMlIntel';
 
 export function WorldBriefPanel() {
   const { t } = useTranslation();
   const { news } = useNewsFeedContext();
+  const mlIntel = useMlIntel(news);
   const [brief, setBrief] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -75,12 +76,18 @@ export function WorldBriefPanel() {
       }
 
       if (!fullText) setBrief(t('brief.noGenerated'));
-    } catch (err: any) {
-      setError(err.message || t('brief.generateFailed'));
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : t('brief.generateFailed');
+      if (mlIntel.summary && mlIntel.summary !== 'No summary generated yet.') {
+        setBrief(mlIntel.summary);
+        setError('Cloud summarizer unavailable, showing worker fallback.');
+      } else {
+        setError(errMessage);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [news]);
+  }, [mlIntel.summary, news, t]);
 
   return (
     <div className="border border-border rounded-md bg-card">
@@ -109,6 +116,10 @@ export function WorldBriefPanel() {
           </Button>
 
           {error && <p className="text-[10px] text-danger">{error}</p>}
+
+          {!isLoading && mlIntel.loading && (
+            <p className="text-[10px] text-muted-foreground">Preparing worker fallback...</p>
+          )}
 
           {brief && (
             <div className="text-[11px] text-foreground leading-relaxed whitespace-pre-wrap bg-muted/30 rounded p-2 max-h-[300px] overflow-y-auto">
