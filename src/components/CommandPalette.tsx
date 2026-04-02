@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { HOTSPOTS } from '@/config/hotspots';
 import { INFRA_NODES } from '@/config/infrastructure';
@@ -103,7 +103,7 @@ export function CommandPalette() {
     }
 
     return items.slice(0, 20);
-  }, [query, news]);
+  }, [query, news, t]);
 
   // Keyboard nav
   useEffect(() => {
@@ -122,6 +122,7 @@ export function CommandPalette() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[520px] p-0 gap-0 overflow-hidden" aria-describedby={undefined}>
+        <DialogTitle className="sr-only">Global Command Palette</DialogTitle>
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
           <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <input

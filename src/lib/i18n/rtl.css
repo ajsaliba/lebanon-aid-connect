@@ -1,0 +1,28 @@
+:root[dir='rtl'] body {
+  text-align: right;
+}
+
+:root[dir='rtl'] .ops-shell {
+  direction: rtl;
+}
+
+:root[dir='rtl'] .ops-shell .leaflet-container,
+:root[dir='rtl'] .ltr-map {
+  direction: ltr;
+}
+
+:root[dir='rtl'] .rtl-order-reverse {
+  flex-direction: row-reverse;
+}
+
+:root[dir='rtl'] .rtl-mirror {
+  transform: scaleX(-1);
+}
+
+:root[dir='rtl'] .rtl-text-start {
+  text-align: right;
+}
+
+:root[dir='ltr'] .rtl-text-start {
+  text-align: left;
+}
