@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,9 +17,16 @@ import { MarkerClusterLayer } from '@/components/map/MarkerClusterGroup';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from '@/lib/i18n';
+import {
+  DEFAULT_MAP_LAYER_STATE,
+  type MapLayerContract,
+  type MapLayerToggleState,
+} from '@/features/map/mapLayerContract';
+
+type LeafletIconPrototype = L.Icon.Default & { _getIconUrl?: string };
 
 // Fix default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as LeafletIconPrototype)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -76,17 +83,7 @@ function inferCoords(text: string): { lat: number; lng: number } | null {
   return null;
 }
 
-interface LayerToggle {
-  hotspots: boolean;
-  airstrikes: boolean;
-  shelters: boolean;
-  housing: boolean;
-  news: boolean;
-  hospitals: boolean;
-  infrastructure: boolean;
-  sos: boolean;
-  daynight: boolean;
-}
+type LayerToggle = MapLayerToggleState;
 
 function MapController() {
   const map = useMap();
@@ -97,7 +94,7 @@ function MapController() {
 }
 
 /** Syncs map position to URL search params */
-function URLStateSync({ timeFilter, layers }: { timeFilter: string; layers: LayerToggle }) {
+function URLStateSync({ timeFilter }: { timeFilter: string }) {
   const map = useMap();
   const [, setSearchParams] = useSearchParams();
 
@@ -120,7 +117,12 @@ function URLStateSync({ timeFilter, layers }: { timeFilter: string; layers: Laye
   return null;
 }
 
-export function CrisisMap() {
+interface CrisisMapProps {
+  initialContract?: MapLayerContract;
+  onContractChange?: (contract: MapLayerContract) => void;
+}
+
+export function CrisisMap({ initialContract, onContractChange }: CrisisMapProps) {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const { scores, historyMap } = useEscalationHistory(news);
   const [searchParams] = useSearchParams();
@@ -134,24 +136,35 @@ export function CrisisMap() {
   const initialZoom = parseInt(searchParams.get('z') || '5', 10);
   const initialTime = searchParams.get('t') || 'all';
 
+  const defaultLayers = initialContract?.layers ?? DEFAULT_MAP_LAYER_STATE;
+  const defaultTime = searchParams.get('t') || initialContract?.timeFilter || 'all';
+
   const [layers, setLayers] = useState<LayerToggle>({
-    hotspots: true,
-    airstrikes: true,
-    shelters: true,
-    housing: true,
-    news: true,
-    hospitals: true,
-    infrastructure: true,
-    sos: true,
-    daynight: false,
+    hotspots: defaultLayers.hotspots,
+    airstrikes: defaultLayers.airstrikes,
+    shelters: defaultLayers.shelters,
+    housing: defaultLayers.housing,
+    news: defaultLayers.news,
+    hospitals: defaultLayers.hospitals,
+    infrastructure: defaultLayers.infrastructure,
+    sos: defaultLayers.sos,
+    daynight: defaultLayers.daynight,
   });
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
-  const [mapTimeFilter, setMapTimeFilter] = useState(initialTime);
+  const [mapTimeFilter, setMapTimeFilter] = useState(defaultTime || initialTime);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
+
+  useEffect(() => {
+    if (!onContractChange) return;
+    onContractChange({
+      layers,
+      timeFilter: mapTimeFilter as MapLayerContract['timeFilter'],
+    });
+  }, [layers, mapTimeFilter, onContractChange]);
 
   const timeFilterMs = getTimeFilterMs(mapTimeFilter);
   const timeFilteredNews = news.filter(n => {
@@ -188,7 +201,7 @@ export function CrisisMap() {
         zoomControl={true}
       >
         <MapController />
-        <URLStateSync timeFilter={mapTimeFilter} layers={layers} />
+        <URLStateSync timeFilter={mapTimeFilter} />
         <TimeFilterBar activeTime={mapTimeFilter} onTimeChange={setMapTimeFilter} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

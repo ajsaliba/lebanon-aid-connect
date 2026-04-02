@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download, Globe, Link2, Maximize, Minimize } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download, Globe, Link2, Maximize, Minimize, Layers3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -26,11 +26,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNotificationCenter } from '@/contexts/NotificationCenterContext';
+import type { AppVariant } from '@/lib/variantSystem';
+
+interface VariantOption {
+  id: AppVariant;
+  label: string;
+}
 
 interface TopBarProps {
   onToggleSidebar: () => void;
   activeRegion: string;
   onRegionChange: (region: string) => void;
+  variant?: AppVariant;
+  variantOptions?: VariantOption[];
+  onVariantChange?: (variant: AppVariant) => void;
 }
 
 const regions = [
@@ -50,7 +59,7 @@ const typeLabelKeys: Record<string, string> = {
 
 const SOUND_PREF_KEY = 'cedarsalert_sound_alerts';
 
-export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBarProps) {
+export function TopBar({ onToggleSidebar, activeRegion, onRegionChange, variant, variantOptions, onVariantChange }: TopBarProps) {
   const [time, setTime] = useState(new Date());
   const { notifications, unreadCount, markAllAsRead } = useNotificationCenter();
   const { news } = useNewsFeedContext();
@@ -75,19 +84,6 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
     return () => clearInterval(interval);
   }, []);
 
-  // Sound alert on new high-severity news
-  useEffect(() => {
-    if (!soundEnabled) return;
-    if (news.length > prevNewsCountRef.current) {
-      const newArticles = news.slice(0, news.length - prevNewsCountRef.current);
-      const hasHighSeverity = newArticles.some(n => n.severity === 'high');
-      if (hasHighSeverity) {
-        playAlertSound();
-      }
-    }
-    prevNewsCountRef.current = news.length;
-  }, [news, soundEnabled]);
-
   const playAlertSound = useCallback(() => {
     try {
       if (!audioRef.current) audioRef.current = new AudioContext();
@@ -102,13 +98,32 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.3);
-    } catch {}
+    } catch {
+      return;
+    }
   }, []);
+
+  // Sound alert on new high-severity news
+  useEffect(() => {
+    if (!soundEnabled) return;
+    if (news.length > prevNewsCountRef.current) {
+      const newArticles = news.slice(0, news.length - prevNewsCountRef.current);
+      const hasHighSeverity = newArticles.some(n => n.severity === 'high');
+      if (hasHighSeverity) {
+        playAlertSound();
+      }
+    }
+    prevNewsCountRef.current = news.length;
+  }, [news, playAlertSound, soundEnabled]);
 
   const toggleSound = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
-    try { localStorage.setItem(SOUND_PREF_KEY, String(next)); } catch {}
+    try {
+      localStorage.setItem(SOUND_PREF_KEY, String(next));
+    } catch {
+      // Ignore storage exceptions.
+    }
     if (next) playAlertSound();
   };
 
@@ -136,10 +151,118 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
 
 
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* Mobile controls menu */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden" aria-label="Open controls menu">
+              <Menu className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[320px] p-4">
+            <SheetHeader>
+              <SheetTitle className="text-sm">Operations Controls</SheetTitle>
+              <SheetDescription className="text-xs">
+                Quick access to filters, exports, language, and variant mode.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-4 space-y-3">
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Filters</p>
+                <SourceFilterModal
+                  disabledSources={sourceFilters.disabledSources}
+                  toggleSource={sourceFilters.toggleSource}
+                  enableAll={sourceFilters.enableAll}
+                  disableAll={sourceFilters.disableAll}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Export</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => exportNewsAsCSV(news)}>
+                    {t('topbar.exportCSV')}
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => exportNewsAsJSON(news)}>
+                    {t('topbar.exportJSON')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Language</p>
+                <div className="flex gap-1.5">
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('en')}>EN</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('ar')}>AR</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('fr')}>FR</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('es')}>ES</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('de')}>DE</Button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Region</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {regions.map(region => (
+                    <Button
+                      key={region.id}
+                      variant={activeRegion === region.id ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-8 text-[11px]"
+                      onClick={() => onRegionChange(region.id)}
+                    >
+                      {t(region.labelKey)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {variant && variantOptions?.length && onVariantChange && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Variant</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {variantOptions.map(option => (
+                      <Button
+                        key={option.id}
+                        variant={variant === option.id ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-8 text-[11px]"
+                        onClick={() => onVariantChange(option.id)}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <div className="text-[11px] text-muted-foreground font-mono hidden sm:flex items-center gap-3">
           <span>{utcDate}</span>
           <span className="text-primary font-medium">{utcTime} UTC</span>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 px-2 hidden md:inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider">
+              <MapPin className="h-3.5 w-3.5" />
+              {t(regions.find(region => region.id === activeRegion)?.labelKey ?? 'topbar.regionGlobal')}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {regions.map(region => (
+              <DropdownMenuItem
+                key={region.id}
+                onClick={() => onRegionChange(region.id)}
+                className={cn('text-xs', activeRegion === region.id && 'font-bold text-primary')}
+              >
+                <region.icon className="h-3.5 w-3.5 mr-1.5" />
+                {t(region.labelKey)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Cmd+K hint — desktop only */}
         <button
@@ -270,6 +393,28 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
 
         <ThemeToggle />
 
+        {/* Variant switcher */}
+        {variant && variantOptions?.length && onVariantChange && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Switch operational variant">
+                <Layers3 className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {variantOptions.map(option => (
+                <DropdownMenuItem
+                  key={option.id}
+                  onClick={() => onVariantChange(option.id)}
+                  className={cn('text-xs', variant === option.id && 'font-bold text-primary')}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {/* Language Switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -286,6 +431,12 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange }: TopBar
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => changeLanguage('fr')} className={cn('text-xs', lang === 'fr' && 'font-bold text-primary')}>
               🇫🇷 Français
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLanguage('es')} className={cn('text-xs', lang === 'es' && 'font-bold text-primary')}>
+              🇪🇸 Español
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLanguage('de')} className={cn('text-xs', lang === 'de' && 'font-bold text-primary')}>
+              🇩🇪 Deutsch
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

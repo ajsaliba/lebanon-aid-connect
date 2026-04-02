@@ -1,4 +1,3 @@
-import { useState, useCallback } from 'react';
 import { TopBar } from '@/components/TopBar';
 import { AlertTicker } from '@/components/AlertTicker';
 import { LeftSidebar } from '@/components/LeftSidebar';
@@ -11,29 +10,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Newspaper, Map, Brain, Heart, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { isFeatureEnabled } from '@/config/featureFlags';
+import { OperationsShell } from '@/features/operations/OperationsShell';
 
 type MobileTab = 'map' | 'feed' | 'intel' | 'aid' | 'tools';
 
-function usePersistedState<T>(key: string, fallback: T): [T, (v: T | ((prev: T) => T)) => void] {
-  const [value, setRaw] = useState<T>(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored !== null ? JSON.parse(stored) : fallback;
-    } catch { return fallback; }
-  });
-  const set = useCallback((v: T | ((prev: T) => T)) => {
-    setRaw(prev => {
-      const next = typeof v === 'function' ? (v as (p: T) => T)(prev) : v;
-      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* quota */ }
-      return next;
-    });
-  }, [key]);
-  return [value, set];
-}
-
-const Index = () => {
-  const { position } = useGeolocation();
-  useNotifications(position);
+function LegacyShell() {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = usePersistedState('cedarsalert_sidebar', !isMobile);
   const [rightOpen, setRightOpen] = usePersistedState('cedarsalert_rightpanel', !isMobile);
@@ -121,6 +104,14 @@ const Index = () => {
       <StatusBar />
     </div>
   );
+}
+
+const Index = () => {
+  const { position } = useGeolocation();
+  useNotifications(position);
+  const operationsShellEnabled = isFeatureEnabled('operationsShell');
+
+  return operationsShellEnabled ? <OperationsShell /> : <LegacyShell />;
 };
 
 export default Index;
