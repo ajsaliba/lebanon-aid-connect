@@ -14,6 +14,9 @@ interface NewsFeedContextValue {
   loadMore: () => void;
   hasMore: boolean;
   isLoadingMore: boolean;
+  connectivityState: 'live' | 'cached' | 'unavailable';
+  cacheAgeMs: number | null;
+  bootstrapPhase: 'fast' | 'slow' | 'ready';
 }
 
 const defaultValue: NewsFeedContextValue = {
@@ -28,6 +31,9 @@ const defaultValue: NewsFeedContextValue = {
   loadMore: () => {},
   hasMore: false,
   isLoadingMore: false,
+  connectivityState: 'unavailable',
+  cacheAgeMs: null,
+  bootstrapPhase: 'ready',
 };
 
 const NewsFeedContext = createContext<NewsFeedContextValue>(defaultValue);
