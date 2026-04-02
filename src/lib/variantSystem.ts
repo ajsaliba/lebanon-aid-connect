@@ -11,11 +11,19 @@ export interface VariantDefaults {
   mapPreset: MapLayerContract;
 }
 
+export interface VariantRuntimeConfig {
+  defaultMapMode: '2d' | '3d';
+  preferredPollIntervalMs: number;
+  panelDensity: 'comfortable' | 'compact';
+  mobileDefaultView: 'map' | 'panels';
+}
+
 export interface VariantDefinition {
   id: AppVariant;
   label: string;
   description: string;
   defaults: VariantDefaults;
+  runtime: VariantRuntimeConfig;
 }
 
 const VARIANT_STORAGE_KEY = 'cedarsalert_variant';
@@ -46,6 +54,12 @@ export const VARIANTS: Record<AppVariant, VariantDefinition> = {
         airstrikes: false,
       }),
     },
+    runtime: {
+      defaultMapMode: '2d',
+      preferredPollIntervalMs: 45_000,
+      panelDensity: 'comfortable',
+      mobileDefaultView: 'map',
+    },
   },
   intel: {
     id: 'intel',
@@ -61,6 +75,12 @@ export const VARIANTS: Record<AppVariant, VariantDefinition> = {
         housing: false,
       }),
     },
+    runtime: {
+      defaultMapMode: '3d',
+      preferredPollIntervalMs: 30_000,
+      panelDensity: 'compact',
+      mobileDefaultView: 'panels',
+    },
   },
   operations: {
     id: 'operations',
@@ -75,6 +95,12 @@ export const VARIANTS: Record<AppVariant, VariantDefinition> = {
         infrastructure: true,
       }),
     },
+    runtime: {
+      defaultMapMode: '2d',
+      preferredPollIntervalMs: 40_000,
+      panelDensity: 'comfortable',
+      mobileDefaultView: 'map',
+    },
   },
   recovery: {
     id: 'recovery',
@@ -88,6 +114,12 @@ export const VARIANTS: Record<AppVariant, VariantDefinition> = {
         airstrikes: false,
         daynight: true,
       }),
+    },
+    runtime: {
+      defaultMapMode: '2d',
+      preferredPollIntervalMs: 55_000,
+      panelDensity: 'comfortable',
+      mobileDefaultView: 'map',
     },
   },
 };
@@ -145,4 +177,8 @@ export function setVariantPreference(variant: AppVariant) {
 
 export function getVariantDefaults(variant: AppVariant): VariantDefaults {
   return VARIANTS[variant].defaults;
+}
+
+export function getVariantRuntimeConfig(variant: AppVariant): VariantRuntimeConfig {
+  return VARIANTS[variant].runtime;
 }

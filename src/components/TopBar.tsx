@@ -65,7 +65,7 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange, variant,
   const { news } = useNewsFeedContext();
   const signals = useIntelSignals(news);
   const sourceFilters = useSourceFilters();
-  const { t, lang, changeLanguage } = useTranslation();
+  const { t, lang, changeLanguage, supportedLanguages } = useTranslation();
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem(SOUND_PREF_KEY) !== 'false'; } catch { return true; }
   });
@@ -190,12 +190,18 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange, variant,
 
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Language</p>
-                <div className="flex gap-1.5">
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('en')}>EN</Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('ar')}>AR</Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('fr')}>FR</Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('es')}>ES</Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => changeLanguage('de')}>DE</Button>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {supportedLanguages.slice(0, 9).map(option => (
+                    <Button
+                      key={option.code}
+                      variant={lang === option.code ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-8 text-[11px]"
+                      onClick={() => changeLanguage(option.code)}
+                    >
+                      {option.code.toUpperCase()}
+                    </Button>
+                  ))}
                 </div>
               </div>
 
@@ -423,21 +429,15 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange, variant,
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => changeLanguage('en')} className={cn('text-xs', lang === 'en' && 'font-bold text-primary')}>
-              🇬🇧 English
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => changeLanguage('ar')} className={cn('text-xs', lang === 'ar' && 'font-bold text-primary')}>
-              🇱🇧 العربية
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => changeLanguage('fr')} className={cn('text-xs', lang === 'fr' && 'font-bold text-primary')}>
-              🇫🇷 Français
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => changeLanguage('es')} className={cn('text-xs', lang === 'es' && 'font-bold text-primary')}>
-              🇪🇸 Español
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => changeLanguage('de')} className={cn('text-xs', lang === 'de' && 'font-bold text-primary')}>
-              🇩🇪 Deutsch
-            </DropdownMenuItem>
+            {supportedLanguages.map(option => (
+              <DropdownMenuItem
+                key={option.code}
+                onClick={() => changeLanguage(option.code)}
+                className={cn('text-xs', lang === option.code && 'font-bold text-primary')}
+              >
+                {option.nativeLabel} ({option.code.toUpperCase()})
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -67,9 +67,10 @@ export function SOSPanel() {
       .eq('status', 'active')
       .order('created_at', { ascending: false });
     if (data) {
-      setActiveSignals(data as SOSSignal[]);
+      const typedData = data as SOSSignal[];
+      setActiveSignals(typedData);
       if (user) {
-        const mine = data.find((s: any) => s.user_id === user.id);
+        const mine = typedData.find((s) => s.user_id === user.id);
         setMyActiveSignal(mine as SOSSignal || null);
       }
     }

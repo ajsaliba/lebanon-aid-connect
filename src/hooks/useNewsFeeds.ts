@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { mockNews, type NewsItem } from '@/data/mockData';
+import { readNewsBootstrap, writeNewsBootstrap } from '@/lib/bootstrap/runtimeCache';
 
 type ConnectivityState = 'live' | 'cached' | 'unavailable';
 type BootstrapPhase = 'fast' | 'slow' | 'ready';
@@ -25,15 +26,8 @@ interface NewsFeedResult {
 const PAGE_SIZE = 500;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const BOOTSTRAP_CACHE_KEY = 'cedarsalert_bootstrap_cache_v2';
 const FAST_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 const STALE_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-
-interface BootstrapCachePayload {
-  savedAt: string;
-  lastUpdated: string | null;
-  news: NewsItem[];
-}
 
 interface CacheReadResult {
   news: NewsItem[];
@@ -69,48 +63,6 @@ function mapArticleRow(row: ArticleRow): NewsItem {
   };
 }
 
-function readBootstrapCache(maxAgeMs: number): CacheReadResult | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const raw = localStorage.getItem(BOOTSTRAP_CACHE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as BootstrapCachePayload;
-    if (!Array.isArray(parsed.news) || !parsed.savedAt) return null;
-
-    const savedAt = new Date(parsed.savedAt).getTime();
-    if (!Number.isFinite(savedAt)) return null;
-
-    const ageMs = Date.now() - savedAt;
-    if (ageMs > maxAgeMs) return null;
-
-    return {
-      news: parsed.news,
-      lastUpdated: parsed.lastUpdated ? new Date(parsed.lastUpdated) : null,
-      ageMs,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeBootstrapCache(news: NewsItem[], lastUpdated: Date | null) {
-  if (typeof window === 'undefined') return;
-
-  const payload: BootstrapCachePayload = {
-    savedAt: new Date().toISOString(),
-    lastUpdated: lastUpdated?.toISOString() ?? null,
-    news,
-  };
-
-  try {
-    localStorage.setItem(BOOTSTRAP_CACHE_KEY, JSON.stringify(payload));
-  } catch {
-    // Ignore storage exceptions.
-  }
-}
-
 /** Fire-and-forget: trigger the edge function to ingest new RSS articles into DB */
 function triggerIngestion() {
   const url = `${SUPABASE_URL}/functions/v1/rss-news-feed?mode=ingest`;
@@ -121,7 +73,7 @@ function triggerIngestion() {
 }
 
 export function useNewsFeeds(): NewsFeedResult {
-  const initialCache = readBootstrapCache(FAST_CACHE_MAX_AGE_MS) ?? readBootstrapCache(STALE_CACHE_MAX_AGE_MS);
+  const initialCache = (readNewsBootstrap(FAST_CACHE_MAX_AGE_MS) ?? readNewsBootstrap(STALE_CACHE_MAX_AGE_MS)) as CacheReadResult | null;
 
   const [news, setNews] = useState<NewsItem[]>(initialCache?.news ?? mockNews);
   const [isLoading, setIsLoading] = useState(!initialCache);
@@ -170,12 +122,12 @@ export function useNewsFeeds(): NewsFeedResult {
             const existingIds = new Set(prev.map(n => n.id));
             const newItems = mapped.filter(n => !existingIds.has(n.id));
             const next = [...prev, ...newItems];
-            writeBootstrapCache(next, new Date());
+            writeNewsBootstrap(next, new Date());
             return next;
           });
         } else {
           setNews(mapped);
-          writeBootstrapCache(mapped, new Date());
+          writeNewsBootstrap(mapped, new Date());
         }
 
         setLastUpdated(new Date());
@@ -185,7 +137,7 @@ export function useNewsFeeds(): NewsFeedResult {
         setBootstrapPhase('ready');
         setError(null);
       } else if (!loadMore) {
-        const staleCache = readBootstrapCache(STALE_CACHE_MAX_AGE_MS);
+        const staleCache = readNewsBootstrap(STALE_CACHE_MAX_AGE_MS) as CacheReadResult | null;
 
         if (staleCache) {
           setNews(staleCache.news);
@@ -207,7 +159,7 @@ export function useNewsFeeds(): NewsFeedResult {
     } catch (err) {
       console.warn('Failed to fetch from DB:', err);
       if (!loadMore) {
-        const staleCache = readBootstrapCache(STALE_CACHE_MAX_AGE_MS);
+        const staleCache = readNewsBootstrap(STALE_CACHE_MAX_AGE_MS) as CacheReadResult | null;
         if (staleCache) {
           setNews(staleCache.news);
           setLastUpdated(staleCache.lastUpdated);
@@ -244,8 +196,8 @@ export function useNewsFeeds(): NewsFeedResult {
 
   // Two-tier bootstrap: fast cache hydration then slow network reconciliation.
   useEffect(() => {
-    const freshCache = readBootstrapCache(FAST_CACHE_MAX_AGE_MS);
-    const staleCache = readBootstrapCache(STALE_CACHE_MAX_AGE_MS);
+    const freshCache = readNewsBootstrap(FAST_CACHE_MAX_AGE_MS) as CacheReadResult | null;
+    const staleCache = readNewsBootstrap(STALE_CACHE_MAX_AGE_MS) as CacheReadResult | null;
     const cacheToUse = freshCache ?? staleCache;
 
     if (cacheToUse) {
@@ -291,7 +243,7 @@ export function useNewsFeeds(): NewsFeedResult {
             if (prev.some(n => n.id === newItem.id)) return prev;
             const updated = [newItem, ...prev];
             updated.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-            writeBootstrapCache(updated, new Date());
+            writeNewsBootstrap(updated, new Date());
             return updated;
           });
           setLastUpdated(new Date());

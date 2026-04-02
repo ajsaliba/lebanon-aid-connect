@@ -60,7 +60,17 @@ vi.mock('@/lib/i18n', () => ({
 describe('Root app shell smoke', () => {
   beforeEach(() => {
     localStorage.clear();
+    localStorage.setItem('cedarsalert_shell_mode', 'legacy');
     mockIsMobile = false;
+  });
+
+  it('defaults to operations shell when legacy override is removed', () => {
+    localStorage.removeItem('cedarsalert_shell_mode');
+
+    render(<Index />);
+
+    expect(screen.getAllByTestId('left-sidebar').length).toBeGreaterThan(1);
+    expect(screen.getByText('Map Command')).toBeInTheDocument();
   });
 
   it('loads map and side panels on desktop', () => {

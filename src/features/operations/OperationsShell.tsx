@@ -24,17 +24,25 @@ import {
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { PanelLayoutManager } from '@/features/operations/PanelLayoutManager';
 import { MapGlobe3D } from '@/features/map/MapGlobe3D';
-import { DEFAULT_MAP_CONTRACT, type MapLayerContract } from '@/features/map/mapLayerContract';
+import {
+  DEFAULT_MAP_CONTRACT,
+  DEFAULT_MAP_VIEWPORT,
+  normalizeMapLayerState,
+  type MapLayerContract,
+  type MapViewportState,
+} from '@/features/map/mapLayerContract';
 import {
   type AppVariant,
   getVariantDefaults,
   getVariantDefinitions,
+  getVariantRuntimeConfig,
   resolveVariant,
   setVariantPreference,
 } from '@/lib/variantSystem';
 import { isFeatureEnabled } from '@/config/featureFlags';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { prepareDesktopRuntime, type DesktopRuntimeInfo } from '@/features/runtime/desktopRuntimePrep';
+import { readShellBootstrap, writeShellBootstrap } from '@/lib/bootstrap/runtimeCache';
 
 type MapMode = '2d' | '3d';
 type MobileOpsView = 'map' | 'panels';
@@ -59,17 +67,20 @@ function useMediaQuery(query: string) {
 }
 
 export function OperationsShell() {
-  const [variant, setVariant] = usePersistedState<AppVariant>('cedarsalert_variant_runtime', resolveVariant());
+  const bootstrapShellSeed = useMemo(() => readShellBootstrap(12 * 60 * 60 * 1000)?.shell ?? null, []);
+
+  const [variant, setVariant] = usePersistedState<AppVariant>('cedarsalert_variant_runtime', bootstrapShellSeed?.variant ?? resolveVariant());
   const [activeRegion, setActiveRegion] = usePersistedState<string>('cedarsalert_region', 'global');
-  const [mapMode, setMapMode] = usePersistedState<MapMode>('cedarsalert_ops_map_mode', '2d');
+  const [mapMode, setMapMode] = usePersistedState<MapMode>('cedarsalert_ops_map_mode', bootstrapShellSeed?.mapMode ?? '2d');
   const [mapPinned, setMapPinned] = usePersistedState<boolean>('cedarsalert_ops_map_pinned', false);
   const [mapSize, setMapSize] = usePersistedState<number>('cedarsalert_ops_map_size', 56);
   const [gridVisible, setGridVisible] = usePersistedState<boolean>('cedarsalert_ops_grid_visible', true);
   const [mobileView, setMobileView] = usePersistedState<MobileOpsView>('cedarsalert_ops_mobile_view', 'map');
   const [variantMapContracts, setVariantMapContracts] = usePersistedState<VariantMapContracts>(
     'cedarsalert_ops_map_contracts',
-    {},
+    bootstrapShellSeed?.variantContracts ?? {},
   );
+  const [mapViewport, setMapViewport] = usePersistedState<MapViewportState>('cedarsalert_ops_map_viewport', bootstrapShellSeed?.mapViewport ?? DEFAULT_MAP_VIEWPORT);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [runtimeInfo, setRuntimeInfo] = useState<DesktopRuntimeInfo | null>(null);
 
@@ -96,6 +107,15 @@ export function OperationsShell() {
       };
     });
   }, [setVariantMapContracts, variant]);
+
+  useEffect(() => {
+    const hasVariantState = !!variantMapContracts[variant];
+    if (hasVariantState) return;
+
+    const runtimeDefaults = getVariantRuntimeConfig(variant);
+    setMapMode(runtimeDefaults.defaultMapMode);
+    setMobileView(runtimeDefaults.mobileDefaultView);
+  }, [setMapMode, setMobileView, variant, variantMapContracts]);
 
   useEffect(() => {
     if (mapMode === '3d' && !globeFlagEnabled) {
@@ -138,7 +158,22 @@ export function OperationsShell() {
     };
   }, [desktopRuntimeFlagEnabled]);
 
-  const activeMapContract = variantMapContracts[variant] ?? getVariantDefaults(variant).mapPreset ?? DEFAULT_MAP_CONTRACT;
+  useEffect(() => {
+    writeShellBootstrap({
+      variant,
+      mapMode,
+      mapViewport,
+      variantContracts: variantMapContracts,
+    });
+  }, [variant, mapMode, mapViewport, variantMapContracts]);
+
+  const activeMapContract = useMemo(() => {
+    const stored = variantMapContracts[variant] ?? getVariantDefaults(variant).mapPreset ?? DEFAULT_MAP_CONTRACT;
+    return {
+      ...stored,
+      layers: normalizeMapLayerState(stored.layers),
+    };
+  }, [variant, variantMapContracts]);
 
   const handleMapContractChange = useCallback((nextContract: MapLayerContract) => {
     setVariantMapContracts(prev => {
@@ -175,13 +210,21 @@ export function OperationsShell() {
 
   const renderMapEngine = () => {
     if (mapMode === '3d' && globeFlagEnabled) {
-      return <MapGlobe3D contract={activeMapContract} />;
+      return (
+        <MapGlobe3D
+          contract={activeMapContract}
+          initialViewport={mapViewport}
+          onViewportChange={setMapViewport}
+        />
+      );
     }
     return (
       <CrisisMap
         key={`map-${variant}`}
         initialContract={activeMapContract}
+        initialViewport={mapViewport}
         onContractChange={handleMapContractChange}
+        onViewportChange={setMapViewport}
       />
     );
   };
@@ -213,8 +256,7 @@ export function OperationsShell() {
             </button>
             <button
               onClick={() => setMapMode('3d')}
-              disabled={!globeFlagEnabled}
-              className={`h-7 px-2 text-[10px] font-semibold border-l border-border ${mapMode === '3d' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-muted/70'} disabled:opacity-40 disabled:cursor-not-allowed`}
+              className={`h-7 px-2 text-[10px] font-semibold border-l border-border ${mapMode === '3d' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-muted/70'}`}
               aria-label="Switch to 3D map"
             >
               <span className="inline-flex items-center gap-1">
@@ -367,7 +409,7 @@ export function OperationsShell() {
               </div>
             </div>
           ) : (
-            <ResizablePanelGroup direction={sideBySideLayout ? 'horizontal' : 'vertical'} className="h-full rounded-md border border-border overflow-hidden">
+            <ResizablePanelGroup direction={sideBySideLayout ? 'horizontal' : 'vertical'} className="h-full rounded-md overflow-hidden">
               <ResizablePanel
                 defaultSize={mapSize}
                 minSize={sideBySideLayout ? 35 : 25}

@@ -1,4 +1,4 @@
-export type Language = 'en' | 'ar' | 'fr' | 'es' | 'de';
+export type Language = 'en' | 'ar' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'tr' | 'ru';
 
 export type LocaleDictionary = Record<string, string>;
 

@@ -35,12 +35,12 @@ export function MlIntelPanel() {
               Intelligence AI
             </h3>
             <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 mt-0.5">
-              {ml.loading ? 'Processing neural net...' : 'Local WebWorker Active'}
+              {ml.loading ? 'Processing neural net...' : ml.workerAvailable ? 'Local WebWorker Active' : 'Worker unavailable'}
             </span>
           </div>
         </div>
         
-        {!ml.loading && (
+        {!ml.loading && ml.workerAvailable && (
           <div className="bg-primary/10 border border-primary/20 px-2 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
             <Sparkles className="h-3 w-3 text-primary animate-pulse" />
             <span className="text-[10px] font-bold text-primary">Live</span>
@@ -67,6 +67,24 @@ export function MlIntelPanel() {
               style={{ width: `${Math.max(5, Math.min(100, ((ml.sentimentScore + 1) / 2) * 100))}%` }} 
             />
           </div>
+        </div>
+
+        <div className="rounded-lg border border-border/50 bg-background/50 p-3 shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center justify-between">
+            <span>Risk Profile</span>
+            <span className="text-[10px] font-mono text-primary">{(ml.riskScore * 100).toFixed(0)}%</span>
+          </div>
+          {ml.riskChannels.length === 0 ? (
+            <p className="text-[10px] text-muted-foreground">No dominant risk channels detected.</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {ml.riskChannels.map(channel => (
+                <span key={channel} className="text-[9px] uppercase tracking-wide px-2 py-0.5 rounded border border-border bg-muted/40">
+                  {channel}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* AI Summary Block */}

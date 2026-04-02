@@ -7,8 +7,8 @@ export interface FeatureFlagConfig {
 }
 
 const FEATURE_FLAGS: FeatureFlagConfig[] = [
-  { key: 'operationsShell', envVar: 'VITE_ENABLE_OPERATIONS_SHELL', defaultEnabled: false },
-  { key: 'map3dGlobe', envVar: 'VITE_ENABLE_3D_GLOBE', defaultEnabled: false },
+  { key: 'operationsShell', envVar: 'VITE_ENABLE_OPERATIONS_SHELL', defaultEnabled: true },
+  { key: 'map3dGlobe', envVar: 'VITE_ENABLE_3D_GLOBE', defaultEnabled: true },
   { key: 'desktopRuntimePrep', envVar: 'VITE_ENABLE_DESKTOP_RUNTIME_PREP', defaultEnabled: false },
 ];
 

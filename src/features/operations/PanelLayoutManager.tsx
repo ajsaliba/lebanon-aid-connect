@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
   Columns2,
   GripVertical,
@@ -42,10 +42,17 @@ interface PanelLayoutItem {
 }
 
 const LAYOUT_STORAGE_PREFIX = 'cedarsalert_ops_layout_v2_';
+const LAYOUT_STORAGE_VERSION = 3;
 const MAX_COL_SPAN = 12;
 const MIN_COL_SPAN = 3;
 const MAX_ROW_SPAN = 10;
 const MIN_ROW_SPAN = 2;
+
+interface PersistedLayoutPayload {
+  version: number;
+  updatedAt: string;
+  items: PanelLayoutItem[];
+}
 
 const PANEL_DEFINITIONS: PanelDefinition[] = [
   {
@@ -154,10 +161,11 @@ function readLayout(variant: AppVariant): PanelLayoutItem[] {
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return defaults;
-    const parsed = JSON.parse(raw) as PanelLayoutItem[];
-    if (!Array.isArray(parsed)) return defaults;
+    const parsed = JSON.parse(raw) as PanelLayoutItem[] | PersistedLayoutPayload;
+    const items = Array.isArray(parsed) ? parsed : parsed.items;
+    if (!Array.isArray(items)) return defaults;
 
-    const byId = new Map(parsed.map(item => [item.id, item]));
+    const byId = new Map(items.map(item => [item.id, item]));
     const merged = defaults.map((item, index) => {
       const existing = byId.get(item.id);
       if (!existing) return { ...item, order: index };
@@ -187,8 +195,15 @@ function readLayout(variant: AppVariant): PanelLayoutItem[] {
 
 function persistLayout(variant: AppVariant, layout: PanelLayoutItem[]) {
   if (typeof window === 'undefined') return;
+
+  const payload: PersistedLayoutPayload = {
+    version: LAYOUT_STORAGE_VERSION,
+    updatedAt: new Date().toISOString(),
+    items: layout,
+  };
+
   try {
-    localStorage.setItem(`${LAYOUT_STORAGE_PREFIX}${variant}`, JSON.stringify(layout));
+    localStorage.setItem(`${LAYOUT_STORAGE_PREFIX}${variant}`, JSON.stringify(payload));
   } catch {
     // Ignore storage errors.
   }
@@ -201,14 +216,52 @@ interface PanelLayoutManagerProps {
 export function PanelLayoutManager({ variant }: PanelLayoutManagerProps) {
   const [layout, setLayout] = useState<PanelLayoutItem[]>(() => readLayout(variant));
   const [draggingPanelId, setDraggingPanelId] = useState<string | null>(null);
+  const activeResizeCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setLayout(readLayout(variant));
   }, [variant]);
 
   useEffect(() => {
-    persistLayout(variant, layout);
+    const persist = () => persistLayout(variant, layout);
+
+    if (typeof window === 'undefined') {
+      persist();
+      return;
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    if (idleWindow.requestIdleCallback && idleWindow.cancelIdleCallback) {
+      const idleId = idleWindow.requestIdleCallback(() => persist());
+      return () => idleWindow.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(() => persist(), 80);
+    return () => window.clearTimeout(timeoutId);
   }, [layout, variant]);
+
+  useEffect(() => {
+    const storageKey = `${LAYOUT_STORAGE_PREFIX}${variant}`;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== storageKey) return;
+      setLayout(readLayout(variant));
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [variant]);
+
+  useEffect(() => {
+    return () => {
+      activeResizeCleanupRef.current?.();
+      activeResizeCleanupRef.current = null;
+    };
+  }, []);
 
   const panelById = useMemo(() => {
     const map = new Map<string, PanelDefinition>();
@@ -319,10 +372,16 @@ export function PanelLayoutManager({ variant }: PanelLayoutManagerProps) {
     const handleUp = () => {
       window.removeEventListener('pointermove', handleMove);
       window.removeEventListener('pointerup', handleUp);
+      activeResizeCleanupRef.current = null;
     };
 
+    activeResizeCleanupRef.current?.();
     window.addEventListener('pointermove', handleMove);
     window.addEventListener('pointerup', handleUp);
+    activeResizeCleanupRef.current = () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
   }, [layout]);
 
   return (
@@ -363,7 +422,7 @@ export function PanelLayoutManager({ variant }: PanelLayoutManagerProps) {
       </header>
 
       <div className="flex-1 min-h-0 overflow-auto p-3">
-        <div className="grid grid-cols-12 auto-rows-[105px] gap-3">
+        <div className="grid grid-cols-12 auto-rows-[140px] gap-3">
           {visiblePanels.map(item => {
             const definition = panelById.get(item.id);
             if (!definition) return null;
@@ -418,7 +477,7 @@ export function PanelLayoutManager({ variant }: PanelLayoutManagerProps) {
                 </header>
 
                 <div className="relative flex-1 min-h-0 overflow-hidden">
-                  <div className="h-full min-h-0 [&>*]:h-full">{definition.render()}</div>
+                  <div className="h-full min-h-0 overflow-auto [&>*]:h-full">{definition.render()}</div>
 
                   <button
                     onPointerDown={startPointerResize(item.id, 'col')}

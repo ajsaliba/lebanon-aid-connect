@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "cedars-alert",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -99,7 +99,7 @@
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
   },
-  "description": "**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID",
+  "description": "Cedars Alert — A real-time crisis monitoring and humanitarian coordination dashboard for Lebanon.",
   "main": "eslint.config.js",
   "repository": {
     "type": "git",

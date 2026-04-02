@@ -11,6 +11,10 @@ const localeLoaders: Record<Language, () => Promise<{ default: LocaleDictionary 
   fr: () => import('@/lib/i18n/locales/fr'),
   es: () => import('@/lib/i18n/locales/es'),
   de: () => import('@/lib/i18n/locales/de'),
+  it: () => import('@/lib/i18n/locales/it'),
+  pt: () => import('@/lib/i18n/locales/pt'),
+  tr: () => import('@/lib/i18n/locales/tr'),
+  ru: () => import('@/lib/i18n/locales/ru'),
 };
 
 const localeCache: Partial<Record<Language, LocaleDictionary>> = {
@@ -23,13 +27,27 @@ export const SUPPORTED_LANGUAGES: LocaleMeta[] = [
   { code: 'fr', label: 'French', nativeLabel: 'Français', rtl: false },
   { code: 'es', label: 'Spanish', nativeLabel: 'Español', rtl: false },
   { code: 'de', label: 'German', nativeLabel: 'Deutsch', rtl: false },
+  { code: 'it', label: 'Italian', nativeLabel: 'Italiano', rtl: false },
+  { code: 'pt', label: 'Portuguese', nativeLabel: 'Português', rtl: false },
+  { code: 'tr', label: 'Turkish', nativeLabel: 'Türkçe', rtl: false },
+  { code: 'ru', label: 'Russian', nativeLabel: 'Русский', rtl: false },
 ];
 
 function normalizeLanguage(value: string | null | undefined): Language | null {
   if (!value) return null;
 
   const normalized = value.toLowerCase().split(/[-_]/)[0];
-  if (normalized === 'en' || normalized === 'ar' || normalized === 'fr' || normalized === 'es' || normalized === 'de') {
+  if (
+    normalized === 'en' ||
+    normalized === 'ar' ||
+    normalized === 'fr' ||
+    normalized === 'es' ||
+    normalized === 'de' ||
+    normalized === 'it' ||
+    normalized === 'pt' ||
+    normalized === 'tr' ||
+    normalized === 'ru'
+  ) {
     return normalized;
   }
 

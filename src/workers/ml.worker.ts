@@ -1,4 +1,4 @@
-type MlTask = 'summarize' | 'sentiment' | 'embeddings' | 'semantic-search';
+type MlTask = 'health' | 'summarize' | 'sentiment' | 'embeddings' | 'semantic-search' | 'risk-profile';
 
 interface BaseMessage {
   id: string;
@@ -22,8 +22,12 @@ interface SemanticSearchPayload {
   corpus: Array<{ id: string; text: string }>;
 }
 
+interface RiskProfilePayload {
+  text: string;
+}
+
 interface RequestMessage extends BaseMessage {
-  payload: SummarizePayload | SentimentPayload | EmbeddingPayload | SemanticSearchPayload;
+  payload: SummarizePayload | SentimentPayload | EmbeddingPayload | SemanticSearchPayload | RiskProfilePayload | null;
 }
 
 interface ResponseMessage {
@@ -35,6 +39,14 @@ interface ResponseMessage {
 
 const POSITIVE_WORDS = ['safe', 'stable', 'open', 'support', 'aid', 'delivered', 'recover'];
 const NEGATIVE_WORDS = ['attack', 'strike', 'collapse', 'shortage', 'fatal', 'injured', 'crisis', 'threat'];
+const RISK_KEYWORDS: Record<string, string[]> = {
+  humanitarian: ['shelter', 'displaced', 'aid', 'hospital', 'evacuation', 'food'],
+  infrastructure: ['grid', 'substation', 'telecom', 'port', 'bridge', 'outage'],
+  kinetic: ['airstrike', 'missile', 'drone', 'artillery', 'troop', 'raid'],
+  societal: ['protest', 'riot', 'panic', 'looting', 'clash', 'threat'],
+};
+const MODEL_VERSION = 'wm-parity-ml-v2';
+const WORKER_STARTED_AT = new Date().toISOString();
 
 function simpleSummary(headlines: string[]): string {
   if (headlines.length === 0) return 'No fresh intelligence available.';
@@ -100,13 +112,46 @@ function semanticSearch(query: string, corpus: Array<{ id: string; text: string 
     .slice(0, 5);
 }
 
+function riskProfile(text: string) {
+  const lower = text.toLowerCase();
+  const channels: string[] = [];
+  let score = 0;
+
+  for (const [channel, words] of Object.entries(RISK_KEYWORDS)) {
+    let hits = 0;
+    for (const word of words) {
+      if (lower.includes(word)) hits += 1;
+    }
+    if (hits > 0) {
+      channels.push(channel);
+      score += Math.min(0.25, hits * 0.06);
+    }
+  }
+
+  const sentiment = sentimentScore(text);
+  if (sentiment.label === 'negative') {
+    score += Math.abs(sentiment.score) * 0.22;
+  }
+
+  return {
+    riskScore: Math.min(1, score),
+    channels,
+  };
+}
+
 self.onmessage = (event: MessageEvent<RequestMessage>) => {
   const { id, task, payload } = event.data;
 
   try {
     let result: unknown;
 
-    if (task === 'summarize') {
+    if (task === 'health') {
+      result = {
+        ok: true,
+        modelVersion: MODEL_VERSION,
+        startedAt: WORKER_STARTED_AT,
+      };
+    } else if (task === 'summarize') {
       result = simpleSummary((payload as SummarizePayload).headlines);
     } else if (task === 'sentiment') {
       result = sentimentScore((payload as SentimentPayload).text);
@@ -115,6 +160,8 @@ self.onmessage = (event: MessageEvent<RequestMessage>) => {
     } else if (task === 'semantic-search') {
       const searchPayload = payload as SemanticSearchPayload;
       result = semanticSearch(searchPayload.query, searchPayload.corpus);
+    } else if (task === 'risk-profile') {
+      result = riskProfile((payload as RiskProfilePayload).text);
     } else {
       throw new Error('Unsupported task');
     }

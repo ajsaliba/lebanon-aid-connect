@@ -53,8 +53,8 @@ export function HousingPanel() {
         address: h.address, contact: h.contact,
         available: h.available, description: h.description || '',
         user_id: h.user_id,
-        is_free: (h as any).is_free || false,
-        urgency: (h as any).urgency || 'normal',
+        is_free: h.is_free || false,
+        urgency: h.urgency || 'normal',
       })));
     }
   };

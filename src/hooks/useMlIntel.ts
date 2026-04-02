@@ -7,6 +7,9 @@ export interface MlIntelState {
   sentimentLabel: 'positive' | 'neutral' | 'negative';
   sentimentScore: number;
   semanticMatches: Array<{ id: string; score: number }>;
+  riskScore: number;
+  riskChannels: string[];
+  workerAvailable: boolean;
   loading: boolean;
 }
 
@@ -15,6 +18,9 @@ const INITIAL_STATE: MlIntelState = {
   sentimentLabel: 'neutral',
   sentimentScore: 0,
   semanticMatches: [],
+  riskScore: 0,
+  riskChannels: [],
+  workerAvailable: false,
   loading: false,
 };
 
@@ -35,16 +41,28 @@ export function useMlIntel(news: NewsItem[]) {
       setState(prev => ({ ...prev, loading: true }));
 
       try {
+        const workerReady = await mlWorkerManager.initialize();
+        if (!workerReady) {
+          if (!mounted) return;
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            workerAvailable: false,
+          }));
+          return;
+        }
+
         const headlines = topNews.slice(0, 8).map(item => item.title);
         const combinedText = topNews.slice(0, 12).map(item => `${item.title} ${item.summary}`).join(' ');
 
-        const [summary, sentiment, matches] = await Promise.all([
-          mlWorkerManager.summarize(headlines),
-          mlWorkerManager.sentiment(combinedText),
+        const [summary, sentiment, matches, risk] = await Promise.all([
+          mlWorkerManager.summarize(headlines, 9000),
+          mlWorkerManager.sentiment(combinedText, 9000),
           mlWorkerManager.semanticSearch('urgent shelter medical corridor', topNews.map(item => ({
             id: item.id,
             text: `${item.title} ${item.summary}`,
-          }))),
+          })), 9000),
+          mlWorkerManager.riskProfile(combinedText, 9000),
         ]);
 
         if (!mounted) return;
@@ -54,11 +72,18 @@ export function useMlIntel(news: NewsItem[]) {
           sentimentLabel: sentiment.label,
           sentimentScore: sentiment.score,
           semanticMatches: matches,
+          riskScore: risk.riskScore,
+          riskChannels: risk.channels,
+          workerAvailable: true,
           loading: false,
         });
       } catch {
         if (!mounted) return;
-        setState(prev => ({ ...prev, loading: false }));
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          workerAvailable: false,
+        }));
       }
     }
 
