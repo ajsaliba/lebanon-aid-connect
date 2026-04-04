@@ -52,7 +52,7 @@ export function RightPanel({ isOpen, onToggle, fullWidth }: RightPanelProps) {
       {!fullWidth && (
         <button
           onClick={onToggle}
-          className="absolute -left-6 top-1/2 -translate-y-1/2 z-10 h-12 w-6 bg-card border border-border border-r-0 rounded-l flex items-center justify-center hover:bg-muted"
+          className="absolute -left-6 top-1/2 -translate-y-1/2 z-20 h-12 w-6 bg-card/90 backdrop-blur-sm border border-border border-r-0 rounded-l flex items-center justify-center hover:bg-muted"
         >
           {isOpen ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
@@ -61,17 +61,17 @@ export function RightPanel({ isOpen, onToggle, fullWidth }: RightPanelProps) {
       <aside className={cn(
         'h-full bg-card flex flex-col overflow-hidden transition-all duration-300',
         fullWidth ? 'w-full border-0' : 'border-l border-border',
-        !fullWidth && (isOpen ? 'w-[420px]' : 'w-0')
+        !fullWidth && (isOpen ? 'w-[360px]' : 'w-0')
       )}>
         {isOpen && (
           <>
-            <div className="grid grid-cols-5 border-b border-border">
+            <div className="flex overflow-x-auto border-b border-border scrollbar-none">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'flex flex-col items-center gap-0.5 py-1.5 px-1 text-[8px] uppercase tracking-wider transition-colors',
+                    'flex flex-col items-center gap-0.5 py-1.5 px-2 text-[10px] uppercase tracking-wider transition-colors whitespace-nowrap shrink-0',
                     activeTab === tab.id
                       ? tab.id === 'sos'
                         ? 'text-danger border-b-2 border-danger bg-danger/5'

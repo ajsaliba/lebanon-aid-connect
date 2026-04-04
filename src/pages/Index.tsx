@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/TopBar';
 import { AlertTicker } from '@/components/AlertTicker';
 import { LeftSidebar } from '@/components/LeftSidebar';
@@ -8,38 +8,68 @@ import { StatusBar } from '@/components/StatusBar';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Newspaper, Map, Brain, Heart, Wrench } from 'lucide-react';
+import { Newspaper, Map, Brain, Heart, Wrench, AlertTriangle, CircleDot, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { isFeatureEnabled } from '@/config/featureFlags';
+import { OperationsShell } from '@/features/operations/OperationsShell';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online;
+}
 
 type MobileTab = 'map' | 'feed' | 'intel' | 'aid' | 'tools';
 
-function usePersistedState<T>(key: string, fallback: T): [T, (v: T | ((prev: T) => T)) => void] {
-  const [value, setRaw] = useState<T>(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored !== null ? JSON.parse(stored) : fallback;
-    } catch { return fallback; }
-  });
-  const set = useCallback((v: T | ((prev: T) => T)) => {
-    setRaw(prev => {
-      const next = typeof v === 'function' ? (v as (p: T) => T)(prev) : v;
-      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* quota */ }
-      return next;
-    });
-  }, [key]);
-  return [value, set];
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = usePersistedState<boolean>(`mq_${query}`, false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia(query);
+    const onChange = () => setMatches(media.matches);
+    media.addEventListener('change', onChange);
+    onChange();
+    return () => media.removeEventListener('change', onChange);
+  }, [query, setMatches]);
+  return matches;
 }
 
-const Index = () => {
-  const { position } = useGeolocation();
-  useNotifications(position);
+function LegacyShell() {
   const isMobile = useIsMobile();
+  const isMediumScreen = useMediaQuery('(min-width: 1024px) and (max-width: 1279px)');
   const [sidebarOpen, setSidebarOpen] = usePersistedState('cedarsalert_sidebar', !isMobile);
   const [rightOpen, setRightOpen] = usePersistedState('cedarsalert_rightpanel', !isMobile);
   const [activeRegion, setActiveRegion] = usePersistedState('cedarsalert_region', 'lebanon');
   const [mobileTab, setMobileTab] = usePersistedState<MobileTab>('cedarsalert_mobiletab', 'map');
   const { t } = useTranslation();
+  const { isLive, connectivityState, error } = useNewsFeedContext();
+  const isOnline = useOnlineStatus();
+
+  // On medium screens (1024-1280px), enforce mutually exclusive sidebars
+  const handleToggleSidebar = () => {
+    const next = !sidebarOpen;
+    setSidebarOpen(next);
+    if (isMediumScreen && next && rightOpen) {
+      setRightOpen(false);
+    }
+  };
+
+  const handleToggleRight = () => {
+    const next = !rightOpen;
+    setRightOpen(next);
+    if (isMediumScreen && next && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
 
   if (isMobile) {
     return (
@@ -51,6 +81,29 @@ const Index = () => {
           onRegionChange={setActiveRegion}
         />
         <AlertTicker />
+        {/* Offline banner (Feature 13) */}
+        {!isOnline && (
+          <div className="offline-banner text-xs font-mono px-4 py-2 text-center flex items-center justify-center gap-2 shrink-0">
+            <WifiOff className="h-3 w-3" />
+            ⚠ OFFLINE — displaying cached data
+          </div>
+        )}
+        {/* DEMO MODE banner */}
+        {!isLive && (
+          <div
+            className={cn(
+              'h-7 px-3 border-b flex items-center justify-between text-[10px] uppercase tracking-wider font-bold shrink-0',
+              connectivityState === 'cached'
+                ? 'border-warning/30 bg-warning/10 text-warning'
+                : 'border-danger/30 bg-danger/10 text-danger'
+            )}
+          >
+            <span className="flex items-center gap-1.5">
+              <AlertTriangle className="h-3 w-3" />
+              {connectivityState === 'cached' ? 'Cached data — showing stale payload' : 'DEMO MODE — showing sample data'}
+            </span>
+          </div>
+        )}
         <div className="flex-1 overflow-hidden relative">
           {mobileTab === 'map' && <CrisisMap />}
           {mobileTab === 'feed' && (
@@ -74,8 +127,8 @@ const Index = () => {
             </div>
           )}
         </div>
-        {/* Mobile bottom nav */}
-        <nav className="shrink-0 border-t border-border bg-card flex items-stretch safe-bottom">
+        {/* Mobile bottom nav — fixed height for safe-area consistency */}
+        <nav className="shrink-0 h-14 border-t border-border bg-card flex items-stretch" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           {([
             { id: 'map' as const, label: t('nav.map'), icon: Map },
             { id: 'feed' as const, label: t('nav.feed'), icon: Newspaper },
@@ -106,21 +159,73 @@ const Index = () => {
     <div className="h-screen w-screen flex flex-col overflow-hidden grid-bg">
       <div className="scanline-overlay" />
       <TopBar
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onToggleSidebar={handleToggleSidebar}
         activeRegion={activeRegion}
         onRegionChange={setActiveRegion}
       />
       <AlertTicker />
+      {/* Offline banner (Feature 13) */}
+      {!isOnline && (
+        <div className="offline-banner text-xs font-mono px-4 py-2 text-center flex items-center justify-center gap-2 shrink-0">
+          <WifiOff className="h-3 w-3" />
+          ⚠ OFFLINE — displaying cached data
+        </div>
+      )}
+      {/* DEMO MODE / degraded connectivity banner */}
+      {!isLive && (
+        <div
+          className={cn(
+            'h-7 px-3 border-b flex items-center justify-between text-[10px] uppercase tracking-wider font-bold shrink-0',
+            connectivityState === 'cached'
+              ? 'border-warning/30 bg-warning/10 text-warning'
+              : 'border-danger/30 bg-danger/10 text-danger'
+          )}
+        >
+          <span className="flex items-center gap-1.5">
+            <AlertTriangle className="h-3 w-3" />
+            {connectivityState === 'cached' ? 'Using cached payload' : 'DEMO MODE — showing sample data'}
+          </span>
+          <span>{typeof navigator !== 'undefined' && navigator.onLine ? 'online degraded' : 'offline'}</span>
+        </div>
+      )}
+      {!!error && !isLive && (
+        <div className="h-7 px-3 border-b border-border bg-muted/40 text-[10px] text-muted-foreground flex items-center gap-1.5 shrink-0">
+          <CircleDot className="h-3 w-3" />
+          {error}
+        </div>
+      )}
       <div className="flex-1 flex overflow-hidden">
         <LeftSidebar isOpen={sidebarOpen} />
         <main className="flex-1 relative">
           <CrisisMap />
         </main>
-        <RightPanel isOpen={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
+        <RightPanel isOpen={rightOpen} onToggle={handleToggleRight} />
       </div>
       <StatusBar />
     </div>
   );
+}
+
+const Index = () => {
+  const { position } = useGeolocation();
+  useNotifications(position);
+  const operationsShellEnabled = isFeatureEnabled('operationsShell');
+
+  const forceLegacy = (() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('cedarsalert_shell_mode') === 'legacy';
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!forceLegacy && operationsShellEnabled) {
+    return <OperationsShell />;
+  }
+
+  return <LegacyShell />;
 };
 
 export default Index;
+

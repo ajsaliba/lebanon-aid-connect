@@ -57,6 +57,15 @@
     --sidebar-accent-foreground: 120 5% 82%;
     --sidebar-border: 0 0% 16%;
     --sidebar-ring: 38 100% 50%;
+
+    --ops-surface-1: 215 22% 10%;
+    --ops-surface-2: 216 24% 14%;
+    --ops-surface-3: 219 27% 18%;
+    --ops-outline: 202 33% 28%;
+    --ops-success: 144 62% 46%;
+    --ops-warning: 40 97% 57%;
+    --ops-danger: 0 78% 61%;
+    --ops-info: 198 90% 53%;
   }
 
   .light {
@@ -110,6 +119,15 @@
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 86%;
     --sidebar-ring: 38 100% 45%;
+
+    --ops-surface-1: 210 33% 97%;
+    --ops-surface-2: 208 30% 94%;
+    --ops-surface-3: 206 26% 89%;
+    --ops-outline: 209 30% 78%;
+    --ops-success: 145 52% 36%;
+    --ops-warning: 35 90% 45%;
+    --ops-danger: 0 63% 44%;
+    --ops-info: 201 68% 41%;
   }
 }
 
@@ -133,7 +151,8 @@
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 50;
+  will-change: transform;
   background: repeating-linear-gradient(
     0deg,
     transparent,
@@ -245,4 +264,45 @@
 /* Safe area for notched phones */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.ops-shell {
+  --ops-gap: 0.5rem;
+  background:
+    radial-gradient(circle at 10% 10%, hsla(var(--ops-info), 0.12), transparent 35%),
+    radial-gradient(circle at 82% 4%, hsla(var(--ops-warning), 0.08), transparent 34%),
+    linear-gradient(180deg, hsl(var(--ops-surface-2)) 0%, hsl(var(--background)) 70%);
+}
+
+.ops-shell .text-dense {
+  letter-spacing: 0.015em;
+  line-height: 1.25;
+}
+
+.ops-shell .ops-chip {
+  border: 1px solid hsl(var(--ops-outline));
+  background: hsl(var(--ops-surface-3));
+  border-radius: 0.25rem;
+}
+
+/* Slide-down animation for new news feed articles (Feature 3) */
+@keyframes slide-down {
+  from { transform: translateY(-16px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.animate-slide-down {
+  animation: slide-down 200ms ease-out;
+}
+
+/* Heatmap canvas layer (Feature 10) */
+.leaflet-heatmap-layer {
+  z-index: 300 !important;
+}
+
+/* Offline banner (Feature 13) */
+.offline-banner {
+  background: rgba(234, 179, 8, 0.1);
+  border-bottom: 1px solid rgba(234, 179, 8, 0.3);
+  color: #facc15;
 }

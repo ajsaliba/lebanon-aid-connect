@@ -18,6 +18,8 @@ import { useBookmarks, useReadingList } from '@/hooks/useArticleActions';
 import { useFeedSettings, type CardStyle } from '@/hooks/useFeedSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/lib/i18n';
+import type { NewsItem } from '@/data/mockData';
+import type { ThreatClassification } from '@/hooks/useThreatClassification';
 import { findDuplicates } from '@/lib/duplicateDetection';
 import { useThreatClassification } from '@/hooks/useThreatClassification';
 
@@ -115,13 +117,13 @@ function VirtualArticleList({
   isBookmarked, isInReadingList, isRead,
   onToggleBookmark, onToggleReadingList, onCategoryClick, onArticleOpen, activeCategory,
 }: {
-  items: any[];
+  items: NewsItem[];
   parentRef: React.RefObject<HTMLDivElement>;
   search: string;
   focusedIndex: number;
   cardStyle: import('@/hooks/useFeedSettings').CardStyle;
   duplicateMap: Map<string, string[]>;
-  threatClassifications: Record<string, any>;
+  threatClassifications: Record<string, ThreatClassification>;
   isBookmarked: (id: string) => boolean;
   isInReadingList: (id: string) => boolean;
   isRead: (id: string) => boolean;

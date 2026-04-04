@@ -1,11 +1,11 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { lebanonHospitals } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { Layers, Eye, EyeOff, TrendingUp, Sun } from 'lucide-react';
+import { Layers, Eye, EyeOff, TrendingUp, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
@@ -14,16 +14,29 @@ import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
 import { HumanitarianLayer } from '@/components/map/HumanitarianLayer';
 import { DayNightOverlay } from '@/components/map/DayNightOverlay';
 import { MarkerClusterLayer } from '@/components/map/MarkerClusterGroup';
+import { HeatmapLayer } from '@/components/map/HeatmapLayer';
+import type { HeatPoint } from '@/components/map/HeatmapLayer';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from '@/lib/i18n';
+import {
+  MAP_LAYER_DEFINITIONS,
+  DEFAULT_MAP_LAYER_STATE,
+  DEFAULT_MAP_VIEWPORT,
+  normalizeMapLayerState,
+  type MapLayerContract,
+  type MapViewportState,
+  type MapLayerToggleState,
+} from '@/features/map/mapLayerContract';
+
+type LeafletIconPrototype = L.Icon.Default & { _getIconUrl?: string };
 
 // Fix default marker icon
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as LeafletIconPrototype)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
+  iconUrl: '/images/leaflet/marker-icon.png',
+  shadowUrl: '/images/leaflet/marker-shadow.png',
 });
 
 const newsIcon = new L.DivIcon({
@@ -39,6 +52,51 @@ const hospitalIcon = new L.DivIcon({
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
+
+const BORDER_POLYLINE: Array<[number, number]> = [
+  [34.67, 35.08],
+  [34.58, 35.50],
+  [34.55, 36.10],
+  [34.50, 36.60],
+  [34.31, 36.63],
+  [33.72, 36.62],
+  [33.10, 35.95],
+  [33.08, 35.10],
+  [33.40, 35.10],
+  [33.90, 35.25],
+  [34.38, 35.67],
+  [34.67, 35.08],
+];
+
+const SUPPLY_ROUTES: Array<Array<[number, number]>> = [
+  [[33.9019, 35.5189], [33.8333, 35.9000], [33.8463, 35.9020]],
+  [[33.2744, 35.1968], [33.5594, 35.3717], [33.9806, 35.6178]],
+  [[34.4333, 35.8333], [34.0047, 36.2110], [33.3633, 35.4717]],
+];
+
+const STATIC_TELECOM_NODES: Array<{ id: string; lat: number; lng: number; label: string }> = [
+  { id: 'cell-beirut', lat: 33.8938, lng: 35.5018, label: 'Beirut Exchange' },
+  { id: 'cell-tripoli', lat: 34.4333, lng: 35.8333, label: 'Tripoli Tower Hub' },
+  { id: 'cell-zahle', lat: 33.8463, lng: 35.9020, label: 'Bekaa Relay' },
+];
+
+const STATIC_POWER_NODES: Array<{ id: string; lat: number; lng: number; label: string }> = [
+  { id: 'power-jiyeh', lat: 33.5905, lng: 35.4302, label: 'Jiyeh Plant' },
+  { id: 'power-zouk', lat: 33.9797, lng: 35.6038, label: 'Zouk Plant' },
+  { id: 'power-deir', lat: 34.3209, lng: 35.9935, label: 'Deir Ammar' },
+];
+
+const STATIC_MARITIME_NODES: Array<{ id: string; lat: number; lng: number; label: string }> = [
+  { id: 'sea-beirut', lat: 33.91, lng: 35.45, label: 'Beirut Maritime Lane' },
+  { id: 'sea-tripoli', lat: 34.50, lng: 35.65, label: 'Tripoli Maritime Lane' },
+  { id: 'sea-tyre', lat: 33.23, lng: 35.12, label: 'Tyre Maritime Lane' },
+];
+
+const STATIC_SATELLITE_NODES: Array<{ id: string; lat: number; lng: number; label: string }> = [
+  { id: 'sat-1', lat: 34.15, lng: 36.2, label: 'EO Pass Alpha' },
+  { id: 'sat-2', lat: 33.55, lng: 35.2, label: 'EO Pass Bravo' },
+  { id: 'sat-3', lat: 34.0, lng: 35.8, label: 'EO Pass Charlie' },
+];
 
 // Client-side fallback: extract coords from title/summary
 const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
@@ -76,17 +134,12 @@ function inferCoords(text: string): { lat: number; lng: number } | null {
   return null;
 }
 
-interface LayerToggle {
-  hotspots: boolean;
-  airstrikes: boolean;
-  shelters: boolean;
-  housing: boolean;
-  news: boolean;
-  hospitals: boolean;
-  infrastructure: boolean;
-  sos: boolean;
-  daynight: boolean;
+function hasKeywords(text: string, keywords: string[]): boolean {
+  const lower = text.toLowerCase();
+  return keywords.some(keyword => lower.includes(keyword));
 }
+
+type LayerToggle = MapLayerToggleState;
 
 function MapController() {
   const map = useMap();
@@ -96,31 +149,70 @@ function MapController() {
   return null;
 }
 
-/** Syncs map position to URL search params */
-function URLStateSync({ timeFilter, layers }: { timeFilter: string; layers: LayerToggle }) {
+/** Syncs map position to URL search params (debounced to avoid history spam) */
+function URLStateSync({ timeFilter }: { timeFilter: string }) {
   const map = useMap();
   const [, setSearchParams] = useSearchParams();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handler = () => {
-      const center = map.getCenter();
-      const zoom = map.getZoom();
-      setSearchParams(prev => {
-        prev.set('lat', center.lat.toFixed(4));
-        prev.set('lng', center.lng.toFixed(4));
-        prev.set('z', zoom.toString());
-        prev.set('t', timeFilter);
-        return prev;
-      }, { replace: true });
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        setSearchParams(prev => {
+          prev.set('lat', center.lat.toFixed(4));
+          prev.set('lng', center.lng.toFixed(4));
+          prev.set('z', zoom.toString());
+          prev.set('t', timeFilter);
+          return prev;
+        }, { replace: true });
+      }, 500);
     };
     map.on('moveend', handler);
-    return () => { map.off('moveend', handler); };
+    return () => {
+      map.off('moveend', handler);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [map, setSearchParams, timeFilter]);
 
   return null;
 }
 
-export function CrisisMap() {
+function ViewportSync({ onViewportChange }: { onViewportChange?: (viewport: MapViewportState) => void }) {
+  useMapEvents({
+    moveend(event) {
+      if (!onViewportChange) return;
+      const center = event.target.getCenter();
+      onViewportChange({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: event.target.getZoom(),
+      });
+    },
+    zoomend(event) {
+      if (!onViewportChange) return;
+      const center = event.target.getCenter();
+      onViewportChange({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: event.target.getZoom(),
+      });
+    },
+  });
+
+  return null;
+}
+
+interface CrisisMapProps {
+  initialContract?: MapLayerContract;
+  initialViewport?: MapViewportState;
+  onContractChange?: (contract: MapLayerContract) => void;
+  onViewportChange?: (viewport: MapViewportState) => void;
+}
+
+export function CrisisMap({ initialContract, initialViewport, onContractChange, onViewportChange }: CrisisMapProps) {
   const { news, lastUpdated, isLive } = useNewsFeedContext();
   const { scores, historyMap } = useEscalationHistory(news);
   const [searchParams] = useSearchParams();
@@ -128,30 +220,32 @@ export function CrisisMap() {
 
   // Restore map state from URL
   const initialCenter: [number, number] = [
-    parseFloat(searchParams.get('lat') || '30'),
-    parseFloat(searchParams.get('lng') || '45'),
+    parseFloat(searchParams.get('lat') || String(initialViewport?.lat ?? DEFAULT_MAP_VIEWPORT.lat)),
+    parseFloat(searchParams.get('lng') || String(initialViewport?.lng ?? DEFAULT_MAP_VIEWPORT.lng)),
   ];
-  const initialZoom = parseInt(searchParams.get('z') || '5', 10);
+  const initialZoom = parseInt(searchParams.get('z') || String(initialViewport?.zoom ?? DEFAULT_MAP_VIEWPORT.zoom), 10);
   const initialTime = searchParams.get('t') || 'all';
 
-  const [layers, setLayers] = useState<LayerToggle>({
-    hotspots: true,
-    airstrikes: true,
-    shelters: true,
-    housing: true,
-    news: true,
-    hospitals: true,
-    infrastructure: true,
-    sos: true,
-    daynight: false,
-  });
+  const defaultLayers = initialContract?.layers ?? DEFAULT_MAP_LAYER_STATE;
+  const defaultTime = searchParams.get('t') || initialContract?.timeFilter || 'all';
+
+  const [layers, setLayers] = useState<LayerToggle>(normalizeMapLayerState(defaultLayers));
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
-  const [mapTimeFilter, setMapTimeFilter] = useState(initialTime);
+  const [mapTimeFilter, setMapTimeFilter] = useState(defaultTime || initialTime);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
   };
+
+  useEffect(() => {
+    if (!onContractChange) return;
+    onContractChange({
+      layers,
+      timeFilter: mapTimeFilter as MapLayerContract['timeFilter'],
+    });
+  }, [layers, mapTimeFilter, onContractChange]);
 
   const timeFilterMs = getTimeFilterMs(mapTimeFilter);
   const timeFilteredNews = news.filter(n => {
@@ -169,6 +263,20 @@ export function CrisisMap() {
   const geoNews = enrichedNews.filter(n => n.lat && n.lng);
   const conflictEvents = geoNews.filter(n => n.category === 'conflict' || n.severity === 'high');
   const otherNews = geoNews.filter(n => n.category !== 'conflict' && n.severity !== 'high');
+  const protestEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['protest', 'demonstration', 'riot', 'march']));
+  const displacementEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['displaced', 'refugee', 'evacuation', 'migration']));
+  const weatherEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['storm', 'flood', 'wind', 'rain', 'heatwave', 'weather']));
+  const cyberEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['cyber', 'malware', 'phishing', 'ransomware', 'outage', 'ddos']));
+
+  // Heatmap points (Feature 10): derive from geo-tagged news severity
+  const heatPoints = useMemo((): HeatPoint[] => {
+    const severityWeight: Record<string, number> = { high: 1.0, elevated: 0.6, monitoring: 0.3 };
+    return geoNews.map(n => ({
+      lat: n.lat!,
+      lng: n.lng!,
+      intensity: severityWeight[n.severity] ?? 0.3,
+    }));
+  }, [geoNews]);
 
   // Prepare clustered markers for news layer
   const newsClusterMarkers = useMemo(() => otherNews.map(item => ({
@@ -188,7 +296,8 @@ export function CrisisMap() {
         zoomControl={true}
       >
         <MapController />
-        <URLStateSync timeFilter={mapTimeFilter} layers={layers} />
+        <URLStateSync timeFilter={mapTimeFilter} />
+        <ViewportSync onViewportChange={onViewportChange} />
         <TimeFilterBar activeTime={mapTimeFilter} onTimeChange={setMapTimeFilter} />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -229,6 +338,76 @@ export function CrisisMap() {
           </CircleMarker>
         ))}
 
+        {layers.protests && protestEvents.map((event) => (
+          <CircleMarker
+            key={`protest-${event.id}`}
+            center={[event.lat!, event.lng!]}
+            radius={7}
+            pathOptions={{
+              color: '#fb7185',
+              fillColor: '#fb7185',
+              fillOpacity: 0.35,
+              weight: 1.5,
+            }}
+          >
+            <Popup>
+              <div className="text-xs">
+                <div className="font-bold text-foreground">{event.title}</div>
+                <div className="text-muted-foreground">Protest/Unrest signal</div>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.displacement && displacementEvents.map((event) => (
+          <CircleMarker
+            key={`displace-${event.id}`}
+            center={[event.lat!, event.lng!]}
+            radius={7}
+            pathOptions={{
+              color: '#84cc16',
+              fillColor: '#84cc16',
+              fillOpacity: 0.3,
+              weight: 1.5,
+            }}
+          >
+            <Popup>
+              <div className="text-xs">
+                <div className="font-bold text-foreground">{event.title}</div>
+                <div className="text-muted-foreground">Displacement pressure signal</div>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.weather && weatherEvents.map((event) => (
+          <CircleMarker
+            key={`weather-${event.id}`}
+            center={[event.lat!, event.lng!]}
+            radius={6}
+            pathOptions={{
+              color: '#93c5fd',
+              fillColor: '#93c5fd',
+              fillOpacity: 0.35,
+              weight: 1.5,
+            }}
+          />
+        ))}
+
+        {layers.cyber && cyberEvents.map((event) => (
+          <CircleMarker
+            key={`cyber-${event.id}`}
+            center={[event.lat!, event.lng!]}
+            radius={6}
+            pathOptions={{
+              color: '#22d3ee',
+              fillColor: '#22d3ee',
+              fillOpacity: 0.4,
+              weight: 1.5,
+            }}
+          />
+        ))}
+
         <HumanitarianLayer showSos={layers.sos} showShelters={layers.shelters} showHousing={layers.housing} />
 
         {/* News markers — clustered */}
@@ -250,6 +429,69 @@ export function CrisisMap() {
             </Popup>
           </Marker>
         ))}
+
+        {layers.telecom && STATIC_TELECOM_NODES.map(node => (
+          <CircleMarker
+            key={node.id}
+            center={[node.lat, node.lng]}
+            radius={6}
+            pathOptions={{ color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.45, weight: 1.5 }}
+          >
+            <Popup>
+              <div className="text-xs font-semibold">{node.label}</div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.powerGrid && STATIC_POWER_NODES.map(node => (
+          <CircleMarker
+            key={node.id}
+            center={[node.lat, node.lng]}
+            radius={6}
+            pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.45, weight: 1.5 }}
+          >
+            <Popup>
+              <div className="text-xs font-semibold">{node.label}</div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.maritime && STATIC_MARITIME_NODES.map(node => (
+          <CircleMarker
+            key={node.id}
+            center={[node.lat, node.lng]}
+            radius={6}
+            pathOptions={{ color: '#60a5fa', fillColor: '#60a5fa', fillOpacity: 0.35, weight: 1.5 }}
+          >
+            <Popup>
+              <div className="text-xs font-semibold">{node.label}</div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.satellite && STATIC_SATELLITE_NODES.map(node => (
+          <CircleMarker
+            key={node.id}
+            center={[node.lat, node.lng]}
+            radius={5}
+            pathOptions={{ color: '#e879f9', fillColor: '#e879f9', fillOpacity: 0.4, weight: 1.5 }}
+          >
+            <Popup>
+              <div className="text-xs font-semibold">{node.label}</div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
+        {layers.borders && (
+          <Polyline positions={BORDER_POLYLINE} pathOptions={{ color: '#f8fafc', weight: 1.5, opacity: 0.55 }} />
+        )}
+
+        {layers.supplyRoutes && SUPPLY_ROUTES.map((route, index) => (
+          <Polyline key={`route-${index}`} positions={route} pathOptions={{ color: '#10b981', weight: 2, opacity: 0.65 }} />
+        ))}
+
+        {/* Threat heatmap (Feature 10) */}
+        <HeatmapLayer points={heatPoints} visible={showHeatmap} />
       </MapContainer>
 
       {/* Live indicator */}
@@ -288,6 +530,18 @@ export function CrisisMap() {
               <TrendingUp className="h-4 w-4" />
             </Button>
           </div>
+          {/* Heatmap toggle (Feature 10) */}
+          <div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 bg-card/90 border backdrop-blur-sm ${showHeatmap ? 'border-orange-500/50 text-orange-400' : 'border-border'}`}
+              onClick={() => setShowHeatmap(p => !p)}
+              title="Toggle threat heatmap"
+            >
+              <Flame className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         {showEscalation && (
           <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 min-w-[280px]">
@@ -295,26 +549,16 @@ export function CrisisMap() {
           </div>
         )}
         {showPanel && (
-          <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px]">
+          <div className="mt-1 bg-card/95 border border-border backdrop-blur-sm rounded-md p-2 space-y-1 min-w-[140px] max-h-[50vh] overflow-y-auto">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1">{t('map.layers')}</span>
-            {([
-              { key: 'sos' as const, labelKey: 'map.sos', color: 'text-destructive' },
-              { key: 'hotspots' as const, labelKey: 'map.hotspots', color: 'text-[#a855f7]' },
-              { key: 'airstrikes' as const, labelKey: 'map.conflicts', color: 'text-danger' },
-              { key: 'infrastructure' as const, labelKey: 'map.infra', color: 'text-[#06b6d4]' },
-              { key: 'shelters' as const, labelKey: 'map.shelters', color: 'text-success' },
-              { key: 'housing' as const, labelKey: 'map.housing', color: 'text-info' },
-              { key: 'news' as const, labelKey: 'map.news', color: 'text-warning' },
-              { key: 'hospitals' as const, labelKey: 'map.hospitals', color: 'text-[#ef4444]' },
-              { key: 'daynight' as const, labelKey: 'map.dayNight', color: 'text-[#fbbf24]' },
-            ]).map(layer => (
+            {MAP_LAYER_DEFINITIONS.map(layer => (
               <button
                 key={layer.key}
                 onClick={() => toggleLayer(layer.key)}
                 className="flex items-center gap-2 w-full px-1 py-0.5 rounded hover:bg-muted text-[11px]"
               >
-                {layers[layer.key] ? <Eye className={`h-3 w-3 ${layer.color}`} /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
-                <span className={layers[layer.key] ? layer.color : 'text-muted-foreground'}>{t(layer.labelKey)}</span>
+                {layers[layer.key] ? <Eye className={`h-3 w-3 ${layer.colorClass}`} /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
+                <span className={layers[layer.key] ? layer.colorClass : 'text-muted-foreground'}>{t(layer.labelKey)}</span>
               </button>
             ))}
           </div>

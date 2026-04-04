@@ -263,6 +263,41 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          id: string
+          role: string
+          display_name: string | null
+          region: string | null
+          organization: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          role?: string
+          display_name?: string | null
+          region?: string | null
+          organization?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          display_name?: string | null
+          region?: string | null
+          organization?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       sos_signals: {
         Row: {
           accuracy: number | null

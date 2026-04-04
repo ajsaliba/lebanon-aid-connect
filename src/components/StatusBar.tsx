@@ -4,7 +4,7 @@ import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { useTranslation } from '@/lib/i18n';
 
 export function StatusBar() {
-  const { isLive, lastUpdated, news } = useNewsFeedContext();
+  const { isLive, lastUpdated, news, connectivityState, cacheAgeMs, bootstrapPhase } = useNewsFeedContext();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { t } = useTranslation();
 
@@ -27,6 +27,28 @@ export function StatusBar() {
     return `${Math.floor(diff / 3600000)}${t('time.hAgo')}`;
   };
 
+  const freshnessLabel = cacheAgeMs === null
+    ? t('status.never')
+    : cacheAgeMs < 60000
+      ? t('time.justNow')
+      : cacheAgeMs < 3600000
+        ? `${Math.floor(cacheAgeMs / 60000)}${t('time.mAgo')}`
+        : `${Math.floor(cacheAgeMs / 3600000)}${t('time.hAgo')}`;
+
+  const connectivityLabel = connectivityState === 'live'
+    ? t('status.live')
+    : connectivityState === 'cached'
+      ? t('status.cached')
+      : 'Unavailable';
+
+  const connectivityIcon = connectivityState === 'live' ? <Wifi className="h-2.5 w-2.5" /> : <WifiOff className="h-2.5 w-2.5" />;
+
+  const connectivityDotClass = connectivityState === 'live'
+    ? 'bg-success'
+    : connectivityState === 'cached'
+      ? 'bg-warning'
+      : 'bg-danger';
+
   return (
     <footer className="border-t border-border bg-card hidden md:flex flex-col shrink-0">
       {!isOnline && (
@@ -37,9 +59,9 @@ export function StatusBar() {
       <div className="h-6 flex items-center justify-between px-3 text-[9px] text-muted-foreground">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <span className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-success' : 'bg-warning'}`} />
-            {isLive ? <Wifi className="h-2.5 w-2.5" /> : <WifiOff className="h-2.5 w-2.5" />}
-            {isLive ? t('status.live') : t('status.cached')}
+            <span className={`h-1.5 w-1.5 rounded-full ${connectivityDotClass}`} />
+            {connectivityIcon}
+            {connectivityLabel}
           </span>
           <span className="flex items-center gap-1">
             <Database className="h-2.5 w-2.5" />
@@ -49,12 +71,17 @@ export function StatusBar() {
             <Clock className="h-2.5 w-2.5" />
             {t('status.updated')}: {formatTime(lastUpdated)}
           </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            Freshness: {freshnessLabel}
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <MapPin className="h-2.5 w-2.5" />
             {t('status.focus')}
           </span>
+          <span className="uppercase tracking-wider">bootstrap:{bootstrapPhase}</span>
           <span>v0.2.0</span>
         </div>
       </div>

@@ -1,15 +1,46 @@
 import { useState, useMemo } from 'react';
 import { mockAidRequests, mockAidOffers, type AidRequest, type AidOffer, type AidPriority, type AidStatus } from '@/data/extendedMockData';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
+import { useAcceptAidMatch } from '@/hooks/useDataHooks';
 import {
   HandHeart, Package, Truck, ArrowRightLeft, Filter, Plus,
-  AlertTriangle, CheckCircle2, Clock, MapPin, Users, Search
+  AlertTriangle, CheckCircle2, Clock, MapPin, Users, Search,
+  Zap, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
+import { useToast } from '@/hooks/use-toast';
+
+interface MatchResult {
+  inventory_id: string;
+  item_name: string;
+  category: string;
+  quantity: number;
+  lat: number | null;
+  lng: number | null;
+  distance_km: number | null;
+  score: number;
+}
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+async function fetchMatches(requestId: string): Promise<MatchResult[]> {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/match-aid`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+    body: JSON.stringify({ requestId }),
+  });
+  if (!res.ok) throw new Error('Match failed');
+  return res.json() as Promise<MatchResult[]>;
+}
 
 const priorityColors: Record<AidPriority, string> = {
   critical: 'bg-danger/20 text-danger border-danger/30',
@@ -47,6 +78,32 @@ export function AidMatchPanel() {
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<AidPriority | 'all'>('all');
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const acceptMatch = useAcceptAidMatch();
+
+  // Per-request match state: { [requestId]: { loading, results } }
+  const [matchState, setMatchState] = useState<Record<string, { loading: boolean; results: MatchResult[] | null }>>({});
+
+  const handleFindMatches = async (requestId: string) => {
+    setMatchState(prev => ({ ...prev, [requestId]: { loading: true, results: null } }));
+    try {
+      const results = await fetchMatches(requestId);
+      setMatchState(prev => ({ ...prev, [requestId]: { loading: false, results } }));
+    } catch {
+      setMatchState(prev => ({ ...prev, [requestId]: { loading: false, results: [] } }));
+      toast({ title: 'Match failed', description: 'Could not reach matching engine', variant: 'destructive' });
+    }
+  };
+
+  const handleAccept = async (requestId: string, match: MatchResult) => {
+    try {
+      await acceptMatch.mutateAsync({ requestId, inventoryId: match.inventory_id, score: match.score });
+      toast({ title: 'Match accepted', description: `${match.item_name} assigned to request` });
+      setMatchState(prev => ({ ...prev, [requestId]: { loading: false, results: null } }));
+    } catch {
+      toast({ title: 'Error', description: 'Failed to accept match', variant: 'destructive' });
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     let items = view === 'matched'
@@ -190,6 +247,71 @@ export function AidMatchPanel() {
               <div className="text-[9px] text-muted-foreground">
                 {t('aid.qty')}: {item.quantity} {item.unit}
               </div>
+
+              {/* Find Matches button — only for open requests (Feature 12) */}
+              {isRequest && req.status === 'open' && (
+                <div className="pt-0.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-5 text-[9px] gap-1 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                    onClick={() => handleFindMatches(item.id)}
+                    disabled={matchState[item.id]?.loading}
+                  >
+                    {matchState[item.id]?.loading
+                      ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                      : <Zap className="h-2.5 w-2.5" />}
+                    Find Matches
+                  </Button>
+
+                  {/* Match results */}
+                  {matchState[item.id]?.results && (
+                    <div className="mt-1.5 space-y-1">
+                      {matchState[item.id]!.results!.length === 0 && (
+                        <p className="text-[9px] text-muted-foreground italic">No matches found</p>
+                      )}
+                      {matchState[item.id]!.results!.map(match => (
+                        <div key={match.inventory_id} className="border border-border rounded p-1.5 space-y-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[9px] font-medium text-foreground">{match.item_name}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-4 text-[8px] px-1.5 text-success border border-success/30 hover:bg-success/10"
+                              onClick={() => handleAccept(item.id, match)}
+                            >
+                              Accept
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2 text-[8px] text-muted-foreground">
+                            <span>Qty: {match.quantity}</span>
+                            {match.distance_km !== null && (
+                              <span>{match.distance_km.toFixed(1)} km</span>
+                            )}
+                          </div>
+                          {/* Score bar */}
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-cyan-500 rounded-full transition-all"
+                                style={{ width: `${match.score}%` }}
+                              />
+                            </div>
+                            <span className="text-[8px] font-mono text-cyan-400">{match.score}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Skeleton while loading */}
+                  {matchState[item.id]?.loading && (
+                    <div className="mt-1.5 animate-pulse space-y-1">
+                      {[1,2,3].map(i => <div key={i} className="h-10 bg-muted rounded" />)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

@@ -18,6 +18,7 @@ export default defineConfig(() => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       workbox: {
+        maximumFileSizeToCacheInBytes: 6000000,
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
