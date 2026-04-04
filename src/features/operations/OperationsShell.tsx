@@ -8,6 +8,7 @@ import {
   Minimize2,
   Pin,
   PinOff,
+  WifiOff,
   RectangleHorizontal,
   Shrink,
 } from 'lucide-react';
@@ -91,6 +92,14 @@ export function OperationsShell() {
   const sideBySideLayout = useMediaQuery('(min-width: 1700px)');
   const isMobileLayout = useMediaQuery('(max-width: 1023px)');
   const { error, connectivityState, cacheAgeMs } = useNewsFeedContext();
+  const [isOnline, setIsOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
 
   const variantDefinitions = useMemo(() => getVariantDefinitions(), []);
 
@@ -354,6 +363,14 @@ export function OperationsShell() {
       />
 
       <AlertTicker />
+
+      {/* Offline banner (Feature 13) */}
+      {!isOnline && (
+        <div className="offline-banner text-xs font-mono px-4 py-2 text-center flex items-center justify-center gap-2 shrink-0">
+          <WifiOff className="h-3 w-3" />
+          ⚠ OFFLINE — displaying cached data
+        </div>
+      )}
 
       {connectivityState !== 'live' && (
         <div

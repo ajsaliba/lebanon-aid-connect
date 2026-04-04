@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Rss, ToggleLeft, ToggleRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/lib/i18n';
+import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 
 interface CustomFeed {
   id: string;
@@ -13,16 +14,38 @@ interface CustomFeed {
   url: string;
   source_label: string;
   enabled: boolean;
+  keywords?: string[];
+  sources?: string[];
 }
 
 export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { news } = useNewsFeedContext();
   const [feeds, setFeeds] = useState<CustomFeed[]>([]);
   const [newName, setNewName] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const activeCount = feeds.filter(f => f.enabled).length;
+
+  // Per-feed match count
+  const matchCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const feed of feeds) {
+      const kws = feed.keywords ?? [];
+      const srcs = feed.sources ?? [];
+      if (kws.length === 0 && srcs.length === 0) { map[feed.id] = 0; continue; }
+      map[feed.id] = news.filter(a => {
+        const text = `${a.title} ${a.summary ?? ''}`.toLowerCase();
+        const kwMatch = kws.some(kw => text.includes(kw.toLowerCase()));
+        const srcMatch = srcs.some(s => a.source.toLowerCase().includes(s.toLowerCase()));
+        return kwMatch || srcMatch;
+      }).length;
+    }
+    return map;
+  }, [feeds, news]);
 
   const loadFeeds = useCallback(async () => {
     if (!user) return;
@@ -73,8 +96,11 @@ export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onTogg
   return (
     <div className="border-b border-border bg-card/50 p-3 space-y-3 text-[11px]">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
           <Rss className="h-3 w-3" /> {t('customFeed.title')}
+          {activeCount > 0 && (
+            <span className="text-cyan-400 font-mono text-[9px]">{activeCount} active</span>
+          )}
         </span>
         <button onClick={onToggle}><X className="h-3 w-3 text-muted-foreground" /></button>
       </div>
@@ -106,7 +132,14 @@ export function CustomFeedsPanel({ isOpen, onToggle }: { isOpen: boolean; onTogg
                       : <ToggleLeft className="h-4 w-4 text-muted-foreground" />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">{feed.name}</div>
+                    <div className="font-medium text-foreground truncate flex items-center gap-1">
+                      {feed.name}
+                      {matchCounts[feed.id] !== undefined && matchCounts[feed.id] > 0 && (
+                        <span className="text-[8px] bg-gray-800 text-gray-400 border border-gray-700 px-1 rounded font-mono">
+                          {matchCounts[feed.id]} matches
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[9px] text-muted-foreground truncate">{feed.url}</div>
                   </div>
                   <button onClick={() => deleteFeed(feed.id)}

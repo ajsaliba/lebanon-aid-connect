@@ -5,7 +5,7 @@ import { useGeolocation, getDirectionsUrl } from '@/hooks/useGeolocation';
 import { mockEmergencyContacts } from '@/data/mockData';
 import {
   Phone, Share2, Loader2, MapPin, AlertTriangle, Shield, Building2, Heart, Stethoscope,
-  Navigation, Users, Clock, CheckCircle2, Radio, XCircle, MessageCircle
+  Navigation, Users, Clock, CheckCircle2, Radio, XCircle, MessageCircle, Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from '@/lib/i18n';
+import { BroadcastAlertDialog } from '@/components/BroadcastAlertDialog';
 
 const catIcons = { emergency: Shield, embassy: Building2, ngo: Heart, medical: Stethoscope };
 const catColors = { emergency: 'text-danger', embassy: 'text-info', ngo: 'text-success', medical: 'text-warning' };
@@ -235,6 +236,9 @@ export function SOSPanel() {
         {checkingIn ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
         {t('sos.imSafeCheckIn')}
       </Button>
+
+      {/* Broadcast Alert (Feature 8) */}
+      <BroadcastAlertDialog />
 
       {position && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-muted/50 rounded p-1.5">

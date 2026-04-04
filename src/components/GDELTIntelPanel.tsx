@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
 import { type NewsItem } from '@/data/mockData';
-import { Radio, ExternalLink } from 'lucide-react';
+import { Radio, ExternalLink, RefreshCw, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { sanitizeFeedText } from '@/lib/sanitizeFeedText';
 import { useTranslation, t as translate } from '@/lib/i18n';
+import { supabase } from '@/integrations/supabase/client';
 
 type IntelCategory = 'military' | 'cyber' | 'nuclear' | 'sanctions' | 'intelligence' | 'maritime';
 
@@ -55,6 +57,51 @@ const INTEL_CATEGORIES: Record<IntelCategory, IntelCategoryConfig> = {
   },
 };
 
+// ── GDELT presets (Feature 4) ──
+const GDELT_PRESETS = [
+  { label: 'Lebanon', query: 'Lebanon' },
+  { label: 'Beirut', query: 'Beirut' },
+  { label: 'Hezbollah', query: 'Hezbollah' },
+  { label: 'UNIFIL', query: 'UNIFIL' },
+  { label: 'IDF', query: 'IDF' },
+] as const;
+
+const GDELT_TIMESPANS = [
+  { label: '1h', value: '1h' },
+  { label: '6h', value: '6h' },
+  { label: '24h', value: '24h' },
+  { label: '7d', value: '7d' },
+] as const;
+
+interface GDELTArticle {
+  title: string;
+  url: string;
+  source: string;
+  seendate: string;
+  socialimage: string | null;
+  language: string;
+  domain: string;
+}
+
+async function fetchGDELT(query: string, timespan: string): Promise<GDELTArticle[]> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/gdelt-fetch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+    },
+    body: JSON.stringify({ query, timespan }),
+  });
+
+  if (!res.ok) throw new Error('GDELT fetch failed');
+  const data = await res.json() as GDELTArticle[];
+  return data;
+}
+
 function categorizeArticle(article: NewsItem): IntelCategory | null {
   const text = `${article.title} ${article.summary}`.toLowerCase();
   for (const [cat, cfg] of Object.entries(INTEL_CATEGORIES)) {
@@ -69,6 +116,18 @@ export function GDELTIntelPanel() {
   const { t } = useTranslation();
   const { news } = useNewsFeedContext();
   const [activeCategory, setActiveCategory] = useState<IntelCategory>('military');
+  const [gdeltQuery, setGdeltQuery] = useState('Lebanon');
+  const [gdeltTimespan, setGdeltTimespan] = useState('24h');
+  const [showGDELT, setShowGDELT] = useState(false);
+
+  // GDELT query (Feature 4)
+  const { data: gdeltArticles, isLoading: gdeltLoading, refetch: refetchGDELT, error: gdeltError } = useQuery({
+    queryKey: ['gdelt', gdeltQuery, gdeltTimespan],
+    queryFn: () => fetchGDELT(gdeltQuery, gdeltTimespan),
+    enabled: showGDELT,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
 
   const categorized = useMemo(() => {
     const result: Record<IntelCategory, NewsItem[]> = {
@@ -106,6 +165,100 @@ export function GDELTIntelPanel() {
           </TooltipContent>
         </Tooltip>
         <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 rounded">{totalCount}</span>
+      </div>
+
+      {/* ── GDELT Filter Bar (Feature 4) ── */}
+      <div className="px-1 space-y-1.5">
+        <div className="flex items-center gap-1">
+          <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
+          <div className="flex flex-wrap gap-1">
+            {GDELT_PRESETS.map(preset => (
+              <button
+                key={preset.label}
+                onClick={() => { setGdeltQuery(preset.query); setShowGDELT(true); }}
+                className={cn(
+                  'px-1.5 py-0.5 rounded text-[9px] font-mono border transition-colors',
+                  gdeltQuery === preset.query && showGDELT
+                    ? 'bg-purple-500/20 text-purple-400 border-purple-500/40'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                )}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex gap-1">
+            {GDELT_TIMESPANS.map(ts => (
+              <button
+                key={ts.value}
+                onClick={() => setGdeltTimespan(ts.value)}
+                className={cn(
+                  'px-1 py-0.5 text-[9px] rounded font-mono transition-colors',
+                  gdeltTimespan === ts.value ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {ts.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* GDELT results panel */}
+        {showGDELT && (
+          <div className="border border-purple-500/20 rounded bg-purple-500/5 p-1.5 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-mono text-purple-400 uppercase tracking-wider">
+                GDELT · {gdeltQuery} · {gdeltTimespan}
+              </span>
+              <div className="flex items-center gap-1">
+                {gdeltLoading && <RefreshCw className="h-2.5 w-2.5 text-purple-400 animate-spin" />}
+                <button
+                  onClick={() => refetchGDELT()}
+                  className="text-[9px] text-purple-400 hover:text-purple-300"
+                >
+                  ↻
+                </button>
+                <button
+                  onClick={() => setShowGDELT(false)}
+                  className="text-[9px] text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {gdeltError && (
+              <p className="text-red-400 text-[9px] font-mono">Failed to load GDELT data</p>
+            )}
+
+            {gdeltArticles && gdeltArticles.length === 0 && !gdeltLoading && (
+              <p className="text-[9px] text-muted-foreground italic">No results</p>
+            )}
+
+            {gdeltArticles?.slice(0, 8).map((art, i) => (
+              <a
+                key={i}
+                href={art.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-1 py-0.5 rounded hover:bg-purple-500/10 text-[9px] group"
+              >
+                <p className="text-foreground leading-tight group-hover:text-purple-400 transition-colors line-clamp-2">
+                  {art.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5 text-[8px] text-muted-foreground">
+                  <span>{art.source}</span>
+                  <span>·</span>
+                  <span className="px-1 py-0 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">
+                    GDELT
+                  </span>
+                  <span>·</span>
+                  <span>{art.language?.toUpperCase()}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Category tabs */}

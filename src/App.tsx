@@ -7,6 +7,7 @@ import { NewsFeedProvider } from "@/contexts/NewsFeedContext";
 import { NotificationCenterProvider } from "@/contexts/NotificationCenterContext";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthGate } from "@/components/AuthGate";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -20,13 +21,15 @@ const App = () => (
           <NotificationCenterProvider>
             <Toaster />
             <Sonner />
-            <CommandPalette />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+            <AuthGate>
+              <CommandPalette />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </AuthGate>
           </NotificationCenterProvider>
         </NewsFeedProvider>
       </TooltipProvider>

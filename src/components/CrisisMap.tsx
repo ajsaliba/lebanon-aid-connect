@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { lebanonHospitals } from '@/data/mockData';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
-import { Layers, Eye, EyeOff, TrendingUp, Sun } from 'lucide-react';
+import { Layers, Eye, EyeOff, TrendingUp, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HotspotLayer } from '@/components/map/HotspotLayer';
 import { InfrastructureLayer } from '@/components/map/InfrastructureLayer';
@@ -14,6 +14,8 @@ import { TimeFilterBar, getTimeFilterMs } from '@/components/map/TimeFilterBar';
 import { HumanitarianLayer } from '@/components/map/HumanitarianLayer';
 import { DayNightOverlay } from '@/components/map/DayNightOverlay';
 import { MarkerClusterLayer } from '@/components/map/MarkerClusterGroup';
+import { HeatmapLayer } from '@/components/map/HeatmapLayer';
+import type { HeatPoint } from '@/components/map/HeatmapLayer';
 import { useEscalationHistory } from '@/hooks/useEscalationHistory';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from '@/lib/i18n';
@@ -231,6 +233,7 @@ export function CrisisMap({ initialContract, initialViewport, onContractChange, 
   const [showPanel, setShowPanel] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
   const [mapTimeFilter, setMapTimeFilter] = useState(defaultTime || initialTime);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const toggleLayer = (key: keyof LayerToggle) => {
     setLayers(prev => ({ ...prev, [key]: !prev[key] }));
@@ -264,6 +267,16 @@ export function CrisisMap({ initialContract, initialViewport, onContractChange, 
   const displacementEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['displaced', 'refugee', 'evacuation', 'migration']));
   const weatherEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['storm', 'flood', 'wind', 'rain', 'heatwave', 'weather']));
   const cyberEvents = geoNews.filter(item => hasKeywords(`${item.title} ${item.summary}`, ['cyber', 'malware', 'phishing', 'ransomware', 'outage', 'ddos']));
+
+  // Heatmap points (Feature 10): derive from geo-tagged news severity
+  const heatPoints = useMemo((): HeatPoint[] => {
+    const severityWeight: Record<string, number> = { high: 1.0, elevated: 0.6, monitoring: 0.3 };
+    return geoNews.map(n => ({
+      lat: n.lat!,
+      lng: n.lng!,
+      intensity: severityWeight[n.severity] ?? 0.3,
+    }));
+  }, [geoNews]);
 
   // Prepare clustered markers for news layer
   const newsClusterMarkers = useMemo(() => otherNews.map(item => ({
@@ -476,6 +489,9 @@ export function CrisisMap({ initialContract, initialViewport, onContractChange, 
         {layers.supplyRoutes && SUPPLY_ROUTES.map((route, index) => (
           <Polyline key={`route-${index}`} positions={route} pathOptions={{ color: '#10b981', weight: 2, opacity: 0.65 }} />
         ))}
+
+        {/* Threat heatmap (Feature 10) */}
+        <HeatmapLayer points={heatPoints} visible={showHeatmap} />
       </MapContainer>
 
       {/* Live indicator */}
@@ -512,6 +528,18 @@ export function CrisisMap({ initialContract, initialViewport, onContractChange, 
               onClick={() => { setShowEscalation(p => !p); setShowPanel(false); }}
             >
               <TrendingUp className="h-4 w-4" />
+            </Button>
+          </div>
+          {/* Heatmap toggle (Feature 10) */}
+          <div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 bg-card/90 border backdrop-blur-sm ${showHeatmap ? 'border-orange-500/50 text-orange-400' : 'border-border'}`}
+              onClick={() => setShowHeatmap(p => !p)}
+              title="Toggle threat heatmap"
+            >
+              <Flame className="h-4 w-4" />
             </Button>
           </div>
         </div>

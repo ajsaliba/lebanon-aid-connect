@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/TopBar';
 import { AlertTicker } from '@/components/AlertTicker';
 import { LeftSidebar } from '@/components/LeftSidebar';
@@ -8,13 +8,25 @@ import { StatusBar } from '@/components/StatusBar';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Newspaper, Map, Brain, Heart, Wrench, AlertTriangle, CircleDot } from 'lucide-react';
+import { Newspaper, Map, Brain, Heart, Wrench, AlertTriangle, CircleDot, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { isFeatureEnabled } from '@/config/featureFlags';
 import { OperationsShell } from '@/features/operations/OperationsShell';
 import { useNewsFeedContext } from '@/contexts/NewsFeedContext';
+
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online;
+}
 
 type MobileTab = 'map' | 'feed' | 'intel' | 'aid' | 'tools';
 
@@ -40,6 +52,7 @@ function LegacyShell() {
   const [mobileTab, setMobileTab] = usePersistedState<MobileTab>('cedarsalert_mobiletab', 'map');
   const { t } = useTranslation();
   const { isLive, connectivityState, error } = useNewsFeedContext();
+  const isOnline = useOnlineStatus();
 
   // On medium screens (1024-1280px), enforce mutually exclusive sidebars
   const handleToggleSidebar = () => {
@@ -68,6 +81,13 @@ function LegacyShell() {
           onRegionChange={setActiveRegion}
         />
         <AlertTicker />
+        {/* Offline banner (Feature 13) */}
+        {!isOnline && (
+          <div className="offline-banner text-xs font-mono px-4 py-2 text-center flex items-center justify-center gap-2 shrink-0">
+            <WifiOff className="h-3 w-3" />
+            ⚠ OFFLINE — displaying cached data
+          </div>
+        )}
         {/* DEMO MODE banner */}
         {!isLive && (
           <div
@@ -144,6 +164,13 @@ function LegacyShell() {
         onRegionChange={setActiveRegion}
       />
       <AlertTicker />
+      {/* Offline banner (Feature 13) */}
+      {!isOnline && (
+        <div className="offline-banner text-xs font-mono px-4 py-2 text-center flex items-center justify-center gap-2 shrink-0">
+          <WifiOff className="h-3 w-3" />
+          ⚠ OFFLINE — displaying cached data
+        </div>
+      )}
       {/* DEMO MODE / degraded connectivity banner */}
       {!isLive && (
         <div

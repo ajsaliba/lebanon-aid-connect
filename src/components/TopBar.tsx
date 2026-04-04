@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download, Globe, Link2, Maximize, Minimize, Layers3 } from 'lucide-react';
+import { Radio, Shield, AlertTriangle, MapPin, Menu, Bell, Search, Volume2, VolumeX, Download, Globe, Link2, Maximize, Minimize, Brain, Activity, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -399,26 +399,41 @@ export function TopBar({ onToggleSidebar, activeRegion, onRegionChange, variant,
 
         <ThemeToggle />
 
-        {/* Variant switcher */}
+        {/* Icon-based variant switcher */}
         {variant && variantOptions?.length && onVariantChange && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Switch operational variant">
-                <Layers3 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {variantOptions.map(option => (
-                <DropdownMenuItem
-                  key={option.id}
-                  onClick={() => onVariantChange(option.id)}
-                  className={cn('text-xs', variant === option.id && 'font-bold text-primary')}
-                >
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="hidden sm:flex items-center gap-0.5 rounded border border-border p-0.5 bg-card">
+            {variantOptions.map(option => {
+              const variantIcons: Record<string, typeof Shield> = {
+                humanitarian: Heart,
+                intel: Brain,
+                operations: Activity,
+                recovery: Shield,
+              };
+              const Icon = variantIcons[option.id] ?? Shield;
+              const isActive = variant === option.id;
+              return (
+                <Tooltip key={option.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => onVariantChange(option.id)}
+                      aria-label={option.label}
+                      className={cn(
+                        'h-6 w-6 rounded flex items-center justify-center transition-colors',
+                        isActive
+                          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-[10px]">
+                    {option.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
         )}
 
         {/* Language Switcher */}

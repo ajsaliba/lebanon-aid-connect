@@ -284,3 +284,25 @@
   background: hsl(var(--ops-surface-3));
   border-radius: 0.25rem;
 }
+
+/* Slide-down animation for new news feed articles (Feature 3) */
+@keyframes slide-down {
+  from { transform: translateY(-16px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.animate-slide-down {
+  animation: slide-down 200ms ease-out;
+}
+
+/* Heatmap canvas layer (Feature 10) */
+.leaflet-heatmap-layer {
+  z-index: 300 !important;
+}
+
+/* Offline banner (Feature 13) */
+.offline-banner {
+  background: rgba(234, 179, 8, 0.1);
+  border-bottom: 1px solid rgba(234, 179, 8, 0.3);
+  color: #facc15;
+}
