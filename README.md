@@ -1,6 +1,6 @@
 # Cedars Alert
 
-**Real-time crisis intelligence and humanitarian coordination dashboard for Lebanon** — AI-assisted news aggregation, conflict monitoring, SOS signalling, aid matching, and infrastructure tracking in a unified situational awareness interface.
+**Real-time crisis intelligence and humanitarian coordination dashboard for Lebanon** — AI-assisted news aggregation, conflict monitoring, SOS signaling, aid matching, and infrastructure tracking in a unified situational awareness interface.
 
 <a href="https://github.com/ajsaliba/Cedars-Alert/stargazers"><img src="https://img.shields.io/github/stars/ajsaliba/Cedars-Alert?style=social"></a>
 <a href="https://github.com/ajsaliba/Cedars-Alert/network/members"><img src="https://img.shields.io/github/forks/ajsaliba/Cedars-Alert?style=social"></a>
@@ -11,7 +11,7 @@
 <a href="https://github.com/ajsaliba/Cedars-Alert/releases/latest"><img src="https://img.shields.io/github/v/release/ajsaliba/Cedars-Alert?style=flat"></a>
 
 <p>
-  <a href="https://github.com/ajsaliba/Cedars-Alert"><img src="https://img.shields.io/badge/Web_App-Cedars--Alert-blue?style=for-the-badge<a href="http://localhost:8080"><img src="https://img.shields.io/badge/Web_App-localhost:8080-blue?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>amp;logo=github<a href="http://localhost:8080"><img src="https://img.shields.io/badge/Web_App-localhost:8080-blue?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>amp;logoColor=white"></a>&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert"><img src="https://img.shields.io/badge/Repository-Cedars--Alert-blue?style=for-the-badge&amp;logo=github&amp;logoColor=white"></a>&nbsp;
   <a href="https://supabase.com"><img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&amp;logo=supabase&amp;logoColor=white"></a>&nbsp;
   <a href="https://vitejs.dev"><img src="https://img.shields.io/badge/Build-Vite-646CFF?style=for-the-badge&amp;logo=vite&amp;logoColor=white"></a>&nbsp;
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/UI-React-61DAFB?style=for-the-badge&amp;logo=react&amp;logoColor=black"></a>&nbsp;
@@ -47,7 +47,7 @@
 - **Role-based coordination** across viewer, volunteer, coordinator, and admin access levels
 - **PWA/offline support** for degraded-connectivity environments
 
-For architecture details, data flow, and feature implementation references, review the repository source and Supabase functions.
+For implementation details, see <a href="/src">`/src`</a> for frontend modules and <a href="/supabase/functions">`/supabase/functions`</a> for backend edge functions.
 
 ---
 
@@ -89,7 +89,7 @@ npm run preview    # Preview production build locally
 
 ---
 
-## Data Sources
+## Data Overview
 
 Cedars Alert aggregates external intelligence and operational feeds for humanitarian response, including news, conflict signals, infrastructure conditions, and community-submitted reports.
 
