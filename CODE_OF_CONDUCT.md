@@ -46,7 +46,7 @@ spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainer at **<a href="https://github.com/ajsaliba/Cedars-Alert/issues">GitHub Issues</a>** or by contacting the
+reported to the project maintainer at **[GitHub Issues](https://github.com/ajsaliba/Cedars-Alert/issues)** or by contacting the
 repository owner directly through GitHub.
 
 All complaints will be reviewed and investigated promptly and fairly. The project
