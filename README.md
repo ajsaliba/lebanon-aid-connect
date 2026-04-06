@@ -2,12 +2,12 @@
 
 **Real-time crisis monitoring and humanitarian coordination platform for Lebanon** — live news aggregation, interactive mapping, SOS distress signalling, aid matching, family locator, and multi-agency coordination in a unified situational awareness interface.
 
-[![GitHub stars](https://img.shields.io/github/stars/ajsaliba/Lebanon-Aid-Connect?style=social)](https://github.com/ajsaliba/Lebanon-Aid-Connect/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ajsaliba/Lebanon-Aid-Connect?style=social)](https://github.com/ajsaliba/Lebanon-Aid-Connect/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/ajsaliba/Cedars-Alert?style=social)](https://github.com/ajsaliba/Cedars-Alert/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/ajsaliba/Cedars-Alert?style=social)](https://github.com/ajsaliba/Cedars-Alert/network/members)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
-[![Last commit](https://img.shields.io/github/last-commit/ajsaliba/Lebanon-Aid-Connect)](https://github.com/ajsaliba/Lebanon-Aid-Connect/commits/main)
+[![Last commit](https://img.shields.io/github/last-commit/ajsaliba/Cedars-Alert)](https://github.com/ajsaliba/Cedars-Alert/commits/main)
 
 ---
 
