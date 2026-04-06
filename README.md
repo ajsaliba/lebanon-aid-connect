@@ -1,13 +1,28 @@
-# Cedars Alert
+# World Monitor
 
-**Real-time crisis monitoring and humanitarian coordination platform for Lebanon** — live news aggregation, interactive mapping, SOS distress signalling, aid matching, family locator, and multi-agency coordination in a unified situational awareness interface.
+**Real-time global intelligence dashboard** — AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a unified situational awareness interface.
 
-[![GitHub stars](https://img.shields.io/github/stars/ajsaliba/Cedars-Alert?style=social)](https://github.com/ajsaliba/Cedars-Alert/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ajsaliba/Cedars-Alert?style=social)](https://github.com/ajsaliba/Cedars-Alert/network/members)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
-[![Last commit](https://img.shields.io/github/last-commit/ajsaliba/Cedars-Alert)](https://github.com/ajsaliba/Cedars-Alert/commits/main)
+<a href="https://github.com/ajsaliba/Cedars-Alert/stargazers"><img src="https://img.shields.io/github/stars/ajsaliba/Cedars-Alert?style=social"></a>
+<a href="https://github.com/ajsaliba/Cedars-Alert/network/members"><img src="https://img.shields.io/github/forks/ajsaliba/Cedars-Alert?style=social"></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&amp;logo=typescript&amp;logoColor=white"></a>
+<a href="https://supabase.com/"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&amp;logo=supabase&amp;logoColor=white"></a>
+<a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat&amp;logo=react&amp;logoColor=black"></a>
+<a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+<a href="https://github.com/ajsaliba/Cedars-Alert/commits/main"><img src="https://img.shields.io/github/last-commit/ajsaliba/Cedars-Alert"></a>
+
+<p>
+  <a href="https://github.com/ajsaliba/Cedars-Alert"><img src="https://img.shields.io/badge/Repository-Cedars--Alert-2563eb?style=for-the-badge&amp;logo=github&amp;logoColor=white"></a>&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert/issues"><img src="https://img.shields.io/badge/Issues-Tracker-ef4444?style=for-the-badge&amp;logo=github&amp;logoColor=white"></a>&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert/actions"><img src="https://img.shields.io/badge/CI-GitHub_Actions-0891b2?style=for-the-badge&amp;logo=githubactions&amp;logoColor=white"></a>
+</p>
+
+<p>
+  <a href="https://github.com/ajsaliba/Cedars-Alert"><strong>Repository</strong></a> &nbsp;·&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert/issues"><strong>Issues</strong></a> &nbsp;·&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert/blob/main/README.md"><strong>Documentation</strong></a>
+</p>
+
+<img>
 
 ---
 
