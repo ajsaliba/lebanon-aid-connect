@@ -11,7 +11,7 @@
 <a href="https://github.com/ajsaliba/Cedars-Alert/releases/latest"><img src="https://img.shields.io/github/v/release/ajsaliba/Cedars-Alert?style=flat"></a>
 
 <p>
-  <a href="http://localhost:8080"><img src="https://img.shields.io/badge/Web_App-localhost:8080-blue?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>&nbsp;
+  <a href="https://github.com/ajsaliba/Cedars-Alert"><img src="https://img.shields.io/badge/Web_App-Cedars--Alert-blue?style=for-the-badge<a href="http://localhost:8080"><img src="https://img.shields.io/badge/Web_App-localhost:8080-blue?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>amp;logo=github<a href="http://localhost:8080"><img src="https://img.shields.io/badge/Web_App-localhost:8080-blue?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white"></a>amp;logoColor=white"></a>&nbsp;
   <a href="https://supabase.com"><img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&amp;logo=supabase&amp;logoColor=white"></a>&nbsp;
   <a href="https://vitejs.dev"><img src="https://img.shields.io/badge/Build-Vite-646CFF?style=for-the-badge&amp;logo=vite&amp;logoColor=white"></a>&nbsp;
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/UI-React-61DAFB?style=for-the-badge&amp;logo=react&amp;logoColor=black"></a>&nbsp;
@@ -31,7 +31,6 @@
   <a href="/SECURITY.md"><strong>Security Policy</strong></a>
 </p>
 
-<img>
 
 ---
 
