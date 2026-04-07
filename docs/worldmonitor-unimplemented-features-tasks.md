@@ -5,7 +5,7 @@ This task list captures features that exist in `koala73/worldmonitor` but are no
 Evidence in Cedars-Alert:
 - Many panels are powered by static mock datasets (`src/data/extendedMockData.ts`, `src/data/newFeaturesMockData.ts`, `src/data/newFeaturesMockData2.ts`, `src/data/worldMonitorMockData.ts`).
 - Multiple panel components import mock data directly instead of live upstreams.
-- Current platform scope lacks multi-variant deployment, flat WebGL map engine, and production finance intelligence stack present in worldmonitor.
+- Current platform scope lacks multi-variant deployment, flat WebGL map engine, and production finance intelligence stack present in WorldMonitor.
 
 Naming convention note:
 - Use **camelCase** for TypeScript app/domain models and APIs.
@@ -51,7 +51,7 @@ Naming convention note:
 ## Humanitarian
 
 ### 1) Live displacement/refugee intelligence (replace mock displacement panels)
-- **What needs to be done:** Replace static displacement/refugee datasets with live humanitarian feeds comparable to worldmonitor’s displacement tracking.
+- **What needs to be done:** Replace static displacement/refugee datasets with live humanitarian feeds comparable to WorldMonitor’s displacement tracking.
 - **How to implement:**
   - Add server-side ingestion jobs for displacement/IDP/refugee feeds (OCHA/UNHCR-compatible sources).
   - Persist normalized flows in Supabase with region/time indexes.
@@ -95,7 +95,7 @@ Naming convention note:
 ## Financial
 
 ### 6) Market watchlist and multi-asset live quotes
-- **What needs to be done:** Add worldmonitor-style customizable market watchlist (equities, indices, commodities, crypto).
+- **What needs to be done:** Add WorldMonitor-style customizable market watchlist (equities, indices, commodities, crypto).
 - **How to implement:**
   - Add symbol watchlist settings (persisted in localStorage + optional profile sync).
   - Implement server-side quote fetchers with provider fallback and cache TTL.
@@ -103,7 +103,7 @@ Naming convention note:
   - Replace static `EconomicToolsPanel` data with live market cards.
 
 ### 7) Market Radar composite signal engine
-- **What needs to be done:** Implement worldmonitor-style 7-signal macro risk model (BUY/CASH verdict).
+- **What needs to be done:** Implement WorldMonitor-style 7-signal macro risk model (BUY/CASH verdict).
 - **How to implement:**
   - Build indicator service for liquidity/flow/regime/trend/hashrate/mining-cost/sentiment.
   - Persist intermediate metrics and confidence for explainability.
@@ -141,7 +141,7 @@ Naming convention note:
   - Refactor `EnergyPanel` to live queries with source timestamps.
 
 ### 11) BIS central bank + trade policy intelligence (WTO/Treasury-like)
-- **What needs to be done:** Add global policy-rate/trade-restriction panels that worldmonitor already provides.
+- **What needs to be done:** Add global policy-rate/trade-restriction panels that WorldMonitor already provides.
 - **How to implement:**
   - Add services for policy rates, FX competitiveness proxies, credit metrics, and trade restrictions.
   - Implement per-source circuit breakers + independent caches.
@@ -161,7 +161,7 @@ Naming convention note:
 ## Infrastructure & Logistics
 
 ### 13) Global shipping and chokepoint disruption intelligence
-- **What needs to be done:** Add worldmonitor-class AIS/chokepoint monitoring (currently absent).
+- **What needs to be done:** Add WorldMonitor-class AIS/chokepoint monitoring (currently absent).
 - **How to implement:**
   - Add maritime feed ingestion (AIS + navigational warnings).
   - Compute chokepoint disruption scores and confidence.
@@ -177,7 +177,7 @@ Naming convention note:
   - Connect outages/incidents to affected regions in the right panel.
 
 ### 15) Trade routes and waterway overlays
-- **What needs to be done:** Add worldmonitor-style strategic trade-route overlay and chokepoint arcs.
+- **What needs to be done:** Add WorldMonitor-style strategic trade-route overlay and chokepoint arcs.
 - **How to implement:**
   - Build route segment datastore with chokepoint intersections.
   - Render directional arcs with congestion/risk color coding.
@@ -193,7 +193,7 @@ Naming convention note:
   - Add source reliability weights for conflicting outage reports.
 
 ### 17) Aviation operations intelligence
-- **What needs to be done:** Add worldmonitor-style airport delay/closure and aviation risk panel.
+- **What needs to be done:** Add WorldMonitor-style airport delay/closure and aviation risk panel.
 - **How to implement:**
   - Ingest airport operational feeds (delays, ground stops, closure notices).
   - Build airport status model with severity thresholds.
@@ -204,8 +204,8 @@ Naming convention note:
 
 ## Intelligence & Security
 
-### 18) Expand map intelligence layers to worldmonitor parity
-- **What needs to be done:** Raise map layer coverage from current limited set to worldmonitor-level breadth.
+### 18) Expand map intelligence layers to WorldMonitor parity
+- **What needs to be done:** Raise map layer coverage from current limited set to WorldMonitor-level breadth.
 - **How to implement:**
   - Extend map-layer contract and UI grouping for additional strategic layers.
   - Add ingestion + normalization for each new layer.
@@ -221,7 +221,7 @@ Naming convention note:
   - Tie actor events into strategic risk and correlation engines.
 
 ### 20) Military/nuclear/space strategic asset layers
-- **What needs to be done:** Add strategic military infrastructure layers present in worldmonitor.
+- **What needs to be done:** Add strategic military infrastructure layers present in WorldMonitor.
 - **How to implement:**
   - Define standardized schemas for bases, nuclear sites, launch facilities.
   - Add source provenance and verification status.
@@ -229,7 +229,7 @@ Naming convention note:
   - Link strategic assets to scenario alerts and country risk.
 
 ### 21) Country brief generation with explainable AI outputs
-- **What needs to be done:** Add worldmonitor-style AI country briefs with confidence and source attribution.
+- **What needs to be done:** Add WorldMonitor-style AI country briefs with confidence and source attribution.
 - **How to implement:**
   - Build prompt/summary pipeline over normalized news + structured indicators.
   - Enforce citation extraction and confidence scoring in output schema.
@@ -256,7 +256,7 @@ Naming convention note:
   - Keep mock adapters only for test/dev fixtures.
   - Add contract tests for all domain APIs.
 
-### 24) Add worldmonitor-style variant system (tech/finance/commodity/happy)
+### 24) Add WorldMonitor-style variant system (tech/finance/commodity/happy)
 - **What needs to be done:** Extend current shell variants to deployment/runtime variants.
 - **How to implement:**
   - Add `VITE_VARIANT` runtime switch and variant manifests.
@@ -280,7 +280,7 @@ Naming convention note:
   - Add desktop build scripts and signing pipeline.
   - Add desktop-specific integration tests for runtime APIs.
 
-### 27) Internationalization expansion to worldmonitor coverage
+### 27) Internationalization expansion to WorldMonitor coverage
 - **What needs to be done:** Expand from current 9-language set to broad multilingual coverage with quality controls.
 - **How to implement:**
   - Add locale packs + ICU-compatible message keys.
