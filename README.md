@@ -408,5 +408,5 @@ MIT — see [LICENSE](LICENSE) for full terms.
 ---
 
 <p align="center">
-  <a href="https://github.com/ajsaliba/Lebanon-Aid-Connect">github.com/ajsaliba/Lebanon-Aid-Connect</a>
+  <a href="https://github.com/ajsaliba/Cedars-Alert">github.com/ajsaliba/Cedars-Alert</a>
 </p>
