@@ -14,19 +14,19 @@ Naming convention note:
 ## What must be changed/implemented (explicit inventory)
 
 ### Frontend (must change)
-- Replace direct mock-data imports in panels under `/home/runner/work/Cedars-Alert/Cedars-Alert/src/components` with domain hooks/services.
-- Add new live-data hooks in `/home/runner/work/Cedars-Alert/Cedars-Alert/src/hooks` for humanitarian, finance, infrastructure, and intelligence streams.
+- Replace direct mock-data imports in panels under `src/components` with domain hooks/services.
+- Add new live-data hooks in `src/hooks` for humanitarian, finance, infrastructure, and intelligence streams.
 - Extend map layer contracts and rendering paths:
-  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/features/map/mapLayerContract.ts`
-  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/components/CrisisMap.tsx`
-  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/features/map/MapGlobe3D.tsx`
+  - `src/features/map/mapLayerContract.ts`
+  - `src/components/CrisisMap.tsx`
+  - `src/features/map/MapGlobe3D.tsx`
 - Add/upgrade UI for data freshness, feed health, and degraded-mode warnings across key panels.
 
 ### Data and backend (must implement)
 - Add normalized Supabase schemas for:
   - facilities, displacement/refugee flows, routes/hazards, market quotes, macro indicators, chokepoints, outages, strategic assets, protests, feed health telemetry.
 - Add ingestion pipelines (scheduled and on-demand) for external humanitarian/financial/infrastructure/intelligence sources.
-- Add/extend edge functions in `/home/runner/work/Cedars-Alert/Cedars-Alert/supabase/functions` for:
+- Add/extend edge functions in `supabase/functions` for:
   - quote aggregation
   - indicator/risk computation
   - route safety scoring
