@@ -1,6 +1,6 @@
 # Cedars Alert
 
-**Real-time global intelligence dashboard** — AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a unified situational awareness interface.
+**A humanitarian platform for Lebanon** — built to help people stay informed, stay connected, and coordinate support during crisis.
 
 <a href="https://github.com/ajsaliba/Cedars-Alert/stargazers"><img src="https://img.shields.io/github/stars/ajsaliba/Cedars-Alert?style=social"></a>
 <a href="https://github.com/ajsaliba/Cedars-Alert/network/members"><img src="https://img.shields.io/github/forks/ajsaliba/Cedars-Alert?style=social"></a>
@@ -28,19 +28,21 @@
 
 ## What It Does
 
-- **Live news intelligence** — RSS + GDELT feeds across conflict, humanitarian, medical, infrastructure, and displacement categories, refreshed every 60 seconds with Supabase Realtime slide-in animation
-- **Interactive crisis map** — Leaflet 2D map with 10+ toggleable layers (hotspots, shelters, SOS signals, canvas heatmap, infrastructure nodes) and an optional globe.gl 3D globe engine
-- **SOS distress system** — one-tap GPS broadcast, real-time responder feed, "I'm Safe" check-in, WhatsApp location sharing
-- **Aid matching algorithm** — Supabase edge function scores inventory against requests by category, Haversine proximity, quantity adequacy, and freshness; returns top-5 ranked matches
-- **Family locator** — server-side full-text search across missing persons with live status update forms and Framer Motion animations
-- **Damage reporting** — multi-photo upload to Supabase Storage, geo-tagged incident reports with lightbox viewer
-- **Broadcast alerts** — Twilio SMS/WhatsApp gateway for coordinator-level mass notifications
-- **Conflict timeline replay** — escalation history scrubber with play/pause and 1×/5×/10× playback speed
-- **Threat heatmap** — canvas-based intensity overlay on the 2D map derived from live news severity scores
-- **Offline / PWA** — Workbox service worker caches map tiles, API responses, and static assets; offline banner on connectivity loss
-- **Full-text search** — global command palette (Ctrl+K / ⌘K) with PostgreSQL FTS, results grouped by entity type, and persistent 10-item search history
-- **Role-based access** — viewer / volunteer / coordinator / admin roles with gated features
-- **9 languages** — English, Arabic (RTL), French, German, Spanish, Italian, Portuguese, Russian, Turkish; lazy-loaded locale chunks
+- **Tracks crisis signals in real time** so people can follow trusted updates on security, infrastructure, health, and displacement.
+- **Maps what matters on the ground** including hotspots, shelters, SOS signals, and critical services.
+- **Lets people ask for and offer help** through aid requests, aid matching, and logistics coordination.
+- **Supports family safety and reunification** with SOS broadcasts, "I'm Safe" check-ins, and missing-person lookup.
+- **Enables fast field reporting** for damage, shortages, and community conditions.
+- **Works across languages and low-connectivity scenarios** with multilingual support and offline-ready PWA behavior.
+- **Supports responders and coordinators** with alerts, operational panels, and role-based access.
+
+## Core Goals
+
+- **Protect lives** by making urgent, practical crisis information easy to access.
+- **Strengthen community resilience** by helping neighbors, volunteers, and NGOs coordinate quickly.
+- **Reconnect families** by improving visibility into missing-person and safety status information.
+- **Prioritize aid where it is most needed** using transparent matching and live needs tracking.
+- **Support Lebanon with dignity and solidarity** by building tools centered on people, not just data.
 
 ---
 
