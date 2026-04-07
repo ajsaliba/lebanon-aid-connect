@@ -7,6 +7,10 @@ Evidence in Cedars-Alert:
 - Multiple panel components import mock data directly instead of live upstreams.
 - Current platform scope lacks multi-variant deployment, flat WebGL map engine, and production finance intelligence stack present in worldmonitor.
 
+Naming convention note:
+- Use **camelCase** for TypeScript app/domain models and APIs.
+- Use **snake_case** only for SQL/storage columns and ingestion telemetry fields.
+
 ---
 
 ## Humanitarian
@@ -74,7 +78,7 @@ Evidence in Cedars-Alert:
 ### 8) Stablecoin peg monitoring
 - **What needs to be done:** Add real-time stablecoin peg/depeg monitoring (USDT/USDC/DAI/etc.).
 - **How to implement:**
-  - Fetch spot prices from supported crypto APIs with strict validation (allowlisted coin IDs, schema validation, malformed payload rejection, rate limiting, and server-side secret handling).
+  - Fetch spot prices from supported crypto APIs with strict validation (allowlisted/sanitized coin IDs, response schema validation, malformed payload rejection, injection-safe query handling, rate limiting, and server-side secret handling).
   - Compute deviation bands and panel-level health status.
   - Add alerting for threshold breaches and persistent incident history.
   - Expose map/panel badges for active depeg events.
@@ -246,7 +250,7 @@ Evidence in Cedars-Alert:
 ### 28) Data freshness, health, and intelligence-gap framework
 - **What needs to be done:** Add centralized source health tracking and stale-feed warnings.
 - **How to implement:**
-  - Add feed heartbeat registry (last_success, last_attempt, error_rate, ttl).
+  - Add feed heartbeat registry storage table columns (`last_success`, `last_attempt`, `error_rate`, `ttl`) plus camelCase appModel mappings (`lastSuccess`, `lastAttempt`, `errorRate`, `ttl`).
   - Add panel-level health badges and global gap summary.
   - Add alerting for prolonged staleness.
   - Ensure all ingestion pipelines publish health telemetry.
@@ -255,9 +259,9 @@ Evidence in Cedars-Alert:
 
 ## Suggested Delivery Order
 
-1. **Foundation first:** Task 23 (production data contracts), Task 28 (feed health/intelligence gaps), Task 18 (map-layer parity)  
-2. **Humanitarian live data migration:** Tasks 1–5 (displacement, facilities, routing, early warning, accountability)  
-3. **Financial intelligence parity:** Tasks 6–12 (watchlist, radar, stablecoins, ETF flows, energy analytics, BIS/WTO, FDI mapping)  
-4. **Infrastructure/global logistics:** Tasks 13–17 (AIS/chokepoints, cables/pipelines, trade routes, outages, aviation ops)  
-5. **Advanced intelligence/security:** Tasks 19–22 (APT layer, strategic assets, AI country briefs, protest corroboration)  
-6. **Platform parity:** Tasks 24–27 (variants, dual map engine, desktop runtime, i18n expansion)
+1. **Foundation first:** Task 23, Task 28, Task 18  
+2. **Humanitarian live data migration:** Task 1, Task 2, Task 3, Task 4, Task 5  
+3. **Financial intelligence parity:** Task 6, Task 7, Task 8, Task 9, Task 10, Task 11, Task 12  
+4. **Infrastructure/global logistics:** Task 13, Task 14, Task 15, Task 16, Task 17  
+5. **Advanced intelligence/security:** Task 19, Task 20, Task 21, Task 22  
+6. **Platform parity:** Task 24, Task 25, Task 26, Task 27
