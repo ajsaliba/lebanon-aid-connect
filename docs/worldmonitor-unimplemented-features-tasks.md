@@ -22,7 +22,7 @@ Evidence in Cedars-Alert:
 ### 2) Humanitarian facilities with live operational status
 - **What needs to be done:** Replace mock medical/shelter/food-water/fuel facilities with live status pipelines.
 - **How to implement:**
-  - Create normalized facility schemas (type, status, capacity, last_updated, source_confidence).
+  - Create normalized facility schemas (type, status, capacity, lastUpdated, sourceConfidence) and enforce camelCase for app/domain models.
   - Add ingest endpoints + deduplication by geohash/name similarity.
   - Update `MedicalResourcePanel`, `PharmacyBloodPanel`, `ShelterPanel`, `FoodWaterPanel`, `FuelStationPanel` to consume live data.
   - Add source attribution and conflict-resolution rules for overlapping reports.
@@ -74,7 +74,7 @@ Evidence in Cedars-Alert:
 ### 8) Stablecoin peg monitoring
 - **What needs to be done:** Add real-time stablecoin peg/depeg monitoring (USDT/USDC/DAI/etc.).
 - **How to implement:**
-  - Fetch spot prices from supported crypto APIs with strict input validation.
+  - Fetch spot prices from supported crypto APIs with strict validation (allowlisted coin IDs, schema validation, malformed payload rejection, rate limiting, and server-side secret handling).
   - Compute deviation bands and panel-level health status.
   - Add alerting for threshold breaches and persistent incident history.
   - Expose map/panel badges for active depeg events.
@@ -255,9 +255,9 @@ Evidence in Cedars-Alert:
 
 ## Suggested Delivery Order
 
-1. **Foundation first:** Tasks 23, 28, 18  
-2. **Humanitarian live data migration:** Tasks 1–5  
-3. **Financial intelligence parity:** Tasks 6–12  
-4. **Infrastructure/global logistics:** Tasks 13–17  
-5. **Advanced intelligence/security:** Tasks 19–22  
-6. **Platform parity:** Tasks 24–27
+1. **Foundation first:** Task 23 (production data contracts), Task 28 (feed health/intelligence gaps), Task 18 (map-layer parity)  
+2. **Humanitarian live data migration:** Tasks 1–5 (displacement, facilities, routing, early warning, accountability)  
+3. **Financial intelligence parity:** Tasks 6–12 (watchlist, radar, stablecoins, ETF flows, energy analytics, BIS/WTO, FDI mapping)  
+4. **Infrastructure/global logistics:** Tasks 13–17 (AIS/chokepoints, cables/pipelines, trade routes, outages, aviation ops)  
+5. **Advanced intelligence/security:** Tasks 19–22 (APT layer, strategic assets, AI country briefs, protest corroboration)  
+6. **Platform parity:** Tasks 24–27 (variants, dual map engine, desktop runtime, i18n expansion)
