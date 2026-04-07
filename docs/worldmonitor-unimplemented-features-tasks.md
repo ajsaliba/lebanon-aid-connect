@@ -78,7 +78,13 @@ Naming convention note:
 ### 8) Stablecoin peg monitoring
 - **What needs to be done:** Add real-time stablecoin peg/depeg monitoring (USDT/USDC/DAI/etc.).
 - **How to implement:**
-  - Fetch spot prices from supported crypto APIs with strict validation (allowlisted/sanitized coin IDs, response schema validation, malformed payload rejection, injection-safe query handling, rate limiting, and server-side secret handling).
+  - Fetch spot prices from supported crypto APIs with strict validation:
+    - allowlisted/sanitized coin IDs
+    - response schema validation
+    - malformed payload rejection
+    - injection-safe query handling
+    - rate limiting
+    - server-side secret handling
   - Compute deviation bands and panel-level health status.
   - Add alerting for threshold breaches and persistent incident history.
   - Expose map/panel badges for active depeg events.
@@ -250,7 +256,8 @@ Naming convention note:
 ### 28) Data freshness, health, and intelligence-gap framework
 - **What needs to be done:** Add centralized source health tracking and stale-feed warnings.
 - **How to implement:**
-  - Add feed heartbeat registry storage table columns (`last_success`, `last_attempt`, `error_count`, `time_to_live`) plus camelCase appModel mappings (`lastSuccess`, `lastAttempt`, `errorCount`, `timeToLive`).
+  - Add feed heartbeat registry storage table columns (`last_success`, `last_attempt`, `error_count`, `time_to_live`).
+  - Add camelCase appModel mappings for heartbeat fields (`lastSuccess`, `lastAttempt`, `errorCount`, `timeToLive`).
   - Add panel-level health badges and global gap summary.
   - Add alerting for prolonged staleness.
   - Ensure all ingestion pipelines publish health telemetry.
