@@ -250,7 +250,7 @@ Naming convention note:
 ### 28) Data freshness, health, and intelligence-gap framework
 - **What needs to be done:** Add centralized source health tracking and stale-feed warnings.
 - **How to implement:**
-  - Add feed heartbeat registry storage table columns (`last_success`, `last_attempt`, `error_rate`, `ttl`) plus camelCase appModel mappings (`lastSuccess`, `lastAttempt`, `errorRate`, `ttl`).
+  - Add feed heartbeat registry storage table columns (`last_success`, `last_attempt`, `error_count`, `time_to_live`) plus camelCase appModel mappings (`lastSuccess`, `lastAttempt`, `errorCount`, `timeToLive`).
   - Add panel-level health badges and global gap summary.
   - Add alerting for prolonged staleness.
   - Ensure all ingestion pipelines publish health telemetry.
