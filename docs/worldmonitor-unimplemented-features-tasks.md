@@ -11,6 +11,41 @@ Naming convention note:
 - Use **camelCase** for TypeScript app/domain models and APIs.
 - Use **snake_case** only for SQL/storage columns and ingestion telemetry fields.
 
+## What must be changed/implemented (explicit inventory)
+
+### Frontend (must change)
+- Replace direct mock-data imports in panels under `/home/runner/work/Cedars-Alert/Cedars-Alert/src/components` with domain hooks/services.
+- Add new live-data hooks in `/home/runner/work/Cedars-Alert/Cedars-Alert/src/hooks` for humanitarian, finance, infrastructure, and intelligence streams.
+- Extend map layer contracts and rendering paths:
+  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/features/map/mapLayerContract.ts`
+  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/components/CrisisMap.tsx`
+  - `/home/runner/work/Cedars-Alert/Cedars-Alert/src/features/map/MapGlobe3D.tsx`
+- Add/upgrade UI for data freshness, feed health, and degraded-mode warnings across key panels.
+
+### Data and backend (must implement)
+- Add normalized Supabase schemas for:
+  - facilities, displacement/refugee flows, routes/hazards, market quotes, macro indicators, chokepoints, outages, strategic assets, protests, feed health telemetry.
+- Add ingestion pipelines (scheduled and on-demand) for external humanitarian/financial/infrastructure/intelligence sources.
+- Add/extend edge functions in `/home/runner/work/Cedars-Alert/Cedars-Alert/supabase/functions` for:
+  - quote aggregation
+  - indicator/risk computation
+  - route safety scoring
+  - corroborated event fusion
+  - data freshness/status reporting
+- Implement deduplication, validation, and confidence scoring at ingestion time.
+
+### Platform/runtime (must implement)
+- Add true deployment variant support (`tech`, `finance`, `commodity`, `happy`) via runtime/build config and variant manifests.
+- Implement dual map engine support (3D globe + flat WebGL map).
+- Complete desktop runtime from probe-only to full packaged runtime (Tauri project, secure IPC, desktop build pipeline).
+- Expand i18n from current 9-language set to broader multilingual parity and add translation QA checks.
+
+### Quality, security, and operations (must implement)
+- Add contract tests for new domain APIs and ingestion transformations.
+- Add strict input/output validation and sanitization for all third-party feed boundaries.
+- Add source health telemetry and alerting (heartbeat, staleness, failure-rate monitoring).
+- Keep mock datasets only as test fixtures; remove them from production panel data paths.
+
 ---
 
 ## Humanitarian
