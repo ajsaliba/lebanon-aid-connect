@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { mockVolunteers, type Volunteer, type VolunteerRole, type VolunteerAvailability } from '@/data/extendedMockData';
+import { useBridgedVolunteers } from '@/services/mockBridge';
+import type { Volunteer, VolunteerRole, VolunteerAvailability } from '@/data/extendedMockData';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
 import {
   Users, Stethoscope, Truck, Wrench, Languages, Shield, Package,
@@ -28,6 +29,7 @@ const availabilityConfig: Record<VolunteerAvailability, { color: string; icon: t
 
 export function VolunteerPanel() {
   const { t } = useTranslation();
+  const { data: mockVolunteers = [], isLoading } = useBridgedVolunteers();
   const { position } = useGeolocation();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<VolunteerRole | 'all'>('all');
@@ -49,13 +51,15 @@ export function VolunteerPanel() {
       items = [...items].sort((a, b) => distanceKm(position.lat, position.lng, a.lat, a.lng) - distanceKm(position.lat, position.lng, b.lat, b.lng));
     }
     return items;
-  }, [search, roleFilter, availFilter, position]);
+  }, [mockVolunteers, search, roleFilter, availFilter, position]);
 
   const availableCounts = useMemo(() => ({
     total: mockVolunteers.length,
     available: mockVolunteers.filter(v => v.availability === 'available').length,
     on_mission: mockVolunteers.filter(v => v.availability === 'on_mission').length,
-  }), []);
+  }), [mockVolunteers]);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-2 p-3">

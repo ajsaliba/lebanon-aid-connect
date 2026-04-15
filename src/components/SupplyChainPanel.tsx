@@ -1,4 +1,4 @@
-import { mockCommunitySupplies, mockLastMileDeliveries } from '@/data/newFeaturesMockData2';
+import { useBridgedSupplyChain, useBridgedLastMileDelivery } from '@/services/mockBridge';
 import type { SupplyCategory } from '@/data/newFeaturesMockData2';
 import { PackageOpen, Truck, Circle, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,11 @@ const urgencyColor: Record<string, string> = {
 
 export function SupplyChainPanel() {
   const { t } = useTranslation();
+  const { data: mockCommunitySupplies = [], isLoading: isLoadingSupplies } = useBridgedSupplyChain();
+  const { data: mockLastMileDeliveries = [], isLoading: isLoadingDeliveries } = useBridgedLastMileDelivery();
   const available = mockCommunitySupplies.filter(s => s.available).length;
+
+  if (isLoadingSupplies || isLoadingDeliveries) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

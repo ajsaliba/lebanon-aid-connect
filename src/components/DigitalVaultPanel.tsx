@@ -1,4 +1,4 @@
-import { mockVaultDocuments } from '@/data/newFeaturesMockData2';
+import { useBridgedVaultDocuments } from '@/services/mockBridge';
 import { Lock, FileText, Shield, Upload, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -15,8 +15,11 @@ const typeLabel: Record<string, string> = {
 
 export function DigitalVaultPanel() {
   const { t } = useTranslation();
+  const { data: mockVaultDocuments = [], isLoading } = useBridgedVaultDocuments();
   const backed = mockVaultDocuments.filter(d => d.backed_up).length;
   const encrypted = mockVaultDocuments.filter(d => d.encrypted).length;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

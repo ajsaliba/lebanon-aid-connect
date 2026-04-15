@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockCommunityChannels } from '@/data/extendedMockData';
+import { useBridgedCommunityChannels } from '@/services/mockBridge';
 import { MessageSquare, Users, Hash, Megaphone, Radio, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ const channelTypeConfig: Record<string, { icon: React.ReactNode; color: string }
 
 export function CommunityPanel() {
   const { t } = useTranslation();
+  const { data: mockCommunityChannels = [], isLoading } = useBridgedCommunityChannels();
   const [search, setSearch] = useState('');
 
   const filtered = mockCommunityChannels.filter(c => {
@@ -22,6 +23,8 @@ export function CommunityPanel() {
   });
 
   const totalMembers = mockCommunityChannels.reduce((s, c) => s + c.members, 0);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

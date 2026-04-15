@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockNGOActivities, mockVolunteerMissions } from '@/data/newFeaturesMockData';
+import { useBridgedNGOActivities, useBridgedVolunteerMissions } from '@/services/mockBridge';
 import { Globe, Users, MapPin, Megaphone, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -23,8 +23,12 @@ const urgencyColors: Record<string, string> = {
 };
 
 export function NGOMissionPanel() {
+  const { data: mockNGOActivities = [], isLoading: isLoadingNGO } = useBridgedNGOActivities();
+  const { data: mockVolunteerMissions = [], isLoading: isLoadingMissions } = useBridgedVolunteerMissions();
   const { t } = useTranslation();
   const [view, setView] = useState<NGOView>('map');
+
+  if (isLoadingNGO || isLoadingMissions) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

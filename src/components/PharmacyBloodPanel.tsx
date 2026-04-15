@@ -1,4 +1,4 @@
-import { mockPharmacyStocks, mockBloodNeeds } from '@/data/newFeaturesMockData';
+import { useBridgedPharmacyStock, useBridgedBloodNeeds } from '@/services/mockBridge';
 import { Pill, Droplet, Phone, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -10,7 +10,12 @@ const urgencyColors: Record<string, string> = {
 };
 
 export function PharmacyBloodPanel() {
+  const { data: mockPharmacyStocks = [], isLoading: isLoadingPharmacy } = useBridgedPharmacyStock();
+  const { data: mockBloodNeeds = [], isLoading: isLoadingBlood } = useBridgedBloodNeeds();
+  const isLoading = isLoadingPharmacy || isLoadingBlood;
   const { t } = useTranslation();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

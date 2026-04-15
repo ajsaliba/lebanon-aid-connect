@@ -1,4 +1,4 @@
-import { mockFarmReports, mockSeedShares } from '@/data/newFeaturesMockData2';
+import { useBridgedFarmReports, useBridgedSeedShares } from '@/services/mockBridge';
 import { Sprout, Wheat, Leaf, AlertTriangle, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -16,8 +16,13 @@ const statusLabel: Record<string, string> = {
 };
 
 export function AgriculturePanel() {
+  const { data: mockFarmReports = [], isLoading: isLoadingFarm } = useBridgedFarmReports();
+  const { data: mockSeedShares = [], isLoading: isLoadingSeed } = useBridgedSeedShares();
   const { t } = useTranslation();
-  const avgDamage = Math.round(mockFarmReports.reduce((s, f) => s + f.damage_percent, 0) / mockFarmReports.length);
+
+  if (isLoadingFarm || isLoadingSeed) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
+  const avgDamage = mockFarmReports.length > 0 ? Math.round(mockFarmReports.reduce((s, f) => s + f.damage_percent, 0) / mockFarmReports.length) : 0;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

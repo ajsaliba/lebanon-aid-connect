@@ -10,7 +10,15 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev:humanitarian": "VITE_APP_VARIANT=humanitarian vite",
+    "dev:intel": "VITE_APP_VARIANT=intel vite",
+    "dev:operations": "VITE_APP_VARIANT=operations vite",
+    "dev:recovery": "VITE_APP_VARIANT=recovery vite",
+    "build:humanitarian": "VITE_APP_VARIANT=humanitarian vite build",
+    "build:intel": "VITE_APP_VARIANT=intel vite build",
+    "build:operations": "VITE_APP_VARIANT=operations vite build",
+    "build:recovery": "VITE_APP_VARIANT=recovery vite build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

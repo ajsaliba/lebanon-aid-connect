@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { mockMedicalFacilities, type MedicalFacility, type FacilityType, type FacilityStatus } from '@/data/extendedMockData';
+import { useBridgedMedicalFacilities } from '@/services/mockBridge';
+import { type MedicalFacility, type FacilityType, type FacilityStatus } from '@/data/extendedMockData';
 import { useGeolocation, distanceKm, getDirectionsUrl } from '@/hooks/useGeolocation';
 import {
   Stethoscope, Building2, Pill, Droplets, Ambulance, Phone,
@@ -40,6 +41,7 @@ const statusDots: Record<FacilityStatus, string> = {
 };
 
 export function MedicalResourcePanel() {
+  const { data: mockMedicalFacilities = [], isLoading } = useBridgedMedicalFacilities();
   const { position } = useGeolocation();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<FacilityType | 'all'>('all');
@@ -58,14 +60,16 @@ export function MedicalResourcePanel() {
       items = [...items].sort((a, b) => distanceKm(position.lat, position.lng, a.lat, a.lng) - distanceKm(position.lat, position.lng, b.lat, b.lng));
     }
     return items;
-  }, [search, typeFilter, statusFilter, position]);
+  }, [mockMedicalFacilities, search, typeFilter, statusFilter, position]);
 
   const statusCounts = useMemo(() => ({
     open: mockMedicalFacilities.filter(f => f.status === 'open').length,
     overwhelmed: mockMedicalFacilities.filter(f => f.status === 'overwhelmed').length,
     damaged: mockMedicalFacilities.filter(f => f.status === 'damaged').length,
     closed: mockMedicalFacilities.filter(f => f.status === 'closed').length,
-  }), []);
+  }), [mockMedicalFacilities]);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-2 p-3">

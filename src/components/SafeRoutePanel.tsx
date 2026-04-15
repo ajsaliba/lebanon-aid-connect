@@ -1,31 +1,34 @@
 import { useState, useMemo } from 'react';
-import { mockSafeRoutes, mockHazardPoints, type SafeRoute, type RouteHazard } from '@/data/extendedMockData';
+import { useSafeRoutes } from '@/services/humanitarianService';
+import type { SafeRoute, RouteHazard } from '@/services/types';
+import { FeedHealthBadge } from '@/components/FeedHealthBadge';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
 import {
   Route, Shield, AlertTriangle, Navigation, Footprints, Flag,
-  Fuel, Flame, Ban, Search, ChevronDown, ChevronUp, MapPin
+  Flame, Ban, Search, ChevronDown, ChevronUp, MapPin, Droplets, Blocks
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
-const hazardIcons: Record<RouteHazard, typeof AlertTriangle> = {
+const hazardIcons: Record<RouteHazard['type'], typeof AlertTriangle> = {
   road_damage: AlertTriangle,
   military_activity: Shield,
   checkpoint: Flag,
   fire: Flame,
   blocked: Ban,
-  fuel_station: Fuel,
+  flooding: Droplets,
+  debris: Blocks,
 };
 
-const hazardColors: Record<RouteHazard, string> = {
+const hazardColors: Record<RouteHazard['type'], string> = {
   road_damage: 'text-warning',
   military_activity: 'text-danger',
   checkpoint: 'text-info',
   fire: 'text-danger',
   blocked: 'text-danger',
-  fuel_station: 'text-success',
+  flooding: 'text-blue-400',
+  debris: 'text-orange-400',
 };
 
 const typeConfig: Record<string, { key: string; icon: typeof Route; color: string }> = {
@@ -43,43 +46,52 @@ function safetyColor(score: number): string {
 export function SafeRoutePanel() {
   const { t } = useTranslation();
   const { position } = useGeolocation();
+  const { data: allRoutes = [], isLoading } = useSafeRoutes();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
 
   const routes = useMemo(() => {
-    let items = mockSafeRoutes;
-    if (typeFilter !== 'all') items = items.filter(r => r.type === typeFilter);
+    let items = allRoutes;
+    if (typeFilter !== 'all') items = items.filter(r => r.status === typeFilter);
     if (search) {
       const q = search.toLowerCase();
-      items = items.filter(r =>
-        r.name.toLowerCase().includes(q) ||
-        r.from.label?.toLowerCase().includes(q) ||
-        r.to.label?.toLowerCase().includes(q)
-      );
+      items = items.filter(r => r.name.toLowerCase().includes(q));
     }
     if (position) {
       items = [...items].sort((a, b) =>
-        distanceKm(position.lat, position.lng, a.from.lat, a.from.lng) -
-        distanceKm(position.lat, position.lng, b.from.lat, b.from.lng)
+        distanceKm(position.lat, position.lng, a.originLat, a.originLng) -
+        distanceKm(position.lat, position.lng, b.originLat, b.originLng)
       );
     }
     return items;
-  }, [search, typeFilter, position]);
+  }, [allRoutes, search, typeFilter, position]);
+
+  if (isLoading) {
+    return (
+      <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  // Compute hazard counts from all routes
+  const allHazards = allRoutes.flatMap(r => r.hazards);
 
   return (
     <div className="p-3 space-y-3">
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary flex items-center gap-2">
         <Route className="h-3 w-3" /> {t('routes.title')}
+        <FeedHealthBadge feedName="safe_routes" className="ml-auto" />
       </h2>
 
       {/* Hazard Summary */}
       <div className="bg-danger/5 border border-danger/20 rounded p-2">
         <div className="text-[9px] font-bold text-danger uppercase tracking-wider mb-1">{t('routes.activeHazards')}</div>
         <div className="grid grid-cols-3 gap-1">
-          {(['road_damage', 'military_activity', 'fire', 'checkpoint', 'blocked', 'fuel_station'] as RouteHazard[]).map(type => {
+          {(['road_damage', 'military_activity', 'fire', 'checkpoint', 'blocked', 'flooding', 'debris'] as RouteHazard['type'][]).map(type => {
             const Icon = hazardIcons[type];
-            const count = mockHazardPoints.filter(h => h.type === type).length;
+            const count = allHazards.filter(h => h.type === type).length;
             return (
               <div key={type} className="flex items-center gap-0.5 text-[9px]">
                 <Icon className={cn('h-2.5 w-2.5', hazardColors[type])} />
@@ -129,9 +141,8 @@ export function SafeRoutePanel() {
       {/* Route List */}
       <div className="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
         {routes.map(route => {
-          const { key: typeKey, icon: TypeIcon, color } = typeConfig[route.type] || typeConfig.safest;
           const isExpanded = expandedRoute === route.id;
-          const dist = position ? distanceKm(position.lat, position.lng, route.from.lat, route.from.lng).toFixed(1) : null;
+          const dist = position ? distanceKm(position.lat, position.lng, route.originLat, route.originLng).toFixed(1) : null;
 
           return (
             <div key={route.id} className="border border-border rounded overflow-hidden">
@@ -141,14 +152,14 @@ export function SafeRoutePanel() {
               >
                 <div className="space-y-0.5 min-w-0">
                   <div className="flex items-center gap-1">
-                    <TypeIcon className={cn('h-3 w-3 shrink-0', color)} />
+                    <Route className={cn('h-3 w-3 shrink-0 text-primary')} />
                     <span className="text-xs font-medium truncate">{route.name}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
-                    <span>{route.distance_km} km</span>
-                    <span>{route.estimated_time_min} min</span>
-                    <span className={safetyColor(route.safety_score)}>
-                      {t('routes.safety')}: {route.safety_score}%
+                    <span>{route.distanceKm} km</span>
+                    <span>{route.estimatedMinutes} min</span>
+                    <span className={safetyColor(route.safetyScore)}>
+                      {t('routes.safety')}: {route.safetyScore}%
                     </span>
                   </div>
                 </div>
@@ -160,19 +171,19 @@ export function SafeRoutePanel() {
                   <div className="flex items-center gap-1 text-[9px]">
                     <MapPin className="h-2.5 w-2.5 text-success" />
                     <span className="text-muted-foreground">{t('routes.from')}</span>
-                    <span>{route.from.label}</span>
+                    <span>{route.originLat.toFixed(4)}, {route.originLng.toFixed(4)}</span>
                     {dist && <span className="text-primary">({dist} km {t('routes.fromYou')})</span>}
                   </div>
                   <div className="flex items-center gap-1 text-[9px]">
                     <MapPin className="h-2.5 w-2.5 text-danger" />
                     <span className="text-muted-foreground">{t('routes.to')}</span>
-                    <span>{route.to.label}</span>
+                    <span>{route.destinationLat.toFixed(4)}, {route.destinationLng.toFixed(4)}</span>
                   </div>
 
                   {route.waypoints.length > 0 && (
                     <div className="text-[9px]">
                       <span className="text-muted-foreground">{t('routes.via')}: </span>
-                      {route.waypoints.map(w => w.label).join(' → ')}
+                      {route.waypoints.map((w, i) => `${w.lat.toFixed(2)},${w.lng.toFixed(2)}`).join(' \u2192 ')}
                     </div>
                   )}
 
@@ -180,11 +191,11 @@ export function SafeRoutePanel() {
                     <div className="space-y-0.5">
                       <div className="text-[9px] font-medium text-danger">{t('routes.hazards')}:</div>
                       {route.hazards.map((h, i) => {
-                        const HIcon = hazardIcons[h.type];
+                        const HIcon = hazardIcons[h.type] ?? AlertTriangle;
                         return (
                           <div key={i} className="flex items-center gap-1 text-[9px]">
-                            <HIcon className={cn('h-2.5 w-2.5', hazardColors[h.type])} />
-                            <span className="text-muted-foreground">{h.description}</span>
+                            <HIcon className={cn('h-2.5 w-2.5', hazardColors[h.type] ?? 'text-warning')} />
+                            <span className="text-muted-foreground">{h.type.replace(/_/g, ' ')} ({h.severity})</span>
                           </div>
                         );
                       })}
@@ -192,7 +203,7 @@ export function SafeRoutePanel() {
                   )}
 
                   <a
-                    href={`https://www.google.com/maps/dir/${route.from.lat},${route.from.lng}/${route.waypoints.map(w => `${w.lat},${w.lng}`).join('/')}${route.waypoints.length > 0 ? '/' : ''}${route.to.lat},${route.to.lng}`}
+                    href={`https://www.google.com/maps/dir/${route.originLat},${route.originLng}/${route.waypoints.map(w => `${w.lat},${w.lng}`).join('/')}${route.waypoints.length > 0 ? '/' : ''}${route.destinationLat},${route.destinationLng}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[9px] text-primary hover:underline"

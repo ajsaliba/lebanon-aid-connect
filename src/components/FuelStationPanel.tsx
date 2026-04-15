@@ -1,11 +1,16 @@
-import { mockFuelStations, mockSafeParking } from '@/data/newFeaturesMockData';
+import { useBridgedFuelStations, useBridgedSafeParking } from '@/services/mockBridge';
 import { Fuel, ParkingCircle, Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
 export function FuelStationPanel() {
+  const { data: mockFuelStations = [], isLoading: isLoadingFuel } = useBridgedFuelStations();
+  const { data: mockSafeParking = [], isLoading: isLoadingParking } = useBridgedSafeParking();
+  const isLoading = isLoadingFuel || isLoadingParking;
   const { t } = useTranslation();
   const available = mockFuelStations.filter(f => f.available);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

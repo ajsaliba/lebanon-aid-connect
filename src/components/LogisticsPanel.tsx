@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { mockLogistics, type LogisticsItem, type LogisticsType } from '@/data/extendedMockData';
+import { useBridgedLogistics } from '@/services/mockBridge';
+import type { LogisticsItem, LogisticsType } from '@/data/extendedMockData';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
 import {
   Warehouse, Truck, Package, MapPin, Clock, CheckCircle2,
@@ -35,6 +36,7 @@ const statusConfig: Record<string, { color: string; icon: typeof CheckCircle2 }>
 
 export function LogisticsPanel() {
   const { t } = useTranslation();
+  const { data: mockLogistics = [], isLoading } = useBridgedLogistics();
   const { position } = useGeolocation();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<LogisticsType | 'all'>('all');
@@ -57,13 +59,15 @@ export function LogisticsPanel() {
       );
     }
     return filtered;
-  }, [search, typeFilter, position]);
+  }, [mockLogistics, search, typeFilter, position]);
 
   const counts = useMemo(() => ({
     warehouses: mockLogistics.filter(l => l.type === 'warehouse').length,
     shipments: mockLogistics.filter(l => l.type === 'shipment').length,
     centers: mockLogistics.filter(l => l.type === 'distribution_center').length,
-  }), []);
+  }), [mockLogistics]);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="p-3 space-y-3">

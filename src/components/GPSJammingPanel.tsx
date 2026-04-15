@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockGPSJammingZones } from '@/data/worldMonitorMockData';
+import { useBridgedGPSJamming } from '@/services/mockBridge';
 import { Radio, AlertTriangle, Wifi, Signal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,7 @@ const intensityConfig = {
 };
 
 export function GPSJammingPanel() {
+  const { data: mockGPSJammingZones = [], isLoading } = useBridgedGPSJamming();
   const [showInactive, setShowInactive] = useState(false);
 
   const zones = showInactive
@@ -18,6 +19,8 @@ export function GPSJammingPanel() {
 
   const activeCount = mockGPSJammingZones.filter(z => z.active).length;
   const severeCount = mockGPSJammingZones.filter(z => z.active && z.intensity === 'severe').length;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { mockWeatherAlerts, type WeatherSeverity, type WeatherType } from '@/data/worldMonitorMockData';
+import { useBridgedWeatherAlerts } from '@/services/mockBridge';
+import { type WeatherSeverity, type WeatherType } from '@/data/worldMonitorMockData';
 import { Cloud, Thermometer, Droplets, Wind, Flame, AlertTriangle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ const typeEmoji: Record<WeatherType, string> = {
 };
 
 export function WeatherAlertsPanel() {
+  const { data: mockWeatherAlerts = [], isLoading } = useBridgedWeatherAlerts();
   const [showExpired, setShowExpired] = useState(false);
 
   const alerts = showExpired
@@ -34,6 +36,8 @@ export function WeatherAlertsPanel() {
     : mockWeatherAlerts.filter(a => a.active);
 
   const warningCount = mockWeatherAlerts.filter(a => a.active && (a.severity === 'warning' || a.severity === 'extreme')).length;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

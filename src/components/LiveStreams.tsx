@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { liveStreams } from '@/data/mockData';
+import { useBridgedLiveStreams } from '@/services/mockBridge';
 import { Video, ChevronDown, ChevronUp, Radio, Camera, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,7 @@ type Category = 'news' | 'camera';
 
 export function LiveStreams() {
   const { t } = useTranslation();
+  const { data: liveStreams = [], isLoading } = useBridgedLiveStreams();
   const [expanded, setExpanded] = useState(false);
   const [activeStream, setActiveStream] = useState(liveStreams[0]);
   const [category, setCategory] = useState<Category>('news');
@@ -20,6 +21,15 @@ export function LiveStreams() {
 
   // Effective pause: manual or idle/tab-hidden
   const isPaused = manualPause || (shouldPause && expanded);
+
+  // Set initial active stream when data loads
+  useEffect(() => {
+    if (liveStreams.length > 0 && !activeStream) {
+      setActiveStream(liveStreams[0]);
+    }
+  }, [liveStreams]);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border-t border-border">

@@ -1,4 +1,4 @@
-import { mockRumors } from '@/data/newFeaturesMockData';
+import { useBridgedRumors } from '@/services/mockBridge';
 import { ShieldAlert, CheckCircle, XCircle, AlertTriangle, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -12,7 +12,11 @@ const verdictConfig: Record<RumorVerdict, { icon: React.ReactNode; color: string
 };
 
 export function RumorVerifyPanel() {
+  const { data: mockRumors = [], isLoading } = useBridgedRumors();
   const { t } = useTranslation();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   const falseCount = mockRumors.filter(r => r.verdict === 'verified_false').length;
   const trueCount = mockRumors.filter(r => r.verdict === 'verified_true').length;
 

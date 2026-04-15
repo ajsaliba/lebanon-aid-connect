@@ -1,4 +1,4 @@
-import { mockCommunityRisks } from '@/data/newFeaturesMockData';
+import { useBridgedCommunityRisks } from '@/services/mockBridge';
 import { Shield, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -25,8 +25,11 @@ const trendIcons = {
 
 export function CommunityRiskPanel() {
   const { t } = useTranslation();
+  const { data: mockCommunityRisks = [], isLoading } = useBridgedCommunityRisks();
   const sorted = [...mockCommunityRisks].sort((a, b) => b.risk_score - a.risk_score);
-  const avgRisk = Math.round(sorted.reduce((s, c) => s + c.risk_score, 0) / sorted.length);
+  const avgRisk = sorted.length > 0 ? Math.round(sorted.reduce((s, c) => s + c.risk_score, 0) / sorted.length) : 0;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

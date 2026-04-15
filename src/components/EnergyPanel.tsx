@@ -1,63 +1,81 @@
-import { mockEnergyPoints } from '@/data/newFeaturesMockData';
-import { Zap, Sun, BatteryCharging, Clock } from 'lucide-react';
+import { useEnergyData } from '@/services/financialService';
+import { FeedHealthBadge } from '@/components/FeedHealthBadge';
+import { Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
-import type { EnergyPointType } from '@/data/newFeaturesMockData';
 
-const typeConfig: Record<EnergyPointType, { icon: React.ReactNode; color: string; label: string }> = {
-  generator: { icon: <Zap className="h-3 w-3" />, color: 'text-warning', label: 'Generator' },
-  solar_station: { icon: <Sun className="h-3 w-3" />, color: 'text-yellow-400', label: 'Solar' },
-  battery_swap: { icon: <BatteryCharging className="h-3 w-3" />, color: 'text-success', label: 'Battery Swap' },
+const trendIcons: Record<string, React.ReactNode> = {
+  rising: <TrendingUp className="h-2.5 w-2.5 text-success" />,
+  falling: <TrendingDown className="h-2.5 w-2.5 text-danger" />,
+  stable: <Minus className="h-2.5 w-2.5 text-muted-foreground" />,
+};
+
+const metricLabels: Record<string, string> = {
+  wti: 'WTI Crude',
+  brent: 'Brent Crude',
+  natgas: 'Natural Gas',
+  production: 'Production',
+  inventory: 'Inventory',
+  demand: 'Demand',
 };
 
 export function EnergyPanel() {
   const { t } = useTranslation();
-  const available = mockEnergyPoints.filter(e => e.available);
+  const { data: energyPoints = [], isLoading } = useEnergyData();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="p-2 border-b border-border bg-card">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-warning flex items-center gap-1.5">
           <Zap className="h-3 w-3" /> {t('energy.title')}
+          <FeedHealthBadge feedName="energy_data" />
         </h3>
         <p className="text-[8px] text-muted-foreground mt-0.5">{t('energy.subtitle')}</p>
       </div>
 
+      {/* Summary row */}
       <div className="p-2 grid grid-cols-3 gap-1">
-        {(['generator', 'solar_station', 'battery_swap'] as EnergyPointType[]).map(type => {
-          const cfg = typeConfig[type];
-          const count = mockEnergyPoints.filter(e => e.type === type && e.available).length;
-          const total = mockEnergyPoints.filter(e => e.type === type).length;
+        {(['rising', 'falling', 'stable'] as const).map(trend => {
+          const count = energyPoints.filter(e => e.trend === trend).length;
           return (
-            <div key={type} className="bg-muted/30 rounded p-1 text-center">
-              <div className={cn('text-[10px] font-bold', cfg.color)}>{count}/{total}</div>
-              <div className="text-[7px] text-muted-foreground">{cfg.label}</div>
+            <div key={trend} className="bg-muted/30 rounded p-1 text-center">
+              <div className="flex justify-center mb-0.5">{trendIcons[trend]}</div>
+              <div className="text-[10px] font-bold">{count}</div>
+              <div className="text-[7px] text-muted-foreground capitalize">{trend}</div>
             </div>
           );
         })}
       </div>
 
+      {/* Energy metric cards */}
       <div className="p-2 space-y-1.5">
-        {mockEnergyPoints.map(ep => {
-          const cfg = typeConfig[ep.type];
-          return (
-            <div key={ep.id} className={cn('border rounded p-2 space-y-0.5', ep.available ? 'border-border' : 'border-muted bg-muted/10')}>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium flex items-center gap-1">
-                  <span className={cfg.color}>{cfg.icon}</span> {ep.name}
-                </span>
-                <span className={cn('h-2 w-2 rounded-full', ep.available ? 'bg-success' : 'bg-muted-foreground')} />
-              </div>
-              <div className="flex flex-wrap gap-2 text-[8px] text-muted-foreground">
-                <span>{ep.city}</span>
-                <span>{ep.capacity_info}</span>
-                <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{ep.hours}</span>
-                {ep.free && <span className="text-success font-bold">{t('energy.free')}</span>}
-              </div>
-              <p className="text-[8px] text-muted-foreground">{ep.notes}</p>
+        {energyPoints.map(ep => (
+          <div key={ep.id} className="border border-border rounded p-2 space-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium flex items-center gap-1">
+                <Zap className="h-3 w-3 text-warning" />
+                {metricLabels[ep.metric] ?? ep.metric}
+              </span>
+              <span className="flex items-center gap-1">
+                {trendIcons[ep.trend]}
+              </span>
             </div>
-          );
-        })}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold">
+                {ep.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {ep.unit}
+              </span>
+              <span className={cn('text-[9px] font-medium', ep.change24h >= 0 ? 'text-success' : 'text-danger')}>
+                {ep.change24h >= 0 ? '+' : ''}{ep.change24h.toFixed(2)}%
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[8px] text-muted-foreground">
+              <span>{ep.source}</span>
+              <span>{new Date(ep.timestamp).toLocaleString()}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

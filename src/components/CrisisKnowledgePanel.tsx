@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockKnowledgeArticles } from '@/data/extendedMockData';
+import { useBridgedKnowledgeArticles } from '@/services/mockBridge';
 import { BookOpen, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -28,8 +28,11 @@ const categoryLabels: Record<string, string> = {
 
 export function CrisisKnowledgePanel() {
   const { t } = useTranslation();
+  const { data: mockKnowledgeArticles = [], isLoading } = useBridgedKnowledgeArticles();
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   const filtered = mockKnowledgeArticles.filter(a => {
     if (!search) return true;

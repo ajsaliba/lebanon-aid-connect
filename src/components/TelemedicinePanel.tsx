@@ -1,4 +1,4 @@
-import { mockTelemedicineProviders } from '@/data/newFeaturesMockData';
+import { useBridgedTelemedicineProviders } from '@/services/mockBridge';
 import { Video, Phone, Brain, Stethoscope, HeartPulse, Baby } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -13,7 +13,10 @@ const typeConfig: Record<MedProviderType, { icon: React.ReactNode; color: string
 
 export function TelemedicinePanel() {
   const { t } = useTranslation();
+  const { data: mockTelemedicineProviders = [], isLoading } = useBridgedTelemedicineProviders();
   const availableCount = mockTelemedicineProviders.filter(p => p.available).length;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

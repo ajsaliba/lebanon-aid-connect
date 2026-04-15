@@ -1,4 +1,4 @@
-import { mockRiskPredictions } from '@/data/extendedMockData';
+import { useBridgedRiskPredictions } from '@/services/mockBridge';
 import { Brain, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,11 @@ const riskBg: Record<string, string> = {
 };
 
 export function PredictiveRiskPanel() {
+  const { data: mockRiskPredictions = [], isLoading } = useBridgedRiskPredictions();
   const { t } = useTranslation();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   const sorted = [...mockRiskPredictions].sort((a, b) => b.risk_score - a.risk_score);
 
   return (

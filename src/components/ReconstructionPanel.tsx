@@ -1,4 +1,4 @@
-import { mockReconstructionProjects, mockSkilledWorkers } from '@/data/newFeaturesMockData2';
+import { useBridgedReconstructionProjects, useBridgedSkilledWorkers } from '@/services/mockBridge';
 import { HardHat, Building2, DollarSign, Wrench, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -27,10 +27,15 @@ const skillIcon: Record<string, string> = {
 };
 
 export function ReconstructionPanel() {
+  const { data: mockReconstructionProjects = [], isLoading: isLoadingProjects } = useBridgedReconstructionProjects();
+  const { data: mockSkilledWorkers = [], isLoading: isLoadingWorkers } = useBridgedSkilledWorkers();
+  const isLoading = isLoadingProjects || isLoadingWorkers;
   const { t } = useTranslation();
   const totalNeeded = mockReconstructionProjects.reduce((s, p) => s + p.funding_needed_usd, 0);
   const totalReceived = mockReconstructionProjects.reduce((s, p) => s + p.funding_received_usd, 0);
-  const pct = Math.round((totalReceived / totalNeeded) * 100);
+  const pct = totalNeeded > 0 ? Math.round((totalReceived / totalNeeded) * 100) : 0;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

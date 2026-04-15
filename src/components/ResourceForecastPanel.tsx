@@ -1,4 +1,4 @@
-import { mockResourceForecasts } from '@/data/newFeaturesMockData2';
+import { useBridgedResourceForecasts } from '@/services/mockBridge';
 import { TrendingDown, AlertTriangle, Clock, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -19,7 +19,11 @@ const categoryEmoji: Record<string, string> = {
 };
 
 export function ResourceForecastPanel() {
+  const { data: mockResourceForecasts = [], isLoading } = useBridgedResourceForecasts();
   const { t } = useTranslation();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   const criticalCount = mockResourceForecasts.filter(r => r.severity === 'critical').length;
 
   return (

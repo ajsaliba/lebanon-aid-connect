@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockKitItems } from '@/data/newFeaturesMockData2';
+import { useBridgedEmergencyKitItems } from '@/services/mockBridge';
 import type { KitItem } from '@/data/newFeaturesMockData2';
 import { Package, CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ const categoryLabels: Record<KitItem['category'], string> = {
 
 export function EmergencyKitPanel() {
   const { t } = useTranslation();
+  const { data: mockKitItems = [], isLoading } = useBridgedEmergencyKitItems();
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
@@ -30,8 +31,10 @@ export function EmergencyKitPanel() {
 
   const totalEssential = mockKitItems.filter(k => k.essential).length;
   const checkedEssential = mockKitItems.filter(k => k.essential && checked.has(k.id)).length;
-  const pct = Math.round((checked.size / mockKitItems.length) * 100);
+  const pct = mockKitItems.length > 0 ? Math.round((checked.size / mockKitItems.length) * 100) : 0;
   const categories = [...new Set(mockKitItems.map(k => k.category))];
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

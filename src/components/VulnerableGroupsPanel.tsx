@@ -1,4 +1,4 @@
-import { mockVulnerableCases } from '@/data/newFeaturesMockData';
+import { useBridgedVulnerableCases } from '@/services/mockBridge';
 import { Heart, Baby, Accessibility, Dog, AlertTriangle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -19,7 +19,10 @@ const statusColors: Record<string, string> = {
 
 export function VulnerableGroupsPanel() {
   const { t } = useTranslation();
+  const { data: mockVulnerableCases = [], isLoading } = useBridgedVulnerableCases();
   const needsHelp = mockVulnerableCases.filter(c => c.status === 'needs_help').length;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

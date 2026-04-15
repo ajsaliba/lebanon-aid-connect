@@ -1,4 +1,4 @@
-import { mockFoodWaterPoints } from '@/data/newFeaturesMockData';
+import { useBridgedFoodWaterPoints } from '@/services/mockBridge';
 import { UtensilsCrossed, Droplets, Store, Soup, Package, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -13,9 +13,12 @@ const typeConfig: Record<FoodPointType, { icon: React.ReactNode; color: string; 
 };
 
 export function FoodWaterPanel() {
+  const { data: mockFoodWaterPoints = [], isLoading } = useBridgedFoodWaterPoints();
   const { t } = useTranslation();
   const available = mockFoodWaterPoints.filter(p => p.available);
   const totalServed = mockFoodWaterPoints.reduce((s, p) => s + p.serves_per_day, 0);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

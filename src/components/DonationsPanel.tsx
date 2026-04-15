@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { mockDonations } from '@/data/mockData';
+import { useBridgedDonations } from '@/services/mockBridge';
 import { Heart, ExternalLink, Plus, MessageCircle, Share2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ export function DonationsPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { data: mockDonations = [], isLoading: isBridgeLoading } = useBridgedDonations();
   const [dbDonations, setDbDonations] = useState<DonationLink[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,8 @@ export function DonationsPanel() {
 
   const filteredMock = filter === 'all' ? mockDonations : mockDonations.filter(d => d.category === filter);
   const filteredDb = filter === 'all' ? dbDonations : dbDonations.filter(d => d.category === filter);
+
+  if (isBridgeLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-2 p-3">

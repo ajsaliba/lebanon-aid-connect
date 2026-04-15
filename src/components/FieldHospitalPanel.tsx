@@ -1,11 +1,15 @@
-import { mockFieldHospitalGuides, mockMedicalEquipment } from '@/data/newFeaturesMockData2';
+import { useBridgedFieldHospitalGuides, useBridgedMedicalEquipment } from '@/services/mockBridge';
 import { Stethoscope, BookOpen, Package, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
 export function FieldHospitalPanel() {
   const { t } = useTranslation();
+  const { data: mockFieldHospitalGuides = [], isLoading: isLoadingGuides } = useBridgedFieldHospitalGuides();
+  const { data: mockMedicalEquipment = [], isLoading: isLoadingEquipment } = useBridgedMedicalEquipment();
   const availableEquip = mockMedicalEquipment.filter(e => e.available).length;
+
+  if (isLoadingGuides || isLoadingEquipment) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

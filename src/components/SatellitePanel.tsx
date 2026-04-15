@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { mockSatelliteEvents, type SatelliteEventType } from '@/data/extendedMockData';
+import { useBridgedSatelliteEvents } from '@/services/mockBridge';
+import { type SatelliteEventType } from '@/data/extendedMockData';
 import { Satellite, Flame, Wind, Zap, Building, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -28,9 +29,12 @@ const typeKeys: Record<SatelliteEventType, string> = {
 const confidenceColor = (c: number) => c >= 85 ? 'text-success' : c >= 70 ? 'text-warning' : 'text-muted-foreground';
 
 export function SatellitePanel() {
+  const { data: mockSatelliteEvents = [], isLoading } = useBridgedSatelliteEvents();
   const { t } = useTranslation();
   const [filter, setFilter] = useState<SatelliteEventType | 'all'>('all');
   const types = Object.keys(typeKeys) as SatelliteEventType[];
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   const filtered = filter === 'all' ? mockSatelliteEvents : mockSatelliteEvents.filter(e => e.type === filter);
 

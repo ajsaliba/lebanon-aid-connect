@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { mockImpactStats, mockImpactTimeSeries } from '@/data/extendedMockData';
+import { useBridgedImpactStats, useBridgedImpactTimeSeries } from '@/services/mockBridge';
 import { BarChart3, TrendingUp, TrendingDown, Minus, Users, Building2, Heart, Truck, Zap, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -33,6 +33,8 @@ function formatNumber(n: number): string {
 
 export function WarImpactPanel() {
   const { t } = useTranslation();
+  const { data: mockImpactStats = [], isLoading: isLoadingStats } = useBridgedImpactStats();
+  const { data: mockImpactTimeSeries = [], isLoading: isLoadingTimeSeries } = useBridgedImpactTimeSeries();
 
   const chartData = useMemo(() =>
     mockImpactTimeSeries.map(d => ({
@@ -42,7 +44,9 @@ export function WarImpactPanel() {
       casualties: d.casualties,
       aid: d.aid_delivered,
     })),
-  []);
+  [mockImpactTimeSeries]);
+
+  if (isLoadingStats || isLoadingTimeSeries) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

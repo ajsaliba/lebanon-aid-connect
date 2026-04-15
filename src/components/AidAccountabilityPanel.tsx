@@ -1,70 +1,121 @@
-import { mockAidFunds } from '@/data/newFeaturesMockData2';
-import { Eye, DollarSign, CheckCircle2, Clock, Shield } from 'lucide-react';
+import { useAidDeliveries } from '@/services/humanitarianService';
+import { FeedHealthBadge } from '@/components/FeedHealthBadge';
+import { Eye, Package, CheckCircle2, Clock, Truck, XCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 
+const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
+  requested: { color: 'text-muted-foreground', bg: 'bg-muted', label: 'Requested' },
+  matched: { color: 'text-info', bg: 'bg-info/20', label: 'Matched' },
+  dispatched: { color: 'text-primary', bg: 'bg-primary/20', label: 'Dispatched' },
+  in_transit: { color: 'text-warning', bg: 'bg-warning/20', label: 'In Transit' },
+  delivered: { color: 'text-success', bg: 'bg-success/20', label: 'Delivered' },
+  failed: { color: 'text-destructive', bg: 'bg-destructive/20', label: 'Failed' },
+  disputed: { color: 'text-orange-400', bg: 'bg-orange-400/20', label: 'Disputed' },
+  partial: { color: 'text-yellow-500', bg: 'bg-yellow-500/20', label: 'Partial' },
+};
+
 export function AidAccountabilityPanel() {
   const { t } = useTranslation();
-  const totalPledged = mockAidFunds.reduce((s, f) => s + f.amount_usd, 0);
-  const totalDisbursed = mockAidFunds.filter(f => f.disbursed).reduce((s, f) => s + f.amount_usd, 0);
-  const avgTransparency = Math.round(mockAidFunds.reduce((s, f) => s + f.transparency_score, 0) / mockAidFunds.length);
+  const { data: deliveries = [], isLoading } = useAidDeliveries();
+
+  if (isLoading) {
+    return (
+      <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  const totalCount = deliveries.length;
+  const deliveredCount = deliveries.filter(d => d.status === 'delivered').length;
+  const inTransitCount = deliveries.filter(d => d.status === 'in_transit' || d.status === 'dispatched').length;
+  const failedCount = deliveries.filter(d => d.status === 'failed').length;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="p-2 border-b border-border bg-card">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
           <Eye className="h-3 w-3" /> {t('aidAccountability.title')}
+          <FeedHealthBadge feedName="aid_deliveries" className="ml-auto" />
         </h3>
         <p className="text-[8px] text-muted-foreground mt-0.5">{t('aidAccountability.subtitle')}</p>
       </div>
 
       {/* Summary */}
-      <div className="p-2 grid grid-cols-3 gap-1 border-b border-border">
+      <div className="p-2 grid grid-cols-4 gap-1 border-b border-border">
         <div className="bg-muted/30 rounded p-1 text-center">
-          <div className="text-[10px] font-bold text-primary">${(totalPledged / 1e6).toFixed(1)}M</div>
+          <div className="text-[10px] font-bold text-primary">{totalCount}</div>
           <div className="text-[7px] text-muted-foreground">Total</div>
         </div>
         <div className="bg-muted/30 rounded p-1 text-center">
-          <div className="text-[10px] font-bold text-success">${(totalDisbursed / 1e6).toFixed(1)}M</div>
-          <div className="text-[7px] text-muted-foreground">Disbursed</div>
+          <div className="text-[10px] font-bold text-success">{deliveredCount}</div>
+          <div className="text-[7px] text-muted-foreground">Delivered</div>
         </div>
         <div className="bg-muted/30 rounded p-1 text-center">
-          <div className={cn('text-[10px] font-bold', avgTransparency >= 80 ? 'text-success' : avgTransparency >= 60 ? 'text-warning' : 'text-destructive')}>{avgTransparency}%</div>
-          <div className="text-[7px] text-muted-foreground">Transparency</div>
+          <div className="text-[10px] font-bold text-warning">{inTransitCount}</div>
+          <div className="text-[7px] text-muted-foreground">In Transit</div>
+        </div>
+        <div className="bg-muted/30 rounded p-1 text-center">
+          <div className="text-[10px] font-bold text-destructive">{failedCount}</div>
+          <div className="text-[7px] text-muted-foreground">Failed</div>
         </div>
       </div>
 
       <div className="p-2 space-y-1.5">
-        {mockAidFunds.map(fund => (
-          <div key={fund.id} className="border border-border rounded p-2 space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">{fund.organization}</span>
-              <span className="text-[9px] text-muted-foreground">{fund.source_country}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold flex items-center gap-0.5">
-                <DollarSign className="h-2.5 w-2.5 text-success" />
-                ${(fund.amount_usd / 1e6).toFixed(1)}M
-              </span>
-              <span className={cn('text-[8px] flex items-center gap-0.5 font-medium',
-                fund.disbursed ? 'text-success' : 'text-warning'
-              )}>
-                {fund.disbursed ? <CheckCircle2 className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
-                {fund.disbursed ? `Disbursed ${fund.disbursement_date}` : 'Pending'}
-              </span>
-            </div>
-            <div className="text-[8px] text-muted-foreground">{fund.purpose} — {fund.region}</div>
-            <div className="flex items-center gap-1 mt-0.5">
-              <Shield className="h-2.5 w-2.5 text-muted-foreground" />
-              <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                <div className={cn('h-full rounded-full',
-                  fund.transparency_score >= 80 ? 'bg-success' : fund.transparency_score >= 60 ? 'bg-warning' : 'bg-destructive'
-                )} style={{ width: `${fund.transparency_score}%` }} />
+        {deliveries.map(delivery => {
+          const cfg = statusConfig[delivery.status] ?? statusConfig.requested;
+          return (
+            <div key={delivery.id} className="border border-border rounded p-2 space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium flex items-center gap-1">
+                  <Package className="h-3 w-3 text-muted-foreground" />
+                  {delivery.category}
+                  {delivery.quantity > 0 && <span className="text-[8px] text-muted-foreground">x{delivery.quantity}</span>}
+                </span>
+                <span className={cn('text-[7px] font-bold uppercase rounded px-1.5 py-0.5', cfg.bg, cfg.color)}>
+                  {cfg.label}
+                </span>
               </div>
-              <span className="text-[8px] text-muted-foreground">{fund.transparency_score}%</span>
+              <div className="flex items-center justify-between text-[8px] text-muted-foreground">
+                {delivery.donorName && (
+                  <span className="flex items-center gap-0.5">
+                    Donor: <span className="font-medium text-foreground">{delivery.donorName}</span>
+                  </span>
+                )}
+                <span>{delivery.recipientLocation}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[8px] text-muted-foreground">
+                {delivery.dispatchedAt && (
+                  <span className="flex items-center gap-0.5">
+                    <Truck className="h-2.5 w-2.5" />
+                    {new Date(delivery.dispatchedAt).toLocaleDateString()}
+                  </span>
+                )}
+                {delivery.deliveredAt && (
+                  <span className="flex items-center gap-0.5">
+                    <CheckCircle2 className="h-2.5 w-2.5 text-success" />
+                    {new Date(delivery.deliveredAt).toLocaleDateString()}
+                  </span>
+                )}
+                {!delivery.dispatchedAt && !delivery.deliveredAt && (
+                  <span className="flex items-center gap-0.5">
+                    <Clock className="h-2.5 w-2.5" />
+                    Created {new Date(delivery.createdAt).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              {delivery.reviewerNotes && (
+                <p className="text-[8px] text-muted-foreground italic mt-0.5">{delivery.reviewerNotes}</p>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
+        {deliveries.length === 0 && (
+          <p className="text-[8px] text-muted-foreground italic text-center py-2">
+            No aid delivery records available yet.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { mockAidRequests, mockAidOffers, type AidRequest, type AidOffer, type AidPriority, type AidStatus } from '@/data/extendedMockData';
+import { useBridgedAidRequests, useBridgedAidOffers } from '@/services/mockBridge';
+import type { AidRequest, AidOffer, AidPriority, AidStatus } from '@/data/extendedMockData';
 import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
 import { useAcceptAidMatch } from '@/hooks/useDataHooks';
 import {
@@ -74,6 +75,8 @@ type ViewMode = 'requests' | 'offers' | 'matched';
 
 export function AidMatchPanel() {
   const { position } = useGeolocation();
+  const { data: mockAidRequests = [], isLoading: isLoadingRequests } = useBridgedAidRequests();
+  const { data: mockAidOffers = [], isLoading: isLoadingOffers } = useBridgedAidOffers();
   const [view, setView] = useState<ViewMode>('requests');
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<AidPriority | 'all'>('all');
@@ -118,7 +121,7 @@ export function AidMatchPanel() {
       items = [...items].sort((a, b) => distanceKm(position.lat, position.lng, a.lat, a.lng) - distanceKm(position.lat, position.lng, b.lat, b.lng));
     }
     return items;
-  }, [view, search, priorityFilter, position]);
+  }, [mockAidRequests, view, search, priorityFilter, position]);
 
   const filteredOffers = useMemo(() => {
     let items = view === 'matched'
@@ -132,11 +135,13 @@ export function AidMatchPanel() {
       items = [...items].sort((a, b) => distanceKm(position.lat, position.lng, a.lat, a.lng) - distanceKm(position.lat, position.lng, b.lat, b.lng));
     }
     return items;
-  }, [view, search, position]);
+  }, [mockAidOffers, view, search, position]);
 
   const openRequestCount = mockAidRequests.filter(r => r.status === 'open').length;
   const openOfferCount = mockAidOffers.filter(o => o.status === 'open').length;
   const matchedCount = mockAidRequests.filter(r => r.status === 'matched').length;
+
+  if (isLoadingRequests || isLoadingOffers) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-2 p-3">

@@ -1,4 +1,4 @@
-import { mockNightPowerRegions } from '@/data/newFeaturesMockData2';
+import { useBridgedNightPowerGrid } from '@/services/mockBridge';
 import { Moon, TrendingDown, TrendingUp, Minus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -16,9 +16,12 @@ const statusBg: Record<string, string> = {
 };
 
 export function NightPowerPanel() {
+  const { data: mockNightPowerRegions = [], isLoading } = useBridgedNightPowerGrid();
   const { t } = useTranslation();
   const blackoutPop = mockNightPowerRegions.filter(r => r.status === 'blackout').reduce((sum, r) => sum + r.estimated_population, 0);
   const totalPop = mockNightPowerRegions.reduce((sum, r) => sum + r.estimated_population, 0);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

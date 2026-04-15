@@ -1,104 +1,112 @@
 import { useState, useMemo } from 'react';
-import { mockInfraReports, type InfraReport, type InfraType, type InfraStatus } from '@/data/extendedMockData';
-import { useGeolocation, distanceKm } from '@/hooks/useGeolocation';
+import { useChokepoints, useSubseaCables } from '@/services/infrastructureService';
+import { FeedHealthBadge } from '@/components/FeedHealthBadge';
+import type { ChokepointStatus, SubseaCable } from '@/services/types';
 import {
-  Zap, Wifi, Droplets, Fuel, Radio, Search,
-  ThumbsUp, CheckCircle2, AlertTriangle, XCircle, Signal
+  Zap, Wifi, Search, Anchor, Cable,
+  CheckCircle2, AlertTriangle, XCircle, Radio
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation, t as translate } from '@/lib/i18n';
 
-const typeIcons: Record<InfraType, typeof Zap> = {
-  electricity: Zap,
-  generator: Zap,
-  internet: Wifi,
-  mobile_network: Signal,
-  water_supply: Droplets,
-  fuel_station: Fuel,
+type ChokepointStatusValue = ChokepointStatus['status'];
+
+const statusColors: Record<ChokepointStatusValue, string> = {
+  normal: 'text-success',
+  elevated: 'text-warning',
+  disrupted: 'text-danger',
+  blocked: 'text-danger',
 };
 
-const typeKeys: Record<InfraType, string> = {
-  electricity: 'infra.electricity', generator: 'infra.generators', internet: 'infra.internet',
-  mobile_network: 'infra.mobile', water_supply: 'infra.water', fuel_station: 'infra.fuelStations',
+const statusIcons: Record<ChokepointStatusValue, typeof CheckCircle2> = {
+  normal: CheckCircle2,
+  elevated: AlertTriangle,
+  disrupted: XCircle,
+  blocked: XCircle,
 };
 
-const statusColors: Record<InfraStatus, string> = {
-  operational: 'text-success',
-  partial: 'text-warning',
-  outage: 'text-danger',
-  unknown: 'text-muted-foreground',
-};
-
-const statusIcons: Record<InfraStatus, typeof CheckCircle2> = {
-  operational: CheckCircle2,
-  partial: AlertTriangle,
-  outage: XCircle,
-  unknown: Radio,
+const cableStatusColors: Record<SubseaCable['status'], string> = {
+  active: 'text-success',
+  planned: 'text-info',
+  fault: 'text-danger',
+  decommissioned: 'text-muted-foreground',
 };
 
 export function InfraStatusPanel() {
   const { t } = useTranslation();
-  const { position } = useGeolocation();
+  const { data: chokepoints = [], isLoading: loadingCp } = useChokepoints();
+  const { data: cables = [], isLoading: loadingCables } = useSubseaCables();
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<InfraType | 'all'>('all');
+  const [view, setView] = useState<'chokepoints' | 'cables'>('chokepoints');
 
-  const reports = useMemo(() => {
-    let items = mockInfraReports;
-    if (typeFilter !== 'all') items = items.filter(r => r.type === typeFilter);
-    if (search) {
-      const q = search.toLowerCase();
-      items = items.filter(r => r.location.toLowerCase().includes(q) || r.description.toLowerCase().includes(q));
-    }
-    if (position) {
-      items = [...items].sort((a, b) => distanceKm(position.lat, position.lng, a.lat, a.lng) - distanceKm(position.lat, position.lng, b.lat, b.lng));
-    }
-    return items;
-  }, [search, typeFilter, position]);
+  const isLoading = loadingCp || loadingCables;
 
-  // Summary by type
-  const summary = useMemo(() => {
-    const types: InfraType[] = ['electricity', 'internet', 'mobile_network', 'water_supply', 'fuel_station', 'generator'];
-    return types.map(type => {
-      const items = mockInfraReports.filter(r => r.type === type);
-      const operational = items.filter(r => r.status === 'operational').length;
-      const partial = items.filter(r => r.status === 'partial').length;
-      const outage = items.filter(r => r.status === 'outage').length;
-      return { type, total: items.length, operational, partial, outage };
-    });
-  }, []);
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
+  const filteredChokepoints = useMemo(() => {
+    if (!search) return chokepoints;
+    const q = search.toLowerCase();
+    return chokepoints.filter(cp => cp.name.toLowerCase().includes(q) || cp.region.toLowerCase().includes(q));
+  }, [chokepoints, search]);
+
+  const filteredCables = useMemo(() => {
+    if (!search) return cables;
+    const q = search.toLowerCase();
+    return cables.filter(c => c.name.toLowerCase().includes(q) || c.owner.toLowerCase().includes(q));
+  }, [cables, search]);
+
+  // Summary
+  const cpSummary = useMemo(() => {
+    const normal = chokepoints.filter(c => c.status === 'normal').length;
+    const elevated = chokepoints.filter(c => c.status === 'elevated').length;
+    const disrupted = chokepoints.filter(c => c.status === 'disrupted' || c.status === 'blocked').length;
+    return { normal, elevated, disrupted, total: chokepoints.length };
+  }, [chokepoints]);
 
   return (
     <div className="p-3 space-y-3">
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-primary flex items-center gap-2">
         <Zap className="h-3 w-3" /> {t('infra.title')}
+        <FeedHealthBadge feedName="chokepoints" />
       </h2>
 
       {/* Overview Grid */}
       <div className="grid grid-cols-3 gap-1">
-        {summary.map(s => {
-          const Icon = typeIcons[s.type];
-          const worstStatus: InfraStatus = s.outage > 0 ? 'outage' : s.partial > 0 ? 'partial' : 'operational';
-          return (
-            <button
-              key={s.type}
-              onClick={() => setTypeFilter(typeFilter === s.type ? 'all' : s.type)}
-              className={cn(
-                'rounded p-1.5 text-center border transition-colors',
-                typeFilter === s.type ? 'border-primary/30 bg-primary/10' : 'border-border hover:bg-muted/50'
-              )}
-            >
-              <Icon className={cn('h-3 w-3 mx-auto mb-0.5', statusColors[worstStatus])} />
-              <div className="text-[8px] text-muted-foreground">{t(typeKeys[s.type])}</div>
-              <div className="flex justify-center gap-0.5 mt-0.5">
-                {s.operational > 0 && <span className="h-1 w-1 rounded-full bg-success" />}
-                {s.partial > 0 && <span className="h-1 w-1 rounded-full bg-warning" />}
-                {s.outage > 0 && <span className="h-1 w-1 rounded-full bg-danger" />}
-              </div>
-            </button>
-          );
-        })}
+        <button
+          onClick={() => setView('chokepoints')}
+          className={cn(
+            'rounded p-1.5 text-center border transition-colors',
+            view === 'chokepoints' ? 'border-primary/30 bg-primary/10' : 'border-border hover:bg-muted/50'
+          )}
+        >
+          <Anchor className="h-3 w-3 mx-auto mb-0.5 text-primary" />
+          <div className="text-[8px] text-muted-foreground">Chokepoints</div>
+          <div className="flex justify-center gap-0.5 mt-0.5">
+            {cpSummary.normal > 0 && <span className="h-1 w-1 rounded-full bg-success" />}
+            {cpSummary.elevated > 0 && <span className="h-1 w-1 rounded-full bg-warning" />}
+            {cpSummary.disrupted > 0 && <span className="h-1 w-1 rounded-full bg-danger" />}
+          </div>
+        </button>
+        <button
+          onClick={() => setView('cables')}
+          className={cn(
+            'rounded p-1.5 text-center border transition-colors',
+            view === 'cables' ? 'border-primary/30 bg-primary/10' : 'border-border hover:bg-muted/50'
+          )}
+        >
+          <Cable className="h-3 w-3 mx-auto mb-0.5 text-info" />
+          <div className="text-[8px] text-muted-foreground">Subsea Cables</div>
+          <div className="flex justify-center gap-0.5 mt-0.5">
+            {cables.some(c => c.status === 'active') && <span className="h-1 w-1 rounded-full bg-success" />}
+            {cables.some(c => c.status === 'fault') && <span className="h-1 w-1 rounded-full bg-danger" />}
+          </div>
+        </button>
+        <div className="rounded p-1.5 text-center border border-border">
+          <div className="text-sm font-bold">{chokepoints.length + cables.length}</div>
+          <div className="text-[8px] text-muted-foreground">Total Assets</div>
+        </div>
       </div>
 
       {/* Search */}
@@ -112,43 +120,66 @@ export function InfraStatusPanel() {
         />
       </div>
 
-      {/* Reports */}
+      {/* Items */}
       <div className="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
-        {reports.map(report => {
-          const Icon = typeIcons[report.type];
-          const StatusIcon = statusIcons[report.status];
-          const dist = position ? distanceKm(position.lat, position.lng, report.lat, report.lng).toFixed(1) : null;
-          const timeAgo = getTimeAgo(report.reported_at);
-
+        {view === 'chokepoints' && filteredChokepoints.map(cp => {
+          const StatusIcon = statusIcons[cp.status];
           return (
-            <div key={report.id} className="border border-border rounded p-2 space-y-1">
+            <div key={cp.id} className="border border-border rounded p-2 space-y-1">
               <div className="flex items-start justify-between gap-1">
                 <div className="flex items-center gap-1.5">
-                  <Icon className={cn('h-3 w-3', statusColors[report.status])} />
-                  <span className="text-xs font-medium">{t(typeKeys[report.type])}</span>
+                  <Anchor className={cn('h-3 w-3', statusColors[cp.status])} />
+                  <span className="text-xs font-medium">{cp.name}</span>
                 </div>
-                <Badge variant="outline" className={cn('text-[8px] px-1 py-0 flex items-center gap-0.5', statusColors[report.status])}>
+                <Badge variant="outline" className={cn('text-[8px] px-1 py-0 flex items-center gap-0.5', statusColors[cp.status])}>
                   <StatusIcon className="h-2 w-2" />
-                  {t(`infra.${report.status}`)}
+                  {cp.status}
                 </Badge>
               </div>
 
-              <div className="text-[9px] text-muted-foreground">{report.location}</div>
-              <p className="text-[10px] text-muted-foreground leading-tight">{report.description}</p>
+              <div className="text-[9px] text-muted-foreground">{cp.region}</div>
+
+              <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+                <span>Disruption: <span className={cn('font-bold', cp.disruptionScore > 70 ? 'text-danger' : cp.disruptionScore > 40 ? 'text-warning' : 'text-success')}>{cp.disruptionScore}/100</span></span>
+                {cp.vesselCount != null && <span>Ships: {cp.vesselCount}</span>}
+                {cp.avgDelayHours != null && <span>Delay: {cp.avgDelayHours}h</span>}
+              </div>
 
               <div className="flex items-center justify-between text-[9px] text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  {dist && <span className="text-primary">{dist} km</span>}
-                  <span>{timeAgo}</span>
-                  {report.verified && <CheckCircle2 className="h-2.5 w-2.5 text-success" />}
-                </div>
-                <div className="flex items-center gap-0.5">
-                  <ThumbsUp className="h-2.5 w-2.5" /> {report.upvotes}
-                </div>
+                <span>Confidence: {Math.round(cp.confidence * 100)}%</span>
+                <span>{getTimeAgo(cp.lastUpdated)}</span>
               </div>
             </div>
           );
         })}
+
+        {view === 'cables' && filteredCables.map(cable => (
+          <div key={cable.id} className="border border-border rounded p-2 space-y-1">
+            <div className="flex items-start justify-between gap-1">
+              <div className="flex items-center gap-1.5">
+                <Cable className={cn('h-3 w-3', cableStatusColors[cable.status])} />
+                <span className="text-xs font-medium">{cable.name}</span>
+              </div>
+              <Badge variant="outline" className={cn('text-[8px] px-1 py-0', cableStatusColors[cable.status])}>
+                {cable.status}
+              </Badge>
+            </div>
+
+            <div className="text-[9px] text-muted-foreground">Owner: {cable.owner}</div>
+
+            {cable.capacityTbps != null && (
+              <div className="text-[9px] text-muted-foreground">Capacity: {cable.capacityTbps} Tbps</div>
+            )}
+
+            {cable.landingPoints.length > 0 && (
+              <div className="flex gap-0.5 flex-wrap">
+                {cable.landingPoints.map((lp, i) => (
+                  <span key={i} className="text-[8px] px-1 py-0 bg-muted rounded">{lp.country}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

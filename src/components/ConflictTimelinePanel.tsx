@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { mockTimelineEvents } from '@/data/newFeaturesMockData';
+import { useBridgedTimelineEvents } from '@/services/mockBridge';
 import { useEscalationEvents, type EscalationEvent } from '@/hooks/useDataHooks';
 import { Clock, Crosshair, Swords, Handshake, HeartPulse, Users, Wrench, Play, Pause, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,6 +49,7 @@ function fromDB(e: EscalationEvent): UnifiedEvent {
 
 export function ConflictTimelinePanel() {
   const { t } = useTranslation();
+  const { data: mockTimelineEvents = [], isLoading } = useBridgedTimelineEvents();
   const { data: dbEvents = [] } = useEscalationEvents();
 
   // Merge DB events with mock fallback
@@ -57,7 +58,7 @@ export function ConflictTimelinePanel() {
     const mock = mockTimelineEvents.map(fromMock);
     const all = db.length > 0 ? [...db, ...mock] : mock;
     return all.sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
-  }, [dbEvents]);
+  }, [mockTimelineEvents, dbEvents]);
 
   // ── Replay state (Feature 11) ──────────────────────────────────────────────
   const [playing, setPlaying] = useState(false);
@@ -90,6 +91,8 @@ export function ConflictTimelinePanel() {
   }, [playing, speed, maxPlayhead]);
 
   const activeEventId = playing || playhead > 0 ? chronological[playhead]?.id : null;
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

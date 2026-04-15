@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation, getDirectionsUrl } from '@/hooks/useGeolocation';
-import { mockEmergencyContacts } from '@/data/mockData';
+import { useBridgedSOSContacts } from '@/services/mockBridge';
 import {
   Phone, Share2, Loader2, MapPin, AlertTriangle, Shield, Building2, Heart, Stethoscope,
   Navigation, Users, Clock, CheckCircle2, Radio, XCircle, MessageCircle, Send
@@ -43,6 +43,7 @@ interface SOSSignal {
 }
 
 export function SOSPanel() {
+  const { data: mockEmergencyContacts = [] } = useBridgedSOSContacts();
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();

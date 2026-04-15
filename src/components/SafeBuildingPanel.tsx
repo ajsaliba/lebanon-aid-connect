@@ -1,4 +1,4 @@
-import { mockSafeBuildings } from '@/data/newFeaturesMockData';
+import { useBridgedSafeBuildings } from '@/services/mockBridge';
 import { Building2, ShieldCheck, ArrowDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -6,7 +6,11 @@ import { useTranslation } from '@/lib/i18n';
 const ratingColors = ['', 'text-danger', 'text-warning', 'text-yellow-500', 'text-success', 'text-primary'];
 
 export function SafeBuildingPanel() {
+  const { data: mockSafeBuildings = [], isLoading } = useBridgedSafeBuildings();
   const { t } = useTranslation();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="p-2 border-b border-border bg-card">

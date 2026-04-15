@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { mockProtestEvents, type ProtestType } from '@/data/worldMonitorMockData';
+import { useBridgedProtests } from '@/services/mockBridge';
+import { type ProtestType } from '@/data/worldMonitorMockData';
 import { Megaphone, MapPin, Users, Filter, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ const typeConfig: Record<ProtestType, { color: string; bg: string; label: string
 const scaleLabels = { small: '< 1K', medium: '1-10K', large: '10-50K', mass: '50K+' };
 
 export function ProtestsPanel() {
+  const { data: mockProtestEvents = [], isLoading } = useBridgedProtests();
   const [typeFilter, setTypeFilter] = useState<ProtestType | 'all'>('all');
   const types: ProtestType[] = ['peaceful', 'violent', 'riot', 'strike'];
 
@@ -22,6 +24,8 @@ export function ProtestsPanel() {
 
   const ongoingCount = mockProtestEvents.filter(p => p.ongoing).length;
   const totalParticipants = mockProtestEvents.reduce((s, p) => s + p.participants_est, 0);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

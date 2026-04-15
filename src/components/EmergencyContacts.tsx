@@ -1,4 +1,4 @@
-import { mockEmergencyContacts } from '@/data/mockData';
+import { useBridgedEmergencyContacts } from '@/services/mockBridge';
 import { Phone, Building2, Heart, Stethoscope, Shield } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -18,6 +18,10 @@ const catColors = {
 
 export function EmergencyContacts() {
   const { t } = useTranslation();
+  const { data: mockEmergencyContacts = [], isLoading } = useBridgedEmergencyContacts();
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   return (
     <div className="space-y-2 p-3">
       <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-danger flex items-center gap-2">

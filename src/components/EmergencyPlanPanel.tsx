@@ -1,4 +1,4 @@
-import { mockEmergencyPlans } from '@/data/newFeaturesMockData2';
+import { useBridgedEmergencyPlans } from '@/services/mockBridge';
 import { Shield, MapPin, Route, Phone, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -11,7 +11,11 @@ const routeStatusColor: Record<string, string> = {
 
 export function EmergencyPlanPanel() {
   const { t } = useTranslation();
+  const { data: mockEmergencyPlans = [], isLoading } = useBridgedEmergencyPlans();
   const plan = mockEmergencyPlans[0];
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+  if (!plan) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">No emergency plans available.</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from '@/pages/Index';
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 let mockIsMobile = false;
 
@@ -67,7 +73,7 @@ describe('Root app shell smoke', () => {
   it('defaults to operations shell when legacy override is removed', () => {
     localStorage.removeItem('cedarsalert_shell_mode');
 
-    render(<Index />);
+    render(<Index />, { wrapper: Wrapper });
 
     expect(screen.getAllByTestId('left-sidebar').length).toBeGreaterThan(1);
     expect(screen.getByText('Map Command')).toBeInTheDocument();

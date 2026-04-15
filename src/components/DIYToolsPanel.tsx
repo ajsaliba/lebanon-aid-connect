@@ -1,4 +1,4 @@
-import { mockDIYTutorials } from '@/data/newFeaturesMockData';
+import { useBridgedDIYTutorials } from '@/services/mockBridge';
 import { Wrench, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,10 @@ const difficultyColors: Record<string, string> = {
 
 export function DIYToolsPanel() {
   const { t } = useTranslation();
+  const { data: mockDIYTutorials = [], isLoading } = useBridgedDIYTutorials();
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

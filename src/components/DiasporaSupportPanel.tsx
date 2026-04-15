@@ -1,4 +1,4 @@
-import { mockDiasporaDonors, mockInternationalAid } from '@/data/newFeaturesMockData2';
+import { useBridgedDiasporaDonors, useBridgedInternationalAid } from '@/services/mockBridge';
 import { Globe, Heart, Home, Users, DollarSign, CheckCircle2, Clock, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -18,8 +18,12 @@ const aidStatusColor: Record<string, string> = {
 
 export function DiasporaSupportPanel() {
   const { t } = useTranslation();
+  const { data: mockDiasporaDonors = [], isLoading: isLoadingDonors } = useBridgedDiasporaDonors();
+  const { data: mockInternationalAid = [], isLoading: isLoadingAid } = useBridgedInternationalAid();
   const totalAid = mockInternationalAid.reduce((s, a) => s + a.amount_usd, 0);
   const deliveredAid = mockInternationalAid.filter(a => a.status === 'delivered').reduce((s, a) => s + a.amount_usd, 0);
+
+  if (isLoadingDonors || isLoadingAid) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

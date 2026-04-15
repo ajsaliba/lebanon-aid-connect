@@ -10,3 +10,7 @@
 	path = Lebanon Aid Connect Reimagined
 	url = https://github.com/ajsaliba/aidconnect-reimagined.git
 	branch = main
+[submodule "Centcom Operations"]
+	path = Centcom Operations
+	url = https://github.com/tscsoh/centcom-operations.git
+	branch = main

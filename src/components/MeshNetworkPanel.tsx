@@ -1,4 +1,4 @@
-import { mockCommNodes } from '@/data/newFeaturesMockData2';
+import { useBridgedCommNodes } from '@/services/mockBridge';
 import type { CommType } from '@/data/newFeaturesMockData2';
 import { Wifi, Radio, HardDrive, Users, Signal } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,9 +11,12 @@ const typeConfig: Record<CommType, { icon: React.ReactNode; color: string; label
 };
 
 export function MeshNetworkPanel() {
+  const { data: mockCommNodes = [], isLoading } = useBridgedCommNodes();
   const { t } = useTranslation();
   const activeCount = mockCommNodes.filter(n => n.active).length;
   const totalUsers = mockCommNodes.reduce((s, n) => s + n.users_connected, 0);
+
+  if (isLoading) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
 
   return (
     <div className="border border-border rounded-lg overflow-hidden">

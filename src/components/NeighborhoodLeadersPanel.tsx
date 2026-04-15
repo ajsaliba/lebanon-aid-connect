@@ -1,4 +1,4 @@
-import { mockNeighborhoodLeaders, mockCommunityTasks } from '@/data/newFeaturesMockData2';
+import { useBridgedNeighborhoodLeaders, useBridgedCommunityTasks } from '@/services/mockBridge';
 import { Crown, Users, Phone, ClipboardList, UserCheck, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
@@ -33,7 +33,12 @@ const urgencyColor: Record<string, string> = {
 };
 
 export function NeighborhoodLeadersPanel() {
+  const { data: mockNeighborhoodLeaders = [], isLoading: isLoadingLeaders } = useBridgedNeighborhoodLeaders();
+  const { data: mockCommunityTasks = [], isLoading: isLoadingTasks } = useBridgedCommunityTasks();
   const { t } = useTranslation();
+
+  if (isLoadingLeaders || isLoadingTasks) return <div className="border border-border rounded-lg p-4 text-center text-[9px] text-muted-foreground">Loading...</div>;
+
   const openTasks = mockCommunityTasks.filter(t => t.status === 'open').length;
 
   return (

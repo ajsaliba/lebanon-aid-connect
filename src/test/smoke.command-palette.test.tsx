@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 import { CommandPalette } from '@/components/CommandPalette';
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+);
 
 vi.mock('@/contexts/NewsFeedContext', () => ({
   useNewsFeedContext: () => ({
@@ -43,7 +50,7 @@ vi.mock('@/lib/i18n', () => ({
 
 describe('Command palette smoke', () => {
   it('opens with Ctrl+K', async () => {
-    render(<CommandPalette />);
+    render(<CommandPalette />, { wrapper: Wrapper });
 
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
